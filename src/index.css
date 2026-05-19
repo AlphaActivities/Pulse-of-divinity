@@ -664,54 +664,39 @@ select::placeholder {
   100% { transform: translateY(0%)   scaleY(1);    }
 }
 
-/* ── Step 03: Constellation ──
-   Multiple tiny bright points appear and fade at fixed positions, like stars */
-.step-tile-stars::before,
-.step-tile-stars::after {
+/* ── Step 03: Gilded Drift ──
+   A wide soft diagonal band slowly wanders left→right, midway between
+   aurora's slow atmospheric breathe and foil's sharp directional roll */
+.step-tile-stars::before {
   content: '';
   position: absolute;
+  top: -60%;
+  left: -90%;
+  width: 80%;
+  height: 220%;
+  background: linear-gradient(
+    108deg,
+    transparent 20%,
+    rgba(201,162,39,0.04) 38%,
+    rgba(220,185,80,0.09) 50%,
+    rgba(201,162,39,0.04) 62%,
+    transparent 78%
+  );
+  filter: blur(14px);
+  opacity: 0;
+  transform: skewX(-8deg);
+  transition: opacity 0.9s ease;
   pointer-events: none;
   z-index: 0;
 }
-.step-tile-stars::before {
-  inset: 0;
-  background:
-    radial-gradient(circle 1.5px at 18% 22%, rgba(255,240,160,0.9) 0%, transparent 100%),
-    radial-gradient(circle 1px   at 72% 15%, rgba(255,240,160,0.7) 0%, transparent 100%),
-    radial-gradient(circle 2px   at 55% 68%, rgba(201,162,39,0.85) 0%, transparent 100%),
-    radial-gradient(circle 1px   at 30% 78%, rgba(255,240,160,0.6) 0%, transparent 100%),
-    radial-gradient(circle 1.5px at 84% 52%, rgba(201,162,39,0.80) 0%, transparent 100%),
-    radial-gradient(circle 1px   at 12% 55%, rgba(255,240,160,0.65) 0%, transparent 100%),
-    radial-gradient(circle 2px   at 90% 82%, rgba(201,162,39,0.70) 0%, transparent 100%),
-    radial-gradient(circle 1px   at 44% 35%, rgba(255,240,160,0.75) 0%, transparent 100%);
-  opacity: 0;
-  transition: opacity 0.4s ease;
-}
-.step-tile-stars::after {
-  inset: 0;
-  background:
-    radial-gradient(circle 1px   at 62% 44%, rgba(255,240,160,0.80) 0%, transparent 100%),
-    radial-gradient(circle 1.5px at 25% 62%, rgba(201,162,39,0.75) 0%, transparent 100%),
-    radial-gradient(circle 1px   at 78% 28%, rgba(255,240,160,0.65) 0%, transparent 100%),
-    radial-gradient(circle 2px   at 40% 85%, rgba(201,162,39,0.72) 0%, transparent 100%),
-    radial-gradient(circle 1px   at 8%  34%, rgba(255,240,160,0.60) 0%, transparent 100%),
-    radial-gradient(circle 1.5px at 93% 64%, rgba(201,162,39,0.78) 0%, transparent 100%);
-  opacity: 0;
-  transition: opacity 0.4s ease 0.15s;
-}
+.step-tile-stars::after { display: none; }
 .step-tile-stars:hover::before {
   opacity: 1;
-  animation: starTwinkle 3.2s ease-in-out infinite;
+  animation: gildedDrift 7.5s ease-in-out infinite;
 }
-.step-tile-stars:hover::after {
-  opacity: 1;
-  animation: starTwinkle 2.8s ease-in-out infinite 0.6s;
-}
-@keyframes starTwinkle {
-  0%, 100% { opacity: 1;    }
-  30%       { opacity: 0.35; }
-  60%       { opacity: 0.85; }
-  80%       { opacity: 0.45; }
+@keyframes gildedDrift {
+  0%   { left: -90%; }
+  100% { left: 130%; }
 }
 
 /* ── Step 04: Gilded Foil ──
@@ -933,11 +918,7 @@ select::placeholder {
   }
   .step-tile-stars:active::before {
     opacity: 1;
-    animation: starTwinkle 3.2s ease-in-out infinite;
-  }
-  .step-tile-stars:active::after {
-    opacity: 1;
-    animation: starTwinkle 2.8s ease-in-out infinite 0.6s;
+    animation: gildedDrift 4.2s ease-in-out infinite;
   }
   .step-tile-foil:active::before {
     opacity: 1;

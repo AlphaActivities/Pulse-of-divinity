@@ -7,7 +7,7 @@ const profileImages = [
 ];
 
 const qualities = [
-  { label: 'Medium',   value: 'Oil, Acrylic & Gold Leaf' },
+  { label: 'Medium',   value: 'Prisim Color Pencil' },
   { label: 'Style',    value: 'Spiritual Realism' },
   { label: 'Based In', value: 'Medford, OR · USA' },
   { label: 'Practice', value: 'Studio & Nature-Immersed' },
