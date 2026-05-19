@@ -60,7 +60,15 @@ export default function Navbar() {
             onClick={() => handleNav('#home')}
             aria-label="Pulse of Divinity — return to top"
             className="flex items-center gap-3 group shrink-0"
-            style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px 0' }}
+            style={{
+              background: 'none',
+              border: 'none',
+              cursor: 'pointer',
+              padding: '4px 0',
+              opacity: menuOpen ? 0 : 1,
+              pointerEvents: menuOpen ? 'none' : 'auto',
+              transition: 'opacity 0.3s ease',
+            }}
           >
             <img
               src="/images/Darcy-logo.PNG"
@@ -148,8 +156,10 @@ export default function Navbar() {
               cursor: 'pointer',
               padding: '8px',
               gap: 0,
-              width: '44px',  /* min tap target */
+              width: '44px',
               height: '44px',
+              position: 'relative',
+              zIndex: menuOpen ? 52 : undefined,
             }}
           >
             {[0, 1, 2].map((i) => (
@@ -158,11 +168,11 @@ export default function Navbar() {
                 style={{
                   display: 'block',
                   width: i === 1 ? (menuOpen ? '0' : '24px') : '24px',
-                  height: '1px',
-                  background: scrolled ? '#3e2240' : '#fdf9ed',
+                  height: '1.5px',
+                  background: menuOpen ? '#3e2240' : (scrolled ? '#3e2240' : '#fdf9ed'),
                   margin: '3px 0',
                   transformOrigin: 'center',
-                  transition: 'transform 0.4s ease, opacity 0.35s ease, width 0.3s ease',
+                  transition: 'transform 0.4s ease, opacity 0.35s ease, width 0.3s ease, background 0.3s ease',
                   transform:
                     menuOpen && i === 0 ? 'translateY(7px) rotate(45deg)' :
                     menuOpen && i === 2 ? 'translateY(-7px) rotate(-45deg)' : 'none',
@@ -181,8 +191,8 @@ export default function Navbar() {
         style={{
           position: 'fixed',
           inset: 0,
-          zIndex: 40,
-          background: 'rgba(42,22,41,0.65)',
+          zIndex: 48,
+          background: 'rgba(42,22,41,0.72)',
           backdropFilter: 'blur(6px)',
           WebkitBackdropFilter: 'blur(6px)',
           opacity: menuOpen ? 1 : 0,
@@ -202,7 +212,7 @@ export default function Navbar() {
           right: 0,
           bottom: 0,
           width: 'min(82vw, 320px)',
-          zIndex: 41,
+          zIndex: 51,
           background: 'linear-gradient(165deg, #fdfbf0 0%, #faf3d9 100%)',
           boxShadow: '-24px 0 70px rgba(42,22,41,0.28)',
           transform: menuOpen ? 'translateX(0)' : 'translateX(100%)',
