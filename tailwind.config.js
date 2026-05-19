@@ -1,0 +1,112 @@
+/** @type {import('tailwindcss').Config} */
+export default {
+  content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}'],
+  theme: {
+    extend: {
+      colors: {
+        ivory: {
+          50: '#fefdf8',
+          100: '#fdf9ed',
+          200: '#faf3d9',
+          300: '#f5e9be',
+          400: '#edd99a',
+          500: '#e3c872',
+        },
+        blush: {
+          50: '#fdf6f3',
+          100: '#faeae3',
+          200: '#f4d4c6',
+          300: '#ecb9a4',
+          400: '#e09880',
+          500: '#d2785d',
+        },
+        gold: {
+          50: '#fdfbf0',
+          100: '#faf4d3',
+          200: '#f4e89e',
+          300: '#ebd660',
+          400: '#dfc236',
+          500: '#c9a227',
+          600: '#a87e1e',
+          700: '#865f18',
+          800: '#6b4b16',
+          900: '#573d15',
+        },
+        plum: {
+          50: '#f9f4f7',
+          100: '#f1e5ee',
+          200: '#e3ccdf',
+          300: '#cda8c8',
+          400: '#b480ac',
+          500: '#9b5f91',
+          600: '#7d4574',
+          700: '#663860',
+          800: '#552f51',
+          900: '#3e2240',
+          950: '#2a1629',
+        },
+        warm: {
+          50: '#faf8f5',
+          100: '#f3ede6',
+          200: '#e8ddd1',
+          300: '#d9c8b8',
+          400: '#c7ae99',
+          500: '#b4957c',
+          600: '#9d7a62',
+          700: '#82634f',
+          800: '#6b5143',
+          900: '#573f36',
+        },
+      },
+      fontFamily: {
+        serif: ['"Cormorant Garamond"', 'Georgia', 'serif'],
+        sans: ['"Jost"', 'system-ui', 'sans-serif'],
+        display: ['"Playfair Display"', 'Georgia', 'serif'],
+      },
+      animation: {
+        'fade-in': 'fadeIn 1.2s ease-out forwards',
+        'fade-up': 'fadeUp 1s ease-out forwards',
+        'float': 'float 6s ease-in-out infinite',
+        'float-slow': 'float 9s ease-in-out infinite',
+        'bird': 'birdFly 20s linear infinite',
+        'wing': 'wingFlap 0.6s ease-in-out infinite',
+        'particle': 'particleDrift 8s ease-in-out infinite',
+      },
+      keyframes: {
+        fadeIn: {
+          '0%': { opacity: '0' },
+          '100%': { opacity: '1' },
+        },
+        fadeUp: {
+          '0%': { opacity: '0', transform: 'translateY(24px)' },
+          '100%': { opacity: '1', transform: 'translateY(0)' },
+        },
+        float: {
+          '0%, 100%': { transform: 'translateY(0px)' },
+          '50%': { transform: 'translateY(-12px)' },
+        },
+        birdFly: {
+          '0%': { transform: 'translateX(-120px) translateY(0px)' },
+          '25%': { transform: 'translateX(25vw) translateY(-20px)' },
+          '50%': { transform: 'translateX(50vw) translateY(10px)' },
+          '75%': { transform: 'translateX(75vw) translateY(-15px)' },
+          '100%': { transform: 'translateX(calc(100vw + 120px)) translateY(5px)' },
+        },
+        wingFlap: {
+          '0%, 100%': { transform: 'scaleY(1)' },
+          '50%': { transform: 'scaleY(0.3)' },
+        },
+        particleDrift: {
+          '0%': { transform: 'translateY(0px) translateX(0px)', opacity: '0' },
+          '10%': { opacity: '1' },
+          '90%': { opacity: '0.6' },
+          '100%': { transform: 'translateY(-80px) translateX(20px)', opacity: '0' },
+        },
+      },
+      backdropBlur: {
+        xs: '2px',
+      },
+    },
+  },
+  plugins: [],
+};

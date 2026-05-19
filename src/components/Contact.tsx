@@ -1,0 +1,521 @@
+import { useState, useRef, useEffect } from 'react';
+import { Mail, Phone, Instagram, Send, ChevronDown } from 'lucide-react';
+import { useReveal } from '../hooks/useReveal';
+
+type FormField = 'name' | 'email' | 'phone' | 'interest' | 'contactMethod' | 'message';
+
+interface PieceOption {
+  value: string;
+  label: string;
+  price?: string;
+  image?: string;
+  sub?: string;
+}
+
+const pieceOptions: PieceOption[] = [
+  {
+    value: 'Starlit Within — $3,200',
+    label: 'Starlit Within',
+    price: '$3,200',
+    image: '/images/For_sale/For_sale_01.PNG',
+    sub: 'Celestial · Inner World · Protection',
+  },
+  {
+    value: 'Bloom Through the Breaking — $2,600',
+    label: 'Bloom Through the Breaking',
+    price: '$2,600',
+    image: '/images/For_sale/For_sale_02.PNG',
+    sub: 'Healing · Contrast · Becoming Whole',
+  },
+  {
+    value: 'Private Commission Inquiry',
+    label: 'Private Commission Inquiry',
+    sub: 'A work created just for you',
+  },
+  {
+    value: 'General Question',
+    label: 'General Question',
+    sub: 'Something else on your mind',
+  },
+];
+
+const contactMethods = [
+  { value: 'email', label: 'Email' },
+  { value: 'call',  label: 'Call'  },
+  { value: 'text',  label: 'Text'  },
+];
+
+// NOTE: censoredalchemy@gmail.com is a temporary address.
+// Replace with info@pulseofdivinity.com once the domain is purchased and email hosting is configured.
+const CONTACT_EMAIL = 'censoredalchemy@gmail.com';
+const CONTACT_PHONE = '+1 (458) 488-0450';
+const CONTACT_PHONE_HREF = 'tel:+14584880450';
+
+export default function Contact() {
+  const { ref: titleRef, visible: titleVisible } = useReveal();
+  const { ref: formRef,  visible: formVisible  } = useReveal();
+
+  const [form, setForm] = useState({ name:'', email:'', phone:'', interest:'', contactMethod:'', message:'' });
+  const [submitted, setSubmitted] = useState(false);
+  const [focused,   setFocused]   = useState<FormField | null>(null);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const selectedOption = pieceOptions.find(o => o.value === form.interest);
+
+  const set = (field: FormField, value: string) =>
+    setForm((prev) => ({ ...prev, [field]: value }));
+
+  const formatPhone = (raw: string) => {
+    const digits = raw.replace(/\D/g, '').slice(0, 10);
+    if (digits.length <= 3) return digits;
+    if (digits.length <= 6) return `(${digits.slice(0,3)}) ${digits.slice(3)}`;
+    return `(${digits.slice(0,3)}) ${digits.slice(3,6)}-${digits.slice(6)}`;
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setSubmitted(true);
+  };
+
+  /* Shared input style with focus indicator */
+  const inputStyle = (field: FormField): React.CSSProperties => ({
+    width: '100%',
+    background: 'transparent',
+    border: 'none',
+    borderBottom: `1px solid ${focused === field ? '#c9a227' : 'rgba(107,81,67,0.35)'}`,
+    padding: '12px 0',
+    outline: 'none',
+    fontFamily: 'Jost, system-ui, sans-serif',
+    fontWeight: 300,
+    fontSize: 'clamp(0.9rem,1.5vw,0.97rem)',
+    color: '#573f36',
+    transition: 'border-color 0.35s ease',
+    WebkitAppearance: 'none',
+  });
+
+  const labelStyle: React.CSSProperties = {
+    fontFamily: 'Jost, sans-serif',
+    fontWeight: 400,
+    fontSize: '11px',
+    letterSpacing: '0.22em',
+    textTransform: 'uppercase',
+    color: '#6b5143',
+    display: 'block',
+    marginBottom: '8px',
+  };
+
+  const contactLinks = [
+    {
+      icon: Phone,
+      label: 'Phone',
+      display: CONTACT_PHONE,
+      href: CONTACT_PHONE_HREF,
+      sub: 'Call or Text Welcome',
+    },
+    {
+      icon: Mail,
+      label: 'Email',
+      display: CONTACT_EMAIL,
+      href: `mailto:${CONTACT_EMAIL}`,
+      sub: '',
+    },
+  ];
+
+  return (
+    <section
+      id="contact"
+      aria-labelledby="contact-heading"
+      className="section-pad"
+      style={{ background:'linear-gradient(170deg,#fdfbf0 0%,#faf3d9 50%,#fdf9ed 100%)' }}
+    >
+      <div className="max-w-5xl mx-auto">
+        {/* Header */}
+        <header
+          ref={titleRef}
+          className={`text-center mb-14 md:mb-20 reveal ${titleVisible ? 'visible' : ''}`}
+        >
+          <p className="luxury-subheading text-gold-600 tracking-[0.42em] mb-4 md:mb-5">Reach Out</p>
+          <h2 id="contact-heading" className="luxury-heading text-plum-900 mb-4" style={{ fontSize:'clamp(2rem,5vw,3.8rem)' }}>
+            Begin a Conversation
+          </h2>
+          <div style={{ height:'1px', width:titleVisible?'60px':'0', background:'linear-gradient(90deg,transparent,#c9a227,transparent)', margin:'0 auto 1.6rem', transition:'width 1.2s ease 0.3s' }} />
+          <p className="text-warm-600 max-w-xl mx-auto" style={{ fontFamily:'Cormorant Garamond,serif', fontWeight:300, fontSize:'clamp(1rem,1.7vw,1.12rem)', lineHeight:1.95 }}>
+            Whether you are interested in an available painting or a future private commission,
+            you are invited to reach out and begin a calm, personal conversation about the piece
+            that resonates with you.
+          </p>
+        </header>
+
+        <div
+          ref={formRef}
+          className={`grid lg:grid-cols-5 gap-12 lg:gap-16 reveal reveal-delay-2 ${formVisible ? 'visible' : ''}`}
+        >
+          {/* ── Left: info ── */}
+          <aside className="lg:col-span-2 flex flex-col gap-8 sm:gap-10">
+            <div>
+              <h3 className="luxury-heading text-plum-800 mb-6 sm:mb-7" style={{ fontSize:'clamp(1.2rem,2.5vw,1.4rem)' }}>
+                Contact Darcy LaDue Directly
+              </h3>
+
+              <div className="space-y-5 sm:space-y-6">
+                {contactLinks.map(({ icon: Icon, label, display, href, sub }) => (
+                  <a
+                    key={label}
+                    href={href}
+                    className="flex items-start gap-4 group"
+                    style={{ textDecoration:'none' }}
+                  >
+                    <div
+                      style={{ padding:'11px', border:'1px solid rgba(201,162,39,0.28)', marginTop:'2px', flexShrink:0, transition:'background 0.35s ease,border-color 0.35s ease' }}
+                      onMouseEnter={(e) => { const el=e.currentTarget as HTMLElement; el.style.background='rgba(201,162,39,0.1)'; el.style.borderColor='rgba(201,162,39,0.55)'; }}
+                      onMouseLeave={(e) => { const el=e.currentTarget as HTMLElement; el.style.background='transparent'; el.style.borderColor='rgba(201,162,39,0.28)'; }}
+                      onTouchStart={(e) => { const el=e.currentTarget as HTMLElement; el.style.background='rgba(201,162,39,0.1)'; el.style.borderColor='rgba(201,162,39,0.55)'; }}
+                      onTouchEnd={(e) => { const el=e.currentTarget as HTMLElement; el.style.background='transparent'; el.style.borderColor='rgba(201,162,39,0.28)'; }}
+                    >
+                      <Icon size={16} style={{ color:'#c9a227' }} strokeWidth={1.5} />
+                    </div>
+                    <div className="min-w-0">
+                      <p style={labelStyle}>{label}</p>
+                      <p
+                        className="group-hover:text-gold-700 transition-colors duration-300 break-words"
+                        style={{ fontFamily:'Jost, system-ui, sans-serif', fontWeight:300, fontSize:'0.92rem', letterSpacing:'0.02em', color:'#3e2240' }}
+                      >
+                        {display}
+                      </p>
+                      {sub && (
+                        <p style={{ fontFamily:'Jost,sans-serif', fontWeight:300, fontSize:'9px', letterSpacing:'0.12em', textTransform:'uppercase', color:'#6b5143', marginTop:'3px' }}>
+                          {sub}
+                        </p>
+                      )}
+                    </div>
+                  </a>
+                ))}
+
+                {/* Instagram */}
+                <a
+                  href="https://www.instagram.com/darcyladue"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-start gap-4 group"
+                  style={{ textDecoration:'none' }}
+                >
+                  <div
+                    style={{ padding:'11px', border:'1px solid rgba(201,162,39,0.28)', marginTop:'2px', flexShrink:0, transition:'background 0.35s ease,border-color 0.35s ease' }}
+                    onMouseEnter={(e) => { const el=e.currentTarget as HTMLElement; el.style.background='rgba(201,162,39,0.1)'; el.style.borderColor='rgba(201,162,39,0.55)'; }}
+                    onMouseLeave={(e) => { const el=e.currentTarget as HTMLElement; el.style.background='transparent'; el.style.borderColor='rgba(201,162,39,0.28)'; }}
+                    onTouchStart={(e) => { const el=e.currentTarget as HTMLElement; el.style.background='rgba(201,162,39,0.1)'; el.style.borderColor='rgba(201,162,39,0.55)'; }}
+                    onTouchEnd={(e) => { const el=e.currentTarget as HTMLElement; el.style.background='transparent'; el.style.borderColor='rgba(201,162,39,0.28)'; }}
+                  >
+                    <Instagram size={16} style={{ color:'#c9a227' }} strokeWidth={1.5} />
+                  </div>
+                  <div className="min-w-0">
+                    <p style={labelStyle}>Instagram</p>
+                    <p
+                      className="group-hover:text-gold-700 transition-colors duration-300 break-words"
+                      style={{ fontFamily:'Jost, system-ui, sans-serif', fontWeight:300, fontSize:'0.92rem', letterSpacing:'0.02em', color:'#3e2240' }}
+                    >
+                      @darcyladue
+                    </p>
+                    <p style={{ fontFamily:'Jost,sans-serif', fontWeight:300, fontSize:'9px', letterSpacing:'0.12em', textTransform:'uppercase', color:'#6b5143', marginTop:'3px' }}>
+                      Artwork &amp; process
+                    </p>
+                  </div>
+                </a>
+              </div>
+            </div>
+
+            {/* Personal note */}
+            <blockquote
+              style={{ padding:'1.6rem', border:'1px solid rgba(201,162,39,0.18)', background:'rgba(253,251,240,0.55)', transition:'border-color 0.4s ease,box-shadow 0.4s ease' }}
+              onMouseEnter={(e) => { const el=e.currentTarget as HTMLElement; el.style.borderColor='rgba(201,162,39,0.35)'; el.style.boxShadow='0 8px 28px rgba(62,34,64,0.07)'; }}
+              onMouseLeave={(e) => { const el=e.currentTarget as HTMLElement; el.style.borderColor='rgba(201,162,39,0.18)'; el.style.boxShadow='none'; }}
+              onTouchStart={(e) => { const el=e.currentTarget as HTMLElement; el.style.borderColor='rgba(201,162,39,0.35)'; el.style.boxShadow='0 8px 28px rgba(62,34,64,0.07)'; }}
+              onTouchEnd={(e) => { const el=e.currentTarget as HTMLElement; el.style.borderColor='rgba(201,162,39,0.18)'; el.style.boxShadow='none'; }}
+            >
+              <p style={{ fontFamily:'Cormorant Garamond,serif', fontWeight:300, fontSize:'clamp(0.97rem,1.5vw,1.02rem)', lineHeight:1.92, fontStyle:'italic', color:'#6b5143' }}>
+                "Every message is read and responded to personally, by me, not an assistant.
+                There is no rush here. Take your time."
+              </p>
+              <footer className="luxury-subheading text-gold-600 mt-4 tracking-widest">— Darcy</footer>
+            </blockquote>
+          </aside>
+
+          {/* ── Right: form ── */}
+          <div className="lg:col-span-3">
+            {submitted ? (
+              <div
+                className="flex flex-col items-center justify-center text-center py-16 px-6"
+                style={{ border:'1px solid rgba(201,162,39,0.18)', background:'rgba(253,251,240,0.5)', animation:'fadeUp 0.8s ease-out forwards', minHeight:'440px' }}
+              >
+                <div
+                  style={{ width:56, height:56, borderRadius:'50%', background:'linear-gradient(135deg,#c9a227,#dfc236)', display:'flex', alignItems:'center', justifyContent:'center', marginBottom:'1.5rem', animation:'pulseGold 2.5s ease-in-out infinite' }}
+                >
+                  <Send size={18} style={{ color:'#2a1629' }} strokeWidth={1.5} />
+                </div>
+                <h3 className="luxury-heading text-plum-900 mb-4" style={{ fontSize:'clamp(1.5rem,3vw,1.75rem)' }}>
+                  Your message has arrived.
+                </h3>
+                <p style={{ fontFamily:'Cormorant Garamond,serif', fontWeight:300, fontSize:'clamp(0.97rem,1.5vw,1.05rem)', lineHeight:1.88, color:'#6b5143', maxWidth:'300px' }}>
+                  Darcy will respond personally, usually within 1–2 business days. Thank you for reaching out.
+                </p>
+              </div>
+            ) : (
+              <form onSubmit={handleSubmit} noValidate style={{ display:'flex', flexDirection:'column', gap:'clamp(1.5rem,3vw,2rem)' }}>
+                {/* Name + Email */}
+                <div className="grid sm:grid-cols-2 gap-6 sm:gap-8">
+                  <div>
+                    <label htmlFor="f-name" style={labelStyle}>Your Name</label>
+                    <input
+                      id="f-name"
+                      type="text"
+                      required
+                      autoComplete="name"
+                      value={form.name}
+                      placeholder="Full name"
+                      onChange={(e) => set('name', e.target.value)}
+                      onFocus={() => setFocused('name')}
+                      onBlur={() => setFocused(null)}
+                      style={inputStyle('name')}
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="f-email" style={labelStyle}>Email Address</label>
+                    <input
+                      id="f-email"
+                      type="email"
+                      required
+                      autoComplete="email"
+                      value={form.email}
+                      placeholder="your@email.com"
+                      onChange={(e) => set('email', e.target.value)}
+                      onFocus={() => setFocused('email')}
+                      onBlur={() => setFocused(null)}
+                      style={inputStyle('email')}
+                    />
+                  </div>
+                </div>
+
+                {/* Phone */}
+                <div>
+                  <label htmlFor="f-phone" style={labelStyle}>
+                    Phone Number{' '}
+                    <span style={{ opacity:0.6, fontStyle:'italic', textTransform:'none', letterSpacing:0, fontFamily:'Cormorant Garamond,serif', fontSize:'11px' }}>(optional)</span>
+                  </label>
+                  <input
+                    id="f-phone"
+                    type="tel"
+                    autoComplete="tel"
+                    value={form.phone}
+                    placeholder="+1 (234) 567-8901"
+                    onChange={(e) => set('phone', formatPhone(e.target.value))}
+                    onFocus={() => setFocused('phone')}
+                    onBlur={() => setFocused(null)}
+                    style={inputStyle('phone')}
+                  />
+                </div>
+
+                {/* Interest — custom dropdown */}
+                <div ref={dropdownRef} style={{ position:'relative' }}>
+                  <label style={labelStyle}>Which piece are you interested in?</label>
+
+                  {/* Trigger */}
+                  <button
+                    type="button"
+                    onClick={() => { setDropdownOpen(o => !o); setFocused('interest'); }}
+                    onBlur={() => { if (!dropdownOpen) setFocused(null); }}
+                    aria-haspopup="listbox"
+                    aria-expanded={dropdownOpen}
+                    style={{
+                      width:'100%',
+                      display:'flex',
+                      alignItems:'center',
+                      justifyContent:'space-between',
+                      gap:'12px',
+                      background:'transparent',
+                      border:'none',
+                      borderBottom:`1px solid ${focused==='interest'||dropdownOpen ? '#c9a227' : 'rgba(107,81,67,0.35)'}`,
+                      padding:'12px 0',
+                      cursor:'pointer',
+                      transition:'border-color 0.35s ease',
+                      minHeight:'44px',
+                    }}
+                  >
+                    {selectedOption ? (
+                      <span style={{ display:'flex', alignItems:'center', gap:'10px' }}>
+                        {selectedOption.image && (
+                          <img
+                            src={selectedOption.image}
+                            alt={selectedOption.label}
+                            style={{ width:'36px', height:'36px', objectFit:'cover', flexShrink:0, border:'1px solid rgba(201,162,39,0.3)' }}
+                          />
+                        )}
+                        <span style={{ fontFamily:'Jost,system-ui,sans-serif', fontWeight:300, fontSize:'clamp(0.9rem,1.5vw,0.97rem)', color:'#573f36', textAlign:'left' }}>
+                          {selectedOption.label}
+                          {selectedOption.price && (
+                            <span style={{ marginLeft:'8px', color:'#7d4574', fontWeight:400 }}>{selectedOption.price}</span>
+                          )}
+                        </span>
+                      </span>
+                    ) : (
+                      <span style={{ fontFamily:'Jost,system-ui,sans-serif', fontWeight:300, fontSize:'clamp(0.9rem,1.5vw,0.97rem)', color:'rgba(107,81,67,0.5)' }}>
+                        Select an option…
+                      </span>
+                    )}
+                    <ChevronDown
+                      size={14}
+                      strokeWidth={1.5}
+                      style={{ color:'#c9a227', flexShrink:0, transform: dropdownOpen ? 'rotate(180deg)' : 'rotate(0deg)', transition:'transform 0.3s ease' }}
+                    />
+                  </button>
+
+                  {/* Dropdown panel */}
+                  <div
+                    role="listbox"
+                    aria-label="Select a piece"
+                    style={{
+                      position:'absolute',
+                      top:'calc(100% + 4px)',
+                      left:0,
+                      right:0,
+                      zIndex:50,
+                      background:'#fdfbf0',
+                      border:'1px solid rgba(201,162,39,0.28)',
+                      boxShadow:'0 16px 48px rgba(62,34,64,0.13)',
+                      overflow:'hidden',
+                      maxHeight: dropdownOpen ? '400px' : '0',
+                      opacity: dropdownOpen ? 1 : 0,
+                      pointerEvents: dropdownOpen ? 'auto' : 'none',
+                      transition:'max-height 0.35s cubic-bezier(0.25,0.46,0.45,0.94), opacity 0.25s ease',
+                    }}
+                  >
+                    {pieceOptions.map((o) => {
+                      const isSelected = form.interest === o.value;
+                      return (
+                        <button
+                          key={o.value}
+                          type="button"
+                          role="option"
+                          aria-selected={isSelected}
+                          onClick={() => { set('interest', o.value); setDropdownOpen(false); setFocused(null); }}
+                          style={{
+                            width:'100%',
+                            display:'flex',
+                            alignItems:'center',
+                            gap:'12px',
+                            padding:'12px 16px',
+                            background: isSelected ? 'rgba(201,162,39,0.08)' : 'transparent',
+                            border:'none',
+                            borderBottom:'1px solid rgba(201,162,39,0.1)',
+                            cursor:'pointer',
+                            textAlign:'left',
+                            transition:'background 0.2s ease',
+                          }}
+                          onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background='rgba(201,162,39,0.12)'; }}
+                          onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background=isSelected?'rgba(201,162,39,0.08)':'transparent'; }}
+                        >
+                          {o.image ? (
+                            <img
+                              src={o.image}
+                              alt={o.label}
+                              style={{ width:'52px', height:'52px', objectFit:'cover', flexShrink:0, border:'1px solid rgba(201,162,39,0.25)' }}
+                            />
+                          ) : (
+                            <div style={{ width:'52px', height:'52px', flexShrink:0, display:'flex', alignItems:'center', justifyContent:'center', border:'1px solid rgba(201,162,39,0.18)', background:'rgba(201,162,39,0.04)' }}>
+                              <span style={{ color:'rgba(201,162,39,0.5)', fontSize:'18px', fontFamily:'Cormorant Garamond,serif' }}>✦</span>
+                            </div>
+                          )}
+                          <div style={{ minWidth:0 }}>
+                            <p style={{ fontFamily:'Jost,system-ui,sans-serif', fontWeight:400, fontSize:'0.9rem', color:'#3e2240', letterSpacing:'0.02em', whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>
+                              {o.label}
+                              {o.price && <span style={{ marginLeft:'8px', color:'#7d4574', fontWeight:400 }}>{o.price}</span>}
+                            </p>
+                            {o.sub && (
+                              <p style={{ fontFamily:'Jost,sans-serif', fontWeight:300, fontSize:'9px', letterSpacing:'0.18em', textTransform:'uppercase', color:'#6b5143', marginTop:'3px' }}>
+                                {o.sub}
+                              </p>
+                            )}
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Preferred contact method */}
+                <fieldset style={{ border:'none', padding:0, margin:0 }}>
+                  <legend style={labelStyle}>Preferred Contact Method</legend>
+                  <div style={{ display:'flex', gap:'8px', flexWrap:'wrap', marginTop:'4px' }}>
+                    {contactMethods.map((m) => {
+                      const active = form.contactMethod === m.value;
+                      return (
+                        <button
+                          key={m.value}
+                          type="button"
+                          onClick={() => set('contactMethod', m.value)}
+                          aria-pressed={active}
+                          style={{
+                            padding:'10px 20px',
+                            border:`1px solid ${active?'rgba(201,162,39,0.7)':'rgba(201,162,39,0.22)'}`,
+                            background: active?'rgba(201,162,39,0.1)':'transparent',
+                            fontFamily:'Jost,sans-serif', fontWeight:300,
+                            fontSize:'10px', letterSpacing:'0.22em', textTransform:'uppercase',
+                            color: active?'#a87e1e':'#6b5143',
+                            cursor:'pointer',
+                            transition:'all 0.3s ease',
+                            minHeight:'44px',  /* accessible tap target */
+                          }}
+                        >
+                          {m.label}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </fieldset>
+
+                {/* Message */}
+                <div>
+                  <label htmlFor="f-message" style={labelStyle}>Your Message</label>
+                  <textarea
+                    id="f-message"
+                    required
+                    rows={5}
+                    value={form.message}
+                    placeholder="Share what drew you here, what you are seeking, or simply say hello…"
+                    onChange={(e) => set('message', e.target.value)}
+                    onFocus={() => setFocused('message')}
+                    onBlur={() => setFocused(null)}
+                    style={{ ...inputStyle('message'), resize:'none', lineHeight:1.85 }}
+                  />
+                </div>
+
+                <button
+                  type="submit"
+                  className="luxury-btn-primary"
+                  style={{ width:'100%', display:'flex', alignItems:'center', justifyContent:'center', gap:'10px' }}
+                >
+                  <span>Send Inquiry</span>
+                  <Send size={12} strokeWidth={1.5} />
+                </button>
+
+                <p style={{ textAlign:'center', fontFamily:'Jost,sans-serif', fontWeight:300, fontSize:'10px', letterSpacing:'0.08em', color:'#6b5143' }}>
+                  Your information is held in confidence and never shared with third parties.
+                </p>
+              </form>
+            )}
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
