@@ -152,7 +152,7 @@ function PaintingCard({
             <div
               className="absolute bottom-0 left-0 right-0"
               aria-hidden="true"
-              style={{ height: '40%', background: 'linear-gradient(to top,rgba(42,22,41,0.32) 0%,transparent 100%)' }}
+              style={{ height: '40%', background: 'linear-gradient(to top,rgba(42,22,41,0.32) 0%,transparent 100%)', pointerEvents: 'none' }}
             />
 
             {/* Corner brackets */}
