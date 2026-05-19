@@ -223,18 +223,39 @@ export default function Navbar() {
           background: 'linear-gradient(90deg, transparent, #c9a227, transparent)',
         }} />
 
-        <p style={{
-          fontFamily: 'Cormorant Garamond, serif',
-          fontWeight: 300,
-          fontSize: '0.9rem',
-          letterSpacing: '0.22em',
-          textTransform: 'uppercase',
-          color: '#3e2240',
-          opacity: 0.4,
-          marginBottom: '1.75rem',
-        }}>
-          Pulse of Divinity
-        </p>
+        {/* Close button */}
+        <button
+          onClick={() => setMenuOpen(false)}
+          aria-label="Close navigation menu"
+          style={{
+            position: 'absolute',
+            top: '18px',
+            right: '20px',
+            width: '44px',
+            height: '44px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            background: 'none',
+            border: 'none',
+            cursor: 'pointer',
+            padding: 0,
+          }}
+        >
+          {[45, -45].map((deg, i) => (
+            <span
+              key={i}
+              style={{
+                position: 'absolute',
+                display: 'block',
+                width: '22px',
+                height: '1px',
+                background: '#3e2240',
+                transform: `rotate(${deg}deg)`,
+              }}
+            />
+          ))}
+        </button>
 
         <div style={{ width: '36px', height: '1px', background: 'linear-gradient(90deg,#c9a227,transparent)', marginBottom: '2rem' }} />
 
