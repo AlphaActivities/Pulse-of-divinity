@@ -85,7 +85,31 @@ export default function Contact() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    setSubmitted(true);
+    const body = new URLSearchParams({
+      'form-name': 'contact',
+      'bot-field': '',
+      name: form.name,
+      email: form.email,
+      phone: form.phone,
+      interest: form.interest,
+      contactMethod: form.contactMethod,
+      message: form.message,
+    });
+    fetch('/', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: body.toString(),
+    })
+      .then((res) => {
+        if (res.ok) {
+          setSubmitted(true);
+        } else {
+          console.error('Netlify form submission failed:', res.status);
+        }
+      })
+      .catch((err) => {
+        console.error('Netlify form submission error:', err);
+      });
   };
 
   /* Shared input style with focus indicator */
@@ -271,7 +295,19 @@ export default function Contact() {
                 </p>
               </div>
             ) : (
-              <form onSubmit={handleSubmit} noValidate style={{ display:'flex', flexDirection:'column', gap:'clamp(1.5rem,3vw,2rem)' }}>
+              <form
+                name="contact"
+                method="POST"
+                data-netlify="true"
+                netlify-honeypot="bot-field"
+                onSubmit={handleSubmit}
+                noValidate
+                style={{ display:'flex', flexDirection:'column', gap:'clamp(1.5rem,3vw,2rem)' }}
+              >
+                <input type="hidden" name="form-name" value="contact" />
+                <p className="hidden">
+                  <label>Don't fill this out if you're human: <input name="bot-field" /></label>
+                </p>
                 {/* Name + Email */}
                 <div className="grid sm:grid-cols-2 gap-6 sm:gap-8">
                   <div>
@@ -279,6 +315,7 @@ export default function Contact() {
                     <input
                       id="f-name"
                       type="text"
+                      name="name"
                       required
                       autoComplete="name"
                       value={form.name}
@@ -294,6 +331,7 @@ export default function Contact() {
                     <input
                       id="f-email"
                       type="email"
+                      name="email"
                       required
                       autoComplete="email"
                       value={form.email}
@@ -315,6 +353,7 @@ export default function Contact() {
                   <input
                     id="f-phone"
                     type="tel"
+                    name="phone"
                     autoComplete="tel"
                     value={form.phone}
                     placeholder="+1 (234) 567-8901"
@@ -488,6 +527,7 @@ export default function Contact() {
                   <label htmlFor="f-message" style={labelStyle}>Your Message</label>
                   <textarea
                     id="f-message"
+                    name="message"
                     required
                     rows={5}
                     value={form.message}
