@@ -229,7 +229,7 @@ export default function About() {
 
             <div className="space-y-4 mb-8">
               {[
-                'Darcy creates emotionally reflective artwork inspired by nature, inner transformation, and spiritual softness. Her work is designed to help collectors bring peaceful symbolism and natural beauty into their spaces, creating environments that feel more alive, intentional, and connected.',
+                'Darcy creates emotionally reflective artwork inspired by nature, inner transformation, and spiritual soundness. Her work is designed to help collectors bring peaceful symbolism and natural beauty into their spaces, creating environments that feel more alive, intentional, and connected.',
                 'Each piece begins not with a sketch, but with a feeling: a walk in the rain, a meditation at the edge of still water, a quiet observation of how light falls through leaves. She paints the emotional truth of nature.',
                 'Her collectors are emotionally aware, nature-connected people who want their home to feel like a reflection of their inner world: peaceful, symbolic, and beautifully intentional.',
               ].map((text, i) => (

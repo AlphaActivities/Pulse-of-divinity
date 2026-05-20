@@ -305,7 +305,7 @@ export default function AvailableWorks() {
           <div style={{ height:'1px', width:titleVisible?'60px':'0', background:'linear-gradient(90deg,transparent,#c9a227,transparent)', margin:'0 auto 1.6rem', transition:'width 1.2s ease 0.3s' }} />
           <p className="text-warm-600 max-w-2xl mx-auto" style={{ fontFamily:'Cormorant Garamond,serif', fontWeight:300, fontSize:'clamp(1rem,1.8vw,1.15rem)', lineHeight:1.95 }}>
             Each original painting is created as an emotional reflection, blending nature,
-            symbolism, and spiritual softness into a visual experience meant to transform
+            symbolism, and spiritual soundness into a visual experience meant to transform
             the feeling of a space.
           </p>
         </header>
