@@ -6,25 +6,25 @@ const process = [
     step: '01',
     tileClass: 'step-tile step-tile-ink',
     title: 'A Personal Conversation',
-    description: 'We begin with a genuine, unhurried conversation about your space, your story, and the emotion or season you want to hold in art. This is listening, not a form.',
+    description: 'Darcy begins with a genuine and unhurried conversation about your space, your story, and the emotion or vision you want to hold in art. Listening to you is step one.',
   },
   {
     step: '02',
     tileClass: 'step-tile step-tile-aurora',
     title: 'Vision & Direction',
-    description: 'From what you share, Darcy develops a written and visual direction for your piece: the mood, symbolism, palette, and energy. You respond before a single brushstroke is made.',
+    description: 'From what you share, Darcy develops a written and visual direction for your piece: the mood, symbolism, palette specs, and energy. You respond before a single creative stroke is made.',
   },
   {
     step: '03',
     tileClass: 'step-tile step-tile-stars',
     title: 'Creation with Intention',
-    description: 'Your painting is made over weeks, with care and ceremony. You receive progress documentation throughout. The creation is a shared journey, not a transaction.',
+    description: 'Your painting is made over weeks, with care and precision. You receive progress documentation throughout. The creation is a shared journey, not a transaction.',
   },
   {
     step: '04',
     tileClass: 'step-tile step-tile-foil',
     title: 'Delivery & Provenance',
-    description: 'Delivered with archival care, a detailed journey certificate of authenticity, and the full story of your piece: its inspiration, symbolism, and the moments it came to life.',
+    description: 'Delivered with premium care, a detailed journey certificate of authenticity, and the full story of your piece: its inspiration, symbolism, and the moments it came to life.',
   },
 ];
 
@@ -195,7 +195,7 @@ export default function Commissions() {
               className="text-ivory-300 mb-8 italic max-w-lg mx-auto"
               style={{ fontFamily:'Cormorant Garamond,serif', fontWeight:300, fontSize:'clamp(1rem,1.8vw,1.1rem)', lineHeight:1.88 }}
             >
-              "A commission is not a request — it is an invitation to bring your innermost world into visible form."
+              "A commission is not a request, it is an invitation to bring your innermost world into visible form."
             </blockquote>
             <button
               className="luxury-btn-primary"
