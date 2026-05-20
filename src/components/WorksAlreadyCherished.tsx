@@ -662,7 +662,7 @@ export default function WorksAlreadyCherished() {
           >
             These pieces have already found their homes and have been gifted with intention, collected with care,
             or placed in private spaces where they continue to do what they were made to do: hold meaning,
-            create atmosphere, and quietly transform the rooms they inhabit.
+            calm the atmosphere, and quietly transform the rooms they inhabit.
           </p>
         </header>
 
