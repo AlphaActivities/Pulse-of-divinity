@@ -195,7 +195,7 @@ export default function Commissions() {
               className="text-ivory-300 mb-8 italic max-w-lg mx-auto"
               style={{ fontFamily:'Cormorant Garamond,serif', fontWeight:300, fontSize:'clamp(1rem,1.8vw,1.1rem)', lineHeight:1.88 }}
             >
-              "A commission is not a request."{'\n'}<br />"It is an invitation to bring your innermost world into visible form."
+              "A commission is not a request — it is an invitation to bring your innermost world into visible form."
             </blockquote>
             <button
               className="luxury-btn-primary"
