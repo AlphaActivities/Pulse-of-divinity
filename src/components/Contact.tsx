@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { Mail, Phone, Instagram, Send, ChevronDown } from 'lucide-react';
+import { Mail, Phone, Instagram, Facebook, Send, ChevronDown } from 'lucide-react';
 import { useReveal } from '../hooks/useReveal';
 
 type FormField = 'name' | 'email' | 'phone' | 'interest' | 'contactMethod' | 'message';
@@ -45,9 +45,7 @@ const contactMethods = [
   { value: 'text',  label: 'Text'  },
 ];
 
-// NOTE: censoredalchemy@gmail.com is a temporary address.
-// Replace with info@pulseofdivinity.com once the domain is purchased and email hosting is configured.
-const CONTACT_EMAIL = 'censoredalchemy@gmail.com';
+const CONTACT_EMAIL = 'darcy.pulseofdivinity@gmail.com';
 const CONTACT_PHONE = '+1 (458) 488-0450';
 const CONTACT_PHONE_HREF = 'tel:+14584880450';
 
@@ -228,7 +226,7 @@ export default function Contact() {
 
                 {/* Instagram */}
                 <a
-                  href="https://www.instagram.com/darcyladue"
+                  href="https://www.instagram.com/pulseofdivinity/"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-start gap-4 group"
@@ -249,10 +247,41 @@ export default function Contact() {
                       className="group-hover:text-gold-700 transition-colors duration-300 break-words"
                       style={{ fontFamily:'Jost, system-ui, sans-serif', fontWeight:300, fontSize:'0.92rem', letterSpacing:'0.02em', color:'#3e2240' }}
                     >
-                      @darcyladue
+                      @pulseofdivinity
                     </p>
                     <p style={{ fontFamily:'Jost,sans-serif', fontWeight:300, fontSize:'9px', letterSpacing:'0.12em', textTransform:'uppercase', color:'#6b5143', marginTop:'3px' }}>
                       Artwork &amp; process
+                    </p>
+                  </div>
+                </a>
+
+                {/* Facebook */}
+                <a
+                  href="https://www.facebook.com/pulseofdivinity"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-start gap-4 group"
+                  style={{ textDecoration:'none' }}
+                >
+                  <div
+                    style={{ padding:'11px', border:'1px solid rgba(201,162,39,0.28)', marginTop:'2px', flexShrink:0, transition:'background 0.35s ease,border-color 0.35s ease' }}
+                    onMouseEnter={(e) => { const el=e.currentTarget as HTMLElement; el.style.background='rgba(201,162,39,0.1)'; el.style.borderColor='rgba(201,162,39,0.55)'; }}
+                    onMouseLeave={(e) => { const el=e.currentTarget as HTMLElement; el.style.background='transparent'; el.style.borderColor='rgba(201,162,39,0.28)'; }}
+                    onTouchStart={(e) => { const el=e.currentTarget as HTMLElement; el.style.background='rgba(201,162,39,0.1)'; el.style.borderColor='rgba(201,162,39,0.55)'; }}
+                    onTouchEnd={(e) => { const el=e.currentTarget as HTMLElement; el.style.background='transparent'; el.style.borderColor='rgba(201,162,39,0.28)'; }}
+                  >
+                    <Facebook size={16} style={{ color:'#c9a227' }} strokeWidth={1.5} />
+                  </div>
+                  <div className="min-w-0">
+                    <p style={labelStyle}>Facebook</p>
+                    <p
+                      className="group-hover:text-gold-700 transition-colors duration-300 break-words"
+                      style={{ fontFamily:'Jost, system-ui, sans-serif', fontWeight:300, fontSize:'0.92rem', letterSpacing:'0.02em', color:'#3e2240' }}
+                    >
+                      Pulse of Divinity
+                    </p>
+                    <p style={{ fontFamily:'Jost,sans-serif', fontWeight:300, fontSize:'9px', letterSpacing:'0.12em', textTransform:'uppercase', color:'#6b5143', marginTop:'3px' }}>
+                      Follow the art journey
                     </p>
                   </div>
                 </a>

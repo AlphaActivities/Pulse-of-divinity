@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Instagram, Facebook, Mail } from 'lucide-react';
 import { useReveal } from '../hooks/useReveal';
 import PrivacyModal from './PrivacyModal';
 import TermsModal from './TermsModal';
@@ -128,6 +129,40 @@ export default function Footer() {
               ))}
             </ul>
           </nav>
+        </div>
+
+        {/* Social icons row */}
+        <div className="flex items-center justify-center gap-5 mb-10">
+          {[
+            { href: 'https://www.instagram.com/pulseofdivinity/', icon: Instagram, label: 'Instagram' },
+            { href: 'https://www.facebook.com/pulseofdivinity',   icon: Facebook,  label: 'Facebook'  },
+            { href: 'mailto:darcy.pulseofdivinity@gmail.com',      icon: Mail,      label: 'Email'     },
+          ].map(({ href, icon: Icon, label }) => (
+            <a
+              key={label}
+              href={href}
+              target={href.startsWith('mailto') ? undefined : '_blank'}
+              rel={href.startsWith('mailto') ? undefined : 'noopener noreferrer'}
+              aria-label={label}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                width: '40px',
+                height: '40px',
+                border: '1px solid rgba(201,162,39,0.22)',
+                color: 'rgba(201,162,39,0.65)',
+                textDecoration: 'none',
+                transition: 'border-color 0.35s ease, color 0.35s ease, background 0.35s ease',
+              }}
+              onMouseEnter={(e) => { const el=e.currentTarget as HTMLElement; el.style.borderColor='rgba(201,162,39,0.6)'; el.style.color='#c9a227'; el.style.background='rgba(201,162,39,0.07)'; }}
+              onMouseLeave={(e) => { const el=e.currentTarget as HTMLElement; el.style.borderColor='rgba(201,162,39,0.22)'; el.style.color='rgba(201,162,39,0.65)'; el.style.background='transparent'; }}
+              onTouchStart={(e) => { const el=e.currentTarget as HTMLElement; el.style.borderColor='rgba(201,162,39,0.6)'; el.style.color='#c9a227'; el.style.background='rgba(201,162,39,0.07)'; }}
+              onTouchEnd={(e) => { const el=e.currentTarget as HTMLElement; el.style.borderColor='rgba(201,162,39,0.22)'; el.style.color='rgba(201,162,39,0.65)'; el.style.background='transparent'; }}
+            >
+              <Icon size={15} strokeWidth={1.5} />
+            </a>
+          ))}
         </div>
 
         {/* Bottom bar */}
