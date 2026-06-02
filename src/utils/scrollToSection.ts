@@ -20,13 +20,13 @@ export function scrollToSection(selector: string): void {
 
   let delta = 0;
   if (currentlyExpanded && targetWillBeCompressed) {
-    // Navbar will shrink during scroll — subtract the delta so section
-    // lands flush under the shorter compressed navbar.
-    delta = -NAV_TRANSITION_DELTA;
-  } else if (currentlyCompressed && targetWillBeExpanded) {
-    // Navbar will grow during scroll — add the delta so section lands
-    // flush under the taller expanded navbar.
+    // Navbar will shrink during scroll. The final navbar is shorter, so the
+    // page must scroll farther to bring the section flush — add the delta.
     delta = NAV_TRANSITION_DELTA;
+  } else if (currentlyCompressed && targetWillBeExpanded) {
+    // Navbar will grow during scroll. The final navbar is taller, so the
+    // page must scroll less far — subtract the delta.
+    delta = -NAV_TRANSITION_DELTA;
   }
 
   window.scrollTo({
