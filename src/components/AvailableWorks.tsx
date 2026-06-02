@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useReveal } from '../hooks/useReveal';
 import ArtworkLightbox from './ArtworkLightbox';
+import { scrollToSection } from '../utils/scrollToSection';
 
 interface Painting {
   id: number;
@@ -262,12 +263,7 @@ function PaintingCard({
             {/* CTA */}
             <button
               className="luxury-btn-plum w-full mt-6"
-              onClick={() => {
-                const target = document.querySelector('#contact') as HTMLElement | null;
-                const nav = document.querySelector('nav');
-                const navHeight = (nav?.getBoundingClientRect().height ?? 72) + 4;
-                if (target) window.scrollTo({ top: target.getBoundingClientRect().top + window.scrollY - navHeight, behavior: 'smooth' });
-              }}
+              onClick={() => scrollToSection('#contact')}
             >
               Inquire About This Piece
             </button>

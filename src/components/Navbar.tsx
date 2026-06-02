@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { scrollToSection } from '../utils/scrollToSection';
 
 const navItems = [
   { label: 'Home',                href: '#home' },
@@ -43,17 +44,7 @@ export default function Navbar() {
       setTimeout(() => { window.location.hash = '#collected-works'; }, wasOpen ? 80 : 0);
       return;
     }
-    setTimeout(() => {
-      const target = document.querySelector(href) as HTMLElement | null;
-      const nav = document.querySelector('nav');
-      const navHeight = (nav?.getBoundingClientRect().height ?? 72) + 4;
-      if (target) {
-        window.scrollTo({
-          top: target.getBoundingClientRect().top + window.scrollY - navHeight,
-          behavior: 'smooth',
-        });
-      }
-    }, wasOpen ? 80 : 0);
+    setTimeout(() => { scrollToSection(href); }, wasOpen ? 80 : 0);
   }, [menuOpen]);
 
   return (
