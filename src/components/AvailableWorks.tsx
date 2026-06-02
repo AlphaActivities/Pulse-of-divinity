@@ -34,6 +34,26 @@ const paintings: Painting[] = [
     story: 'A symbolic portrait of healing, contrast, and becoming whole through what once felt broken. The floral crown softens the fracture, turning vulnerability into quiet strength.',
     tag: 'Healing · Contrast · Becoming Whole',
   },
+  {
+    id: 3,
+    title: 'Warmth Remembered',
+    teaser: 'A personal portrait centered around warmth, familiarity, and emotional presence.',
+    price: '$2,900',
+    image: '/images/For_sale/For_sale_03.webp',
+    imageAlt: 'Warmth Remembered original portrait artwork by Darcy LaDue',
+    story: 'A heartfelt portrait capturing kindness, individuality, and the quiet energy carried through expression. The warmth of the smile and rich color tones create a feeling that feels both grounding and deeply personal.',
+    tag: 'Portrait · Presence · Connection',
+  },
+  {
+    id: 4,
+    title: 'Grace in Bloom',
+    teaser: 'A graceful portrait exploring softness, presence, and quiet inner beauty.',
+    price: '$3,400',
+    image: '/images/For_sale/For_sale_04.webp',
+    imageAlt: 'Grace in Bloom original portrait artwork by Darcy LaDue',
+    story: 'A symbolic portrait centered around femininity, gentleness, and emotional warmth. The calm expression, flowing dark hair, and delicate details create a feeling of quiet confidence and timeless grace.',
+    tag: 'Portrait · Heritage · Soft Strength',
+  },
 ];
 
 function PaintingCard({
