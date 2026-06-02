@@ -458,6 +458,11 @@ export default function WorksAlreadyCherished() {
               flexDirection: 'column',
               alignItems: 'center',
               gap: '0.35rem',
+              width: 'calc(100% - 2rem)',
+              maxWidth: 'min(100%, 480px)',
+              boxSizing: 'border-box',
+              textAlign: 'center',
+              animation: 'pulseGold 4s ease-in-out infinite',
               transition: 'border-color 0.4s ease, background 0.4s ease, transform 0.4s ease',
             }}
             onMouseEnter={e => {
@@ -482,7 +487,6 @@ export default function WorksAlreadyCherished() {
                 letterSpacing: '0.28em',
                 textTransform: 'uppercase',
                 color: 'rgba(166,124,40,1)',
-                whiteSpace: 'nowrap',
               }}
             >
               View Full Collected Archive
@@ -495,7 +499,8 @@ export default function WorksAlreadyCherished() {
                 fontSize: '0.92rem',
                 letterSpacing: '0.04em',
                 color: 'rgba(107,81,67,0.92)',
-                whiteSpace: 'nowrap',
+                lineHeight: 1.6,
+                maxWidth: '100%',
               }}
             >
               View the complete archive of collected, gifted, and commissioned works.

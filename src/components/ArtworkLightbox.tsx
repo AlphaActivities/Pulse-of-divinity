@@ -12,9 +12,28 @@ interface ArtworkLightboxProps {
 export default function ArtworkLightbox({ open, image, alt, title, onClose }: ArtworkLightboxProps) {
   useEffect(() => {
     if (!open) return;
-    const prev = document.body.style.overflow;
+
+    const scrollY = window.scrollY;
+    const prevBodyPosition  = document.body.style.position;
+    const prevBodyTop       = document.body.style.top;
+    const prevBodyWidth     = document.body.style.width;
+    const prevBodyOverflow  = document.body.style.overflow;
+    const prevHtmlOverflow  = document.documentElement.style.overflow;
+
+    document.body.style.position = 'fixed';
+    document.body.style.top      = `-${scrollY}px`;
+    document.body.style.width    = '100%';
     document.body.style.overflow = 'hidden';
-    return () => { document.body.style.overflow = prev; };
+    document.documentElement.style.overflow = 'hidden';
+
+    return () => {
+      document.body.style.position = prevBodyPosition;
+      document.body.style.top      = prevBodyTop;
+      document.body.style.width    = prevBodyWidth;
+      document.body.style.overflow = prevBodyOverflow;
+      document.documentElement.style.overflow = prevHtmlOverflow;
+      window.scrollTo(0, scrollY);
+    };
   }, [open]);
 
   useEffect(() => {
