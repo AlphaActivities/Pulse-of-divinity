@@ -39,13 +39,20 @@ export default function Navbar() {
     const wasOpen = menuOpen;
     setMenuOpen(false);
     if (href === '#collected-works') {
-      setTimeout(() => { window.location.hash = '#collected-works'; }, wasOpen ? 360 : 0);
+      setTimeout(() => { window.location.hash = '#collected-works'; }, wasOpen ? 150 : 0);
       return;
     }
-    setTimeout(
-      () => document.querySelector(href)?.scrollIntoView({ behavior: 'smooth' }),
-      wasOpen ? 360 : 0,
-    );
+    setTimeout(() => {
+      const target = document.querySelector(href) as HTMLElement | null;
+      const nav = document.querySelector('nav');
+      const navHeight = (nav?.getBoundingClientRect().height ?? 72) + 4;
+      if (target) {
+        window.scrollTo({
+          top: target.getBoundingClientRect().top + window.scrollY - navHeight,
+          behavior: 'smooth',
+        });
+      }
+    }, wasOpen ? 150 : 0);
   }, [menuOpen]);
 
   return (

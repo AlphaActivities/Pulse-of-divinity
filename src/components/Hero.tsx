@@ -293,7 +293,7 @@ export default function Hero() {
       id="home"
       aria-label="Hero — Pulse of Divinity"
       className="relative w-full overflow-hidden"
-      style={{ minHeight: '100svh', scrollMarginTop: '96px' }}
+      style={{ minHeight: '100svh', scrollMarginTop: 'clamp(64px, 8vw, 82px)' }}
     >
       {/* ── Background ── */}
       <div className="absolute inset-0" aria-hidden="true">

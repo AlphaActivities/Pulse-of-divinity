@@ -84,7 +84,7 @@ export default function Commissions() {
       id="commissions"
       aria-labelledby="commissions-heading"
       className="section-pad relative overflow-hidden"
-      style={{ background:'linear-gradient(160deg,#2a1629 0%,#3e2240 40%,#2a1629 100%)', scrollMarginTop: '96px' }}
+      style={{ background:'linear-gradient(160deg,#2a1629 0%,#3e2240 40%,#2a1629 100%)', scrollMarginTop: 'clamp(64px, 8vw, 82px)' }}
     >
       {/* Ambient glow */}
       <div className="absolute inset-0 pointer-events-none" aria-hidden="true"
