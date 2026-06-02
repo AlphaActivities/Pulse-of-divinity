@@ -451,8 +451,8 @@ export default function WorksAlreadyCherished() {
             onClick={() => { window.location.hash = '#collected-works'; }}
             style={{
               background: 'none',
-              border: '1px solid rgba(201,162,39,0.32)',
-              padding: '0.85rem 2.25rem',
+              border: '1px solid rgba(201,162,39,0.55)',
+              padding: '1rem 2.5rem',
               cursor: 'pointer',
               display: 'flex',
               flexDirection: 'column',
@@ -462,13 +462,13 @@ export default function WorksAlreadyCherished() {
             }}
             onMouseEnter={e => {
               const el = e.currentTarget as HTMLButtonElement;
-              el.style.borderColor = 'rgba(201,162,39,0.65)';
-              el.style.background = 'rgba(201,162,39,0.06)';
+              el.style.borderColor = 'rgba(201,162,39,0.75)';
+              el.style.background = 'rgba(201,162,39,0.09)';
               el.style.transform = 'translateY(-2px)';
             }}
             onMouseLeave={e => {
               const el = e.currentTarget as HTMLButtonElement;
-              el.style.borderColor = 'rgba(201,162,39,0.32)';
+              el.style.borderColor = 'rgba(201,162,39,0.55)';
               el.style.background = 'none';
               el.style.transform = 'translateY(0)';
             }}
@@ -477,9 +477,9 @@ export default function WorksAlreadyCherished() {
             <span
               style={{
                 fontFamily: 'Jost, sans-serif',
-                fontWeight: 300,
-                fontSize: '10.5px',
-                letterSpacing: '0.32em',
+                fontWeight: 400,
+                fontSize: '12px',
+                letterSpacing: '0.28em',
                 textTransform: 'uppercase',
                 color: 'rgba(166,124,40,1)',
                 whiteSpace: 'nowrap',
@@ -492,9 +492,9 @@ export default function WorksAlreadyCherished() {
                 fontFamily: 'Cormorant Garamond, serif',
                 fontWeight: 300,
                 fontStyle: 'italic',
-                fontSize: '0.88rem',
+                fontSize: '0.92rem',
                 letterSpacing: '0.04em',
-                color: 'rgba(107,81,67,0.7)',
+                color: 'rgba(107,81,67,0.92)',
                 whiteSpace: 'nowrap',
               }}
             >
