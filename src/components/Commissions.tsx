@@ -199,7 +199,12 @@ export default function Commissions() {
             </blockquote>
             <button
               className="luxury-btn-primary"
-              onClick={() => document.querySelector('#contact')?.scrollIntoView({ behavior:'smooth' })}
+              onClick={() => {
+                const target = document.querySelector('#contact') as HTMLElement | null;
+                const nav = document.querySelector('nav');
+                const navHeight = (nav?.getBoundingClientRect().height ?? 72) + 4;
+                if (target) window.scrollTo({ top: target.getBoundingClientRect().top + window.scrollY - navHeight, behavior: 'smooth' });
+              }}
             >
               Begin a Commission Conversation
             </button>

@@ -38,8 +38,9 @@ export default function Navbar() {
   const handleNav = useCallback((href: string) => {
     const wasOpen = menuOpen;
     setMenuOpen(false);
+    document.body.style.overflow = '';
     if (href === '#collected-works') {
-      setTimeout(() => { window.location.hash = '#collected-works'; }, wasOpen ? 150 : 0);
+      setTimeout(() => { window.location.hash = '#collected-works'; }, wasOpen ? 80 : 0);
       return;
     }
     setTimeout(() => {
@@ -52,7 +53,7 @@ export default function Navbar() {
           behavior: 'smooth',
         });
       }
-    }, wasOpen ? 150 : 0);
+    }, wasOpen ? 80 : 0);
   }, [menuOpen]);
 
   return (

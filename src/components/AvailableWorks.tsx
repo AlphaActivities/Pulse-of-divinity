@@ -262,7 +262,12 @@ function PaintingCard({
             {/* CTA */}
             <button
               className="luxury-btn-plum w-full mt-6"
-              onClick={() => document.querySelector('#contact')?.scrollIntoView({ behavior: 'smooth' })}
+              onClick={() => {
+                const target = document.querySelector('#contact') as HTMLElement | null;
+                const nav = document.querySelector('nav');
+                const navHeight = (nav?.getBoundingClientRect().height ?? 72) + 4;
+                if (target) window.scrollTo({ top: target.getBoundingClientRect().top + window.scrollY - navHeight, behavior: 'smooth' });
+              }}
             >
               Inquire About This Piece
             </button>

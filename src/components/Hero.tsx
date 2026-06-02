@@ -285,8 +285,17 @@ export default function Hero() {
     return () => { running = false; cancelAnimationFrame(rafRef.current); };
   }, []);
 
-  const scrollTo = (id: string) =>
-    document.querySelector(id)?.scrollIntoView({ behavior: 'smooth' });
+  const scrollTo = (id: string) => {
+    const target = document.querySelector(id) as HTMLElement | null;
+    const nav = document.querySelector('nav');
+    const navHeight = (nav?.getBoundingClientRect().height ?? 72) + 4;
+    if (target) {
+      window.scrollTo({
+        top: target.getBoundingClientRect().top + window.scrollY - navHeight,
+        behavior: 'smooth',
+      });
+    }
+  };
 
   return (
     <section
