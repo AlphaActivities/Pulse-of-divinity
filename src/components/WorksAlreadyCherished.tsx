@@ -619,11 +619,22 @@ export default function WorksAlreadyCherished() {
   const { ref: row2Ref, visible: row2Visible } = useReveal();
   const { ref: closingRef, visible: closingVisible } = useReveal();
   const [lightbox, setLightbox] = useState<{ image: string; alt: string; title: string } | null>(null);
+  const [archiveExpanded, setArchiveExpanded] = useState(false);
 
   const [featured1, featured2, ...archiveWorks] = works;
+  const PREVIEW_COUNT = 4;
+  const hiddenCount = archiveWorks.length - PREVIEW_COUNT;
+  const visibleArchiveWorks = archiveExpanded ? archiveWorks : archiveWorks.slice(0, PREVIEW_COUNT);
 
   const handleImageClick = (work: CherishedWork) =>
     setLightbox({ image: work.image, alt: work.imageAlt, title: work.title });
+
+  const handleShowLess = () => {
+    setArchiveExpanded(false);
+    setTimeout(() => {
+      row2Ref.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 50);
+  };
 
   return (
     <>
@@ -755,10 +766,156 @@ export default function WorksAlreadyCherished() {
             marginBottom: 'clamp(3rem, 6vw, 5.5rem)',
           }}
         >
-          {archiveWorks.map((work, i) => (
+          {visibleArchiveWorks.map((work, i) => (
             <ArchiveCard key={work.id} work={work} index={i} onImageClick={handleImageClick} />
           ))}
         </div>
+
+        {/* ── Archive expand/collapse CTAs ── */}
+        {!archiveExpanded && (
+          <div
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              gap: '1rem',
+              marginTop: '-1.5rem',
+              marginBottom: 'clamp(3rem, 6vw, 5.5rem)',
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem', width: '100%', maxWidth: '420px' }}>
+              <div style={{ flex: 1, height: '1px', background: 'linear-gradient(90deg, transparent, rgba(201,162,39,0.4))' }} />
+              <div
+                style={{
+                  width: '4px',
+                  height: '4px',
+                  borderRadius: '50%',
+                  background: 'rgba(201,162,39,0.5)',
+                  flexShrink: 0,
+                }}
+              />
+              <div style={{ flex: 1, height: '1px', background: 'linear-gradient(90deg, rgba(201,162,39,0.4), transparent)' }} />
+            </div>
+
+            <button
+              onClick={() => setArchiveExpanded(true)}
+              style={{
+                background: 'none',
+                border: '1px solid rgba(201,162,39,0.32)',
+                padding: '0.85rem 2.25rem',
+                cursor: 'pointer',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                gap: '0.35rem',
+                transition: 'border-color 0.4s ease, background 0.4s ease, transform 0.4s ease',
+              }}
+              onMouseEnter={e => {
+                const el = e.currentTarget as HTMLButtonElement;
+                el.style.borderColor = 'rgba(201,162,39,0.65)';
+                el.style.background = 'rgba(201,162,39,0.06)';
+                el.style.transform = 'translateY(-2px)';
+              }}
+              onMouseLeave={e => {
+                const el = e.currentTarget as HTMLButtonElement;
+                el.style.borderColor = 'rgba(201,162,39,0.32)';
+                el.style.background = 'none';
+                el.style.transform = 'translateY(0)';
+              }}
+              aria-label="View full collected archive"
+            >
+              <span
+                style={{
+                  fontFamily: 'Jost, sans-serif',
+                  fontWeight: 300,
+                  fontSize: '10.5px',
+                  letterSpacing: '0.32em',
+                  textTransform: 'uppercase',
+                  color: 'rgba(166,124,40,1)',
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                View Full Collected Archive
+              </span>
+              <span
+                style={{
+                  fontFamily: 'Cormorant Garamond, serif',
+                  fontWeight: 300,
+                  fontStyle: 'italic',
+                  fontSize: '0.88rem',
+                  letterSpacing: '0.04em',
+                  color: 'rgba(107,81,67,0.7)',
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                {hiddenCount} more collected {hiddenCount === 1 ? 'work' : 'works'}
+              </span>
+            </button>
+          </div>
+        )}
+
+        {archiveExpanded && (
+          <div
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              gap: '1rem',
+              marginTop: '-1.5rem',
+              marginBottom: 'clamp(3rem, 6vw, 5.5rem)',
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem', width: '100%', maxWidth: '420px' }}>
+              <div style={{ flex: 1, height: '1px', background: 'linear-gradient(90deg, transparent, rgba(201,162,39,0.4))' }} />
+              <div
+                style={{
+                  width: '4px',
+                  height: '4px',
+                  borderRadius: '50%',
+                  background: 'rgba(201,162,39,0.5)',
+                  flexShrink: 0,
+                }}
+              />
+              <div style={{ flex: 1, height: '1px', background: 'linear-gradient(90deg, rgba(201,162,39,0.4), transparent)' }} />
+            </div>
+
+            <button
+              onClick={handleShowLess}
+              style={{
+                background: 'none',
+                border: '1px solid rgba(201,162,39,0.22)',
+                padding: '0.7rem 2rem',
+                cursor: 'pointer',
+                transition: 'border-color 0.4s ease, background 0.4s ease',
+              }}
+              onMouseEnter={e => {
+                const el = e.currentTarget as HTMLButtonElement;
+                el.style.borderColor = 'rgba(201,162,39,0.5)';
+                el.style.background = 'rgba(201,162,39,0.05)';
+              }}
+              onMouseLeave={e => {
+                const el = e.currentTarget as HTMLButtonElement;
+                el.style.borderColor = 'rgba(201,162,39,0.22)';
+                el.style.background = 'none';
+              }}
+              aria-label="Show fewer collected works"
+            >
+              <span
+                style={{
+                  fontFamily: 'Jost, sans-serif',
+                  fontWeight: 300,
+                  fontSize: '10px',
+                  letterSpacing: '0.28em',
+                  textTransform: 'uppercase',
+                  color: 'rgba(140,98,12,0.75)',
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                Show Less
+              </span>
+            </button>
+          </div>
+        )}
 
         {/* ── Closing colophon ── */}
         <div
