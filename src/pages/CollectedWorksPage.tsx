@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { ArrowLeft } from 'lucide-react';
 import { works } from '../data/cherishedWorks';
 import type { CherishedWork } from '../data/cherishedWorks';
 import ArchiveCard from '../components/ArchiveCard';
@@ -13,6 +14,14 @@ export default function CollectedWorksPage() {
     window.scrollTo(0, 0);
   }, []);
 
+  const handleBack = () => {
+    if (window.history.length > 1) {
+      window.history.back();
+    } else {
+      window.location.hash = '';
+    }
+  };
+
   const handleImageClick = (work: CherishedWork) =>
     setLightbox({ image: work.image, alt: work.imageAlt, title: work.title });
 
@@ -21,6 +30,8 @@ export default function CollectedWorksPage() {
       <div
         style={{
           minHeight: '100vh',
+          overflowX: 'hidden',
+          maxWidth: '100%',
           background: 'linear-gradient(170deg, #f5f0e6 0%, #f0ebe0 40%, #f5f0e6 100%)',
         }}
       >
@@ -28,6 +39,57 @@ export default function CollectedWorksPage() {
 
         {/* ── Page content ── */}
         <main style={{ paddingTop: 'clamp(5rem, 10vw, 7rem)' }}>
+
+          {/* ── Back button ── */}
+          <div
+            style={{
+              maxWidth: '72rem',
+              margin: '0 auto',
+              padding: '1.5rem clamp(1.25rem, 4vw, 3rem) 0',
+            }}
+          >
+            <button
+              onClick={handleBack}
+              aria-label="Back to Pulse of Divinity"
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.55rem',
+                background: 'none',
+                border: '1px solid rgba(201,162,39,0.32)',
+                padding: '0.5rem 1rem 0.5rem 0.75rem',
+                cursor: 'pointer',
+                minHeight: '44px',
+                transition: 'border-color 0.35s ease, background 0.35s ease, transform 0.35s ease',
+              }}
+              onMouseEnter={e => {
+                const el = e.currentTarget as HTMLButtonElement;
+                el.style.borderColor = 'rgba(201,162,39,0.65)';
+                el.style.background = 'rgba(201,162,39,0.06)';
+                el.style.transform = 'translateX(-2px)';
+              }}
+              onMouseLeave={e => {
+                const el = e.currentTarget as HTMLButtonElement;
+                el.style.borderColor = 'rgba(201,162,39,0.32)';
+                el.style.background = 'none';
+                el.style.transform = 'translateX(0)';
+              }}
+            >
+              <ArrowLeft size={13} color="rgba(166,124,40,1)" strokeWidth={1.5} />
+              <span
+                style={{
+                  fontFamily: 'Jost, sans-serif',
+                  fontWeight: 300,
+                  fontSize: '11px',
+                  letterSpacing: '0.28em',
+                  textTransform: 'uppercase',
+                  color: 'rgba(166,124,40,1)',
+                }}
+              >
+                Back to Pulse of Divinity
+              </span>
+            </button>
+          </div>
           {/* ── Page hero header ── */}
           <div
             style={{
