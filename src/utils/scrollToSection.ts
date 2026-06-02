@@ -30,7 +30,7 @@ export function scrollToSection(selector: string): void {
   }
 
   window.scrollTo({
-    top: baseTarget + delta,
+    top: baseTarget + delta + 2,
     behavior: 'smooth',
   });
 }
