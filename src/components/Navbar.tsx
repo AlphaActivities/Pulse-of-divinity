@@ -4,6 +4,7 @@ const navItems = [
   { label: 'Home',                href: '#home' },
   { label: 'Available Works',     href: '#works' },
   { label: 'About the Artist',    href: '#about' },
+  { label: 'Collected Works',     href: '#collected-works' },
   { label: 'Private Commissions', href: '#commissions' },
   { label: 'Contact',             href: '#contact' },
 ];
@@ -37,6 +38,10 @@ export default function Navbar() {
   const handleNav = useCallback((href: string) => {
     const wasOpen = menuOpen;
     setMenuOpen(false);
+    if (href === '#collected-works') {
+      setTimeout(() => { window.location.hash = '#collected-works'; }, wasOpen ? 360 : 0);
+      return;
+    }
     setTimeout(
       () => document.querySelector(href)?.scrollIntoView({ behavior: 'smooth' }),
       wasOpen ? 360 : 0,

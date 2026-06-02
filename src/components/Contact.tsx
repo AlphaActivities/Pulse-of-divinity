@@ -159,7 +159,7 @@ export default function Contact() {
       id="contact"
       aria-labelledby="contact-heading"
       className="section-pad"
-      style={{ background:'linear-gradient(170deg,#fdfbf0 0%,#faf3d9 50%,#fdf9ed 100%)' }}
+      style={{ background:'linear-gradient(170deg,#fdfbf0 0%,#faf3d9 50%,#fdf9ed 100%)', scrollMarginTop: '96px' }}
     >
       <div className="max-w-5xl mx-auto">
         {/* Header */}

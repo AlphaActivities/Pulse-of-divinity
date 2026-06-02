@@ -462,6 +462,8 @@ export default function WorksAlreadyCherished() {
               maxWidth: 'min(100%, 480px)',
               boxSizing: 'border-box',
               textAlign: 'center',
+              position: 'relative',
+              overflow: 'hidden',
               animation: 'pulseGold 4s ease-in-out infinite',
               transition: 'border-color 0.4s ease, background 0.4s ease, transform 0.4s ease',
             }}
@@ -480,6 +482,21 @@ export default function WorksAlreadyCherished() {
             aria-label="View full collected archive"
           >
             <span
+              aria-hidden="true"
+              style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                width: '60%',
+                height: '100%',
+                background: 'linear-gradient(115deg, transparent 0%, rgba(253,249,237,0.08) 30%, rgba(201,162,39,0.28) 50%, rgba(253,249,237,0.10) 70%, transparent 100%)',
+                transform: 'translateX(-140%) skewX(-18deg)',
+                animation: 'shimmerSweep 5s ease-in-out infinite',
+                pointerEvents: 'none',
+                zIndex: 0,
+              }}
+            />
+            <span
               style={{
                 fontFamily: 'Jost, sans-serif',
                 fontWeight: 400,
@@ -487,6 +504,8 @@ export default function WorksAlreadyCherished() {
                 letterSpacing: '0.28em',
                 textTransform: 'uppercase',
                 color: 'rgba(166,124,40,1)',
+                position: 'relative',
+                zIndex: 1,
               }}
             >
               View Full Collected Archive
@@ -501,6 +520,8 @@ export default function WorksAlreadyCherished() {
                 color: 'rgba(107,81,67,0.92)',
                 lineHeight: 1.6,
                 maxWidth: '100%',
+                position: 'relative',
+                zIndex: 1,
               }}
             >
               View the complete archive of collected, gifted, and commissioned works.
@@ -576,6 +597,16 @@ export default function WorksAlreadyCherished() {
 
       </div>
     </section>
+
+    <style>{`
+      @keyframes shimmerSweep {
+        0%   { transform: translateX(-140%) skewX(-18deg); opacity: 0; }
+        18%  { opacity: 1; }
+        45%  { transform: translateX(190%) skewX(-18deg); opacity: 1; }
+        55%  { opacity: 0; }
+        100% { transform: translateX(190%) skewX(-18deg); opacity: 0; }
+      }
+    `}</style>
 
     {lightbox && (
       <ArtworkLightbox

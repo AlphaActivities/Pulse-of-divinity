@@ -305,7 +305,7 @@ export default function AvailableWorks() {
       id="works"
       aria-labelledby="works-heading"
       className="section-pad"
-      style={{ background:'linear-gradient(180deg,#fdf9ed 0%,#fdfbf0 100%)' }}
+      style={{ background:'linear-gradient(180deg,#fdf9ed 0%,#fdfbf0 100%)', scrollMarginTop: '96px' }}
     >
       <div className="max-w-6xl mx-auto">
         {/* Header */}

@@ -31,7 +31,7 @@ export default function About() {
       id="about"
       aria-labelledby="about-heading"
       className="section-pad relative overflow-hidden"
-      style={{ background:'linear-gradient(165deg,#fdfbf0 0%,rgba(244,232,158,0.08) 40%,#fdf9ed 100%)' }}
+      style={{ background:'linear-gradient(165deg,#fdfbf0 0%,rgba(244,232,158,0.08) 40%,#fdf9ed 100%)', scrollMarginTop: '96px' }}
     >
       {/* Ambient */}
       <div className="absolute -top-40 -right-40 pointer-events-none" aria-hidden="true"
