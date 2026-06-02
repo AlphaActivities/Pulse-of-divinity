@@ -411,15 +411,12 @@ function ArchiveCard({
   return (
     <article
       ref={ref}
-      className={`reveal reveal-delay-${(index % 4) + 1} ${visible ? 'visible' : ''}`}
+      className={`reveal reveal-delay-${(index % 4) + 1} ${visible ? 'visible' : ''} ${isStaggered ? 'sm:mt-12' : ''}`}
       aria-label={`${work.title} — ${work.status}`}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       onTouchStart={() => setHovered(true)}
       onTouchEnd={() => setHovered(false)}
-      style={{
-        marginTop: isStaggered ? 'clamp(0px, 4vw, 3rem)' : '0',
-      }}
     >
       <div
         style={{
@@ -752,9 +749,8 @@ export default function WorksAlreadyCherished() {
 
         {/* ── Row 2: 2×2 editorial archive grid ── */}
         <div
+          className="grid grid-cols-1 sm:grid-cols-2"
           style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(2, 1fr)',
             gap: 'clamp(2rem, 4vw, 3.5rem)',
             marginBottom: 'clamp(3rem, 6vw, 5.5rem)',
           }}
