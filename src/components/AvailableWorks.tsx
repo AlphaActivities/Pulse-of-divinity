@@ -88,17 +88,17 @@ function PaintingCard({
           boxShadow: hovered
             ? '0 30px 70px rgba(62,34,64,0.14),0 6px 22px rgba(201,162,39,0.11)'
             : '0 6px 40px rgba(62,34,64,0.06)',
-          transform: hovered ? 'translateY(-4px) scale(1.03)' : 'translateY(0) scale(1)',
+          transform: hovered ? 'translateY(-4px) scale(1.01)' : 'translateY(0) scale(1)',
           transition: 'transform 0.55s cubic-bezier(0.25,0.46,0.45,0.94),box-shadow 0.55s ease,border-color 0.55s ease',
         }}
       >
         {/* ── Two-col layout ── */}
-        <div className="flex flex-col lg:flex-row">
+        <div className="flex flex-col lg:flex-row items-start">
 
           {/* Image */}
           <div
             className="relative w-full lg:w-3/5 overflow-hidden"
-            style={{ minHeight: '320px' }}
+            style={{ minHeight: '320px', maxHeight: 'clamp(340px, 40vw, 500px)' }}
           >
             <button
               aria-label={`View full image of ${painting.title}`}
@@ -111,7 +111,7 @@ function PaintingCard({
                 display: 'block',
                 width: '100%',
                 height: '100%',
-                minHeight: '320px',
+                minHeight: 'inherit',
                 background: 'none',
                 border: 'none',
                 padding: 0,
@@ -125,7 +125,8 @@ function PaintingCard({
               className="w-full h-full object-cover"
               loading="lazy"
               style={{
-                minHeight: '320px',
+                minHeight: 'unset',
+                objectPosition: 'center 18%',
                 transform: hovered || imgHovered ? 'scale(1.045)' : 'scale(1)',
                 transition: 'transform 0.85s cubic-bezier(0.25,0.46,0.45,0.94)',
                 display: 'block',
@@ -260,7 +261,7 @@ function PaintingCard({
 
             {/* CTA */}
             <button
-              className="luxury-btn-plum w-full mt-auto"
+              className="luxury-btn-plum w-full mt-6"
               onClick={() => document.querySelector('#contact')?.scrollIntoView({ behavior: 'smooth' })}
             >
               Inquire About This Piece
