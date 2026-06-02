@@ -55,15 +55,6 @@ export const works: CherishedWork[] = [
     story: 'A personal portrait capturing the bond between a woman and her beloved companion.',
   },
   {
-    id: 6,
-    image: '/images/Cherished-works/Sold_photo04.jpg',
-    imageAlt: 'Violet Gaze — original painting by Darcy LaDue',
-    title: 'Violet Gaze',
-    status: 'Early Cherished Work',
-    value: 'Private Gifted Work',
-    story: 'A vivid early portrait exploring imagination, individuality, and emotional expression through color.',
-  },
-  {
     id: 7,
     image: '/images/Cherished-works/Sold_photo07.webp',
     imageAlt: 'Littlest Light graphite portrait by Darcy LaDue',
@@ -71,6 +62,15 @@ export const works: CherishedWork[] = [
     status: 'Gifted With Meaning',
     value: 'Private Gifted Work',
     story: 'A tender graphite portrait honoring innocence, closeness, and the quiet bond between sisters. The softness of the expression preserves a memory that feels both personal and timeless.',
+  },
+  {
+    id: 6,
+    image: '/images/Cherished-works/Sold_photo04.jpg',
+    imageAlt: 'Violet Gaze — original painting by Darcy LaDue',
+    title: 'Violet Gaze',
+    status: 'Early Cherished Work',
+    value: 'Private Gifted Work',
+    story: 'A vivid early portrait exploring imagination, individuality, and emotional expression through color.',
   },
   {
     id: 8,

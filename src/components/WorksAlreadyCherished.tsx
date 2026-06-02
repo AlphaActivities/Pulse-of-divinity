@@ -283,7 +283,7 @@ export default function WorksAlreadyCherished() {
   const [lightbox, setLightbox] = useState<{ image: string; alt: string; title: string } | null>(null);
 
   const [featured1, featured2, ...archiveWorks] = works;
-  const previewWorks = archiveWorks.slice(0, 3);
+  const previewWorks = archiveWorks.slice(0, 4);
 
   const handleImageClick = (work: CherishedWork) =>
     setLightbox({ image: work.image, alt: work.imageAlt, title: work.title });

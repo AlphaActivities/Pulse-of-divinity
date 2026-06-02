@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
-import { ArrowLeft } from 'lucide-react';
 import { works } from '../data/cherishedWorks';
 import type { CherishedWork } from '../data/cherishedWorks';
 import ArchiveCard from '../components/ArchiveCard';
+import ArchiveNavbar from '../components/ArchiveNavbar';
 import ArtworkLightbox from '../components/ArtworkLightbox';
 import Footer from '../components/Footer';
 
@@ -16,14 +16,6 @@ export default function CollectedWorksPage() {
   const handleImageClick = (work: CherishedWork) =>
     setLightbox({ image: work.image, alt: work.imageAlt, title: work.title });
 
-  const handleBack = () => {
-    if (window.history.length > 1) {
-      window.history.back();
-    } else {
-      window.location.hash = '';
-    }
-  };
-
   return (
     <>
       <div
@@ -32,114 +24,10 @@ export default function CollectedWorksPage() {
           background: 'linear-gradient(170deg, #f5f0e6 0%, #f0ebe0 40%, #f5f0e6 100%)',
         }}
       >
-        {/* ── Slim archive header ── */}
-        <header
-          style={{
-            position: 'sticky',
-            top: 0,
-            zIndex: 50,
-            background: 'rgba(250,243,217,0.92)',
-            backdropFilter: 'blur(14px)',
-            WebkitBackdropFilter: 'blur(14px)',
-            borderBottom: '1px solid rgba(201,162,39,0.18)',
-            boxShadow: '0 2px 24px rgba(62,34,64,0.07)',
-          }}
-        >
-          {/* Gold top accent */}
-          <div style={{ height: '2px', background: 'linear-gradient(90deg, transparent, #c9a227, transparent)' }} />
-
-          <div
-            style={{
-              maxWidth: '72rem',
-              margin: '0 auto',
-              padding: '0 clamp(1.25rem, 4vw, 3rem)',
-              height: '64px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              gap: '1rem',
-            }}
-          >
-            {/* Back button */}
-            <button
-              onClick={handleBack}
-              aria-label="Back to Pulse of Divinity"
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.6rem',
-                background: 'none',
-                border: '1px solid rgba(201,162,39,0.28)',
-                padding: '0.45rem 1rem 0.45rem 0.75rem',
-                cursor: 'pointer',
-                transition: 'border-color 0.3s ease, background 0.3s ease, transform 0.3s ease',
-                flexShrink: 0,
-              }}
-              onMouseEnter={e => {
-                const el = e.currentTarget as HTMLButtonElement;
-                el.style.borderColor = 'rgba(201,162,39,0.6)';
-                el.style.background = 'rgba(201,162,39,0.07)';
-                el.style.transform = 'translateX(-2px)';
-              }}
-              onMouseLeave={e => {
-                const el = e.currentTarget as HTMLButtonElement;
-                el.style.borderColor = 'rgba(201,162,39,0.28)';
-                el.style.background = 'none';
-                el.style.transform = 'translateX(0)';
-              }}
-            >
-              <ArrowLeft size={14} color="rgba(166,124,40,1)" strokeWidth={1.5} />
-              <span
-                style={{
-                  fontFamily: 'Jost, sans-serif',
-                  fontWeight: 300,
-                  fontSize: '10px',
-                  letterSpacing: '0.28em',
-                  textTransform: 'uppercase',
-                  color: 'rgba(166,124,40,1)',
-                  whiteSpace: 'nowrap',
-                }}
-              >
-                Back to Pulse of Divinity
-              </span>
-            </button>
-
-            {/* Logo wordmark */}
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-              <span
-                style={{
-                  fontFamily: 'Cormorant Garamond, serif',
-                  fontWeight: 300,
-                  fontSize: 'clamp(0.9rem, 2vw, 1.05rem)',
-                  letterSpacing: '0.15em',
-                  textTransform: 'uppercase',
-                  color: '#3e2240',
-                  lineHeight: 1.2,
-                }}
-              >
-                Pulse of Divinity
-              </span>
-              <span
-                style={{
-                  fontFamily: 'Jost, sans-serif',
-                  fontWeight: 300,
-                  fontSize: '9px',
-                  letterSpacing: '0.38em',
-                  textTransform: 'uppercase',
-                  color: 'rgba(201,162,39,0.85)',
-                }}
-              >
-                Original Fine Art
-              </span>
-            </div>
-
-            {/* Spacer to balance back button */}
-            <div style={{ flexShrink: 0, width: 'clamp(100px, 15vw, 180px)' }} aria-hidden="true" />
-          </div>
-        </header>
+        <ArchiveNavbar />
 
         {/* ── Page content ── */}
-        <main>
+        <main style={{ paddingTop: 'clamp(5rem, 10vw, 7rem)' }}>
           {/* ── Page hero header ── */}
           <div
             style={{
