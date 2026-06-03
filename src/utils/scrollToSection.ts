@@ -6,7 +6,7 @@ export function scrollToSection(selector: string): void {
   const NAV_HEIGHT = nav ? Math.ceil(nav.getBoundingClientRect().height) : 68;
 
   window.scrollTo({
-    top: target.getBoundingClientRect().top + window.scrollY - NAV_HEIGHT,
+    top: target.getBoundingClientRect().top + window.scrollY - NAV_HEIGHT + 1,
     behavior: 'smooth',
   });
 }
