@@ -3,10 +3,10 @@ export function scrollToSection(selector: string): void {
   if (!target) return;
 
   const nav = document.querySelector('nav') as HTMLElement | null;
-  const NAV_HEIGHT = nav?.offsetHeight ?? 68;
+  const NAV_HEIGHT = nav ? Math.ceil(nav.getBoundingClientRect().height) : 68;
 
   window.scrollTo({
-    top: target.getBoundingClientRect().top + window.scrollY - NAV_HEIGHT + 2,
+    top: target.getBoundingClientRect().top + window.scrollY - NAV_HEIGHT,
     behavior: 'smooth',
   });
 }
