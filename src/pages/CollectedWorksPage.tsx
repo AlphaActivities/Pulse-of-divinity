@@ -55,6 +55,7 @@ export default function CollectedWorksPage({ onNavigateHome }: Props) {
             <button
               onClick={handleBack}
               aria-label="Back to Pulse of Divinity"
+              className="archive-back-btn"
               style={{
                 display: 'flex',
                 alignItems: 'center',
@@ -79,7 +80,9 @@ export default function CollectedWorksPage({ onNavigateHome }: Props) {
                 el.style.transform = 'translateX(0)';
               }}
             >
-              <ArrowLeft size={13} color="rgba(166,124,40,1)" strokeWidth={1.5} />
+              <span className="archive-back-arrow">
+                <ArrowLeft size={13} color="rgba(166,124,40,1)" strokeWidth={1.5} />
+              </span>
               <span
                 style={{
                   fontFamily: 'Jost, sans-serif',
@@ -88,6 +91,8 @@ export default function CollectedWorksPage({ onNavigateHome }: Props) {
                   letterSpacing: '0.28em',
                   textTransform: 'uppercase',
                   color: 'rgba(166,124,40,1)',
+                  position: 'relative',
+                  zIndex: 1,
                 }}
               >
                 Back to Pulse of Divinity
