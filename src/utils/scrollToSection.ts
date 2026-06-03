@@ -1,6 +1,6 @@
-// Fixed navbar height — py-5 in both transparent and glass states.
+// Fixed navbar height — py-3 in both transparent and glass states.
 // Avoids getBoundingClientRect() forced layout at tap time.
-const NAV_HEIGHT = 84;
+const NAV_HEIGHT = 68;
 
 export function scrollToSection(selector: string): void {
   const target = document.querySelector(selector) as HTMLElement | null;
