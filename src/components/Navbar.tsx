@@ -51,9 +51,10 @@ export default function Navbar() {
     <>
       {/* ── Bar ── */}
       <nav
-        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
+        className={`fixed top-0 left-0 right-0 z-50 transition-[background,border-color,box-shadow,backdrop-filter,-webkit-backdrop-filter,padding] duration-500 ${
           scrolled ? 'glass-nav py-3' : 'bg-transparent py-5'
         }`}
+        style={{ willChange: 'background, box-shadow', transform: 'translateZ(0)' }}
         role="navigation"
         aria-label="Main navigation"
       >
