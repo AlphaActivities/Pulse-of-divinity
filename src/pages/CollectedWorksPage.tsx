@@ -42,7 +42,7 @@ export default function CollectedWorksPage({ onNavigateHome }: Props) {
         <ArchiveNavbar onNavigateHome={onNavigateHome} />
 
         {/* ── Page content ── */}
-        <main style={{ paddingTop: 'clamp(5rem, 10vw, 7rem)' }}>
+        <main style={{ paddingTop: 'clamp(64px, 8vw, 82px)' }}>
 
           {/* ── Back button ── */}
           <div

@@ -44,9 +44,8 @@ export default function ArchiveNavbar({ onNavigateHome }: Props) {
     <>
       {/* ── Bar ── */}
       <nav
-        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
-          scrolled ? 'glass-nav py-3' : 'bg-transparent py-5'
-        }`}
+        className="fixed top-0 left-0 right-0 z-50 glass-nav py-3 transition-[background,border-color,box-shadow,backdrop-filter,-webkit-backdrop-filter] duration-500"
+        style={{ willChange: 'background, box-shadow', transform: 'translateZ(0)' }}
         role="navigation"
         aria-label="Archive navigation"
       >
