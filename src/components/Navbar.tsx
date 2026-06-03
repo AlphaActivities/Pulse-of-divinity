@@ -52,7 +52,7 @@ export default function Navbar() {
       {/* ── Bar ── */}
       <nav
         className={`fixed top-0 left-0 right-0 z-50 transition-[background,border-color,box-shadow,backdrop-filter,-webkit-backdrop-filter] duration-500 ${
-          scrolled ? 'glass-nav py-3' : 'bg-transparent py-3'
+          scrolled ? 'glass-nav py-3' : 'bg-transparent py-3 border-b border-transparent'
         }`}
         style={{ willChange: 'background, box-shadow', transform: 'translateZ(0)', backdropFilter: 'blur(0px)', WebkitBackdropFilter: 'blur(0px)' }}
         role="navigation"
