@@ -74,7 +74,7 @@ function PaintingCard({
   return (
     <article
       ref={ref}
-      className={`reveal reveal-delay-${index + 2} ${visible ? 'visible' : ''}`}
+      className={`reveal reveal-delay-1 ${visible ? 'visible' : ''}`}
       aria-label={`${painting.title} — original painting`}
     >
       <div
@@ -124,7 +124,7 @@ function PaintingCard({
               src={painting.image}
               alt={painting.imageAlt}
               className="w-full h-full object-cover"
-              loading="lazy"
+              loading={index === 0 ? 'eager' : 'lazy'}
               style={{
                 minHeight: 'unset',
                 objectPosition: 'center 18%',
