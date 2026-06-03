@@ -305,6 +305,7 @@
   .archive-back-btn {
     position: relative;
     overflow: hidden;
+    isolation: isolate;
   }
   .archive-back-btn::before {
     content: '';
@@ -324,7 +325,7 @@
     transform: translateX(-100%);
     animation: archiveBackTrace 7s ease-in-out infinite;
     pointer-events: none;
-    z-index: 0;
+    z-index: -1;
   }
 
   /* ── Archive back arrow — gentle return-nudge breathe ── */

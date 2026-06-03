@@ -81,7 +81,7 @@ export default function CollectedWorksPage({ onNavigateHome }: Props) {
               }}
             >
               <span className="archive-back-arrow">
-                <ArrowLeft size={13} color="rgba(166,124,40,1)" strokeWidth={1.5} />
+                <ArrowLeft size={14} color="rgba(166,124,40,1)" strokeWidth={2} />
               </span>
               <span
                 style={{
