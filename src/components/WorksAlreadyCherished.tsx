@@ -491,7 +491,7 @@ export default function WorksAlreadyCherished() {
                 height: '100%',
                 background: 'linear-gradient(115deg, transparent 0%, rgba(253,249,237,0.08) 30%, rgba(201,162,39,0.28) 50%, rgba(253,249,237,0.10) 70%, transparent 100%)',
                 transform: 'translateX(-140%) skewX(-18deg)',
-                animation: 'shimmerSweep 5s ease-in-out infinite',
+                animation: 'shimmerSweep 4s ease-in-out infinite',
                 pointerEvents: 'none',
                 zIndex: 0,
               }}
@@ -601,9 +601,9 @@ export default function WorksAlreadyCherished() {
     <style>{`
       @keyframes shimmerSweep {
         0%   { transform: translateX(-140%) skewX(-18deg); opacity: 0; }
-        18%  { opacity: 1; }
-        45%  { transform: translateX(190%) skewX(-18deg); opacity: 1; }
-        55%  { opacity: 0; }
+        14%  { opacity: 1; }
+        56%  { transform: translateX(190%) skewX(-18deg); opacity: 1; }
+        65%  { opacity: 0; }
         100% { transform: translateX(190%) skewX(-18deg); opacity: 0; }
       }
     `}</style>
