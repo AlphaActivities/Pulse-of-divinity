@@ -23,8 +23,17 @@ export default function ArchiveNavbar() {
   }, [menuOpen]);
 
   const handleNav = (href: string) => {
+    const wasOpen = menuOpen;
     setMenuOpen(false);
-    setTimeout(() => { window.location.href = href; }, menuOpen ? 360 : 0);
+    // Landing-page section links: store the target hash so App.tsx can scroll
+    // after the home layout has fully rendered (avoids the hash-scroll race).
+    if (href.startsWith('/#') && href !== '/#collected-works') {
+      const hash = href.slice(1); // e.g. '#works'
+      sessionStorage.setItem('pendingScroll', hash);
+      setTimeout(() => { window.location.href = '/'; }, wasOpen ? 360 : 0);
+    } else {
+      setTimeout(() => { window.location.href = href; }, wasOpen ? 360 : 0);
+    }
   };
 
   return (

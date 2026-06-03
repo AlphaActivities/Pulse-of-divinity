@@ -9,6 +9,7 @@ import Commissions from './components/Commissions';
 import Contact from './components/Contact';
 import Footer from './components/Footer';
 import CollectedWorksPage from './pages/CollectedWorksPage';
+import { scrollToSection } from './utils/scrollToSection';
 
 function getPage(): 'home' | 'archive' {
   return window.location.hash === '#collected-works' ? 'archive' : 'home';
@@ -22,6 +23,17 @@ export default function App() {
     window.addEventListener('hashchange', onHashChange);
     return () => window.removeEventListener('hashchange', onHashChange);
   }, []);
+
+  // Consume any pending scroll set by ArchiveNavbar before navigating home.
+  useEffect(() => {
+    if (page !== 'home') return;
+    const target = sessionStorage.getItem('pendingScroll');
+    if (!target || target === '#collected-works') return;
+    sessionStorage.removeItem('pendingScroll');
+    // Wait for the full home layout (sections + images) to be painted.
+    const id = setTimeout(() => scrollToSection(target), 200);
+    return () => clearTimeout(id);
+  }, [page]);
 
   if (page === 'archive') {
     return <CollectedWorksPage />;
