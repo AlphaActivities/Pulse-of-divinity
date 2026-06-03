@@ -8,7 +8,11 @@ const navItems = [
   { label: 'Contact',             href: '/#contact' },
 ];
 
-export default function ArchiveNavbar() {
+interface Props {
+  onNavigateHome: () => void;
+}
+
+export default function ArchiveNavbar({ onNavigateHome }: Props) {
   const [scrolled,  setScrolled]  = useState(false);
   const [menuOpen,  setMenuOpen]  = useState(false);
 
@@ -24,18 +28,15 @@ export default function ArchiveNavbar() {
   }, [menuOpen]);
 
   const handleNav = (href: string) => {
-    const wasOpen = menuOpen;
     setMenuOpen(false);
+    document.body.style.overflow = '';
     if (href.startsWith('/#') && href !== '/#collected-works') {
-      // SPA navigation: store scroll target then switch to home via hash change.
-      // Avoids window.location.href which causes a full page reload.
-      const hash = href.slice(1); // '/#works' → '#works'
-      setPendingScroll(hash);
-      setTimeout(() => { window.location.hash = '#home'; }, wasOpen ? 360 : 0);
-    } else if (href === '/') {
-      setTimeout(() => { window.location.hash = '#home'; }, wasOpen ? 360 : 0);
+      // Direct React state swap — no hash roundtrip, no setTimeout, no reload.
+      setPendingScroll(href.slice(1)); // '/#works' → '#works'
+      onNavigateHome();
     } else {
-      setTimeout(() => { window.location.hash = href.replace(/^\//, ''); }, wasOpen ? 360 : 0);
+      // Plain home (logo / "Pulse of Divinity" drawer item)
+      onNavigateHome();
     }
   };
 
@@ -53,7 +54,7 @@ export default function ArchiveNavbar() {
 
           {/* Logo + wordmark */}
           <button
-            onClick={() => { window.location.hash = '#home'; }}
+            onClick={() => handleNav('/')}
             aria-label="Pulse of Divinity — return to home"
             className="flex items-center gap-3 group shrink-0"
             style={{

@@ -25,20 +25,29 @@ export default function App() {
     return () => window.removeEventListener('hashchange', onHashChange);
   }, []);
 
+  // Direct React state navigation from archive — no hash roundtrip needed.
+  // Updates the URL silently then swaps the page tree synchronously.
+  const handleNavigateHome = () => {
+    window.history.replaceState(null, '', '/');
+    setPage('home');
+  };
+
   // Consume any pending scroll queued by ArchiveNavbar when returning home.
-  // takePendingScroll() is null-safe and clears the value on read.
+  // Two rAFs ensure the home tree has committed and the browser has completed
+  // at least one layout pass before scrollToSection reads section offsetTops.
   useEffect(() => {
     if (page !== 'home') return;
     const target = takePendingScroll();
     if (!target) return;
-    // No page reload occurred — React just swapped the tree. Give it one
-    // paint cycle (~80ms) so section offsetTops are stable before scrolling.
-    const id = setTimeout(() => scrollToSection(target), 80);
-    return () => clearTimeout(id);
+    let raf2: number;
+    const raf1 = requestAnimationFrame(() => {
+      raf2 = requestAnimationFrame(() => scrollToSection(target));
+    });
+    return () => { cancelAnimationFrame(raf1); cancelAnimationFrame(raf2); };
   }, [page]);
 
   if (page === 'archive') {
-    return <CollectedWorksPage />;
+    return <CollectedWorksPage onNavigateHome={handleNavigateHome} />;
   }
 
   return (

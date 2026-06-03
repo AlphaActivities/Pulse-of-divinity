@@ -7,7 +7,11 @@ import ArchiveNavbar from '../components/ArchiveNavbar';
 import ArtworkLightbox from '../components/ArtworkLightbox';
 import Footer from '../components/Footer';
 
-export default function CollectedWorksPage() {
+interface Props {
+  onNavigateHome: () => void;
+}
+
+export default function CollectedWorksPage({ onNavigateHome }: Props) {
   const [lightbox, setLightbox] = useState<{ image: string; alt: string; title: string } | null>(null);
 
   useEffect(() => {
@@ -35,7 +39,7 @@ export default function CollectedWorksPage() {
           background: 'linear-gradient(170deg, #f5f0e6 0%, #f0ebe0 40%, #f5f0e6 100%)',
         }}
       >
-        <ArchiveNavbar />
+        <ArchiveNavbar onNavigateHome={onNavigateHome} />
 
         {/* ── Page content ── */}
         <main style={{ paddingTop: 'clamp(5rem, 10vw, 7rem)' }}>
