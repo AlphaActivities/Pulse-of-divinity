@@ -86,7 +86,7 @@ export default function CollectedWorksPage({ onNavigateHome }: Props) {
               <span
                 style={{
                   fontFamily: 'Jost, sans-serif',
-                  fontWeight: 300,
+                  fontWeight: 500,
                   fontSize: '11px',
                   letterSpacing: '0.28em',
                   textTransform: 'uppercase',
