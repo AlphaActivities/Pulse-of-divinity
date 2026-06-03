@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { setPendingScroll } from '../utils/pendingScroll';
 
 const navItems = [
   { label: 'Available Works',     href: '/#works' },
@@ -25,14 +26,16 @@ export default function ArchiveNavbar() {
   const handleNav = (href: string) => {
     const wasOpen = menuOpen;
     setMenuOpen(false);
-    // Landing-page section links: store the target hash so App.tsx can scroll
-    // after the home layout has fully rendered (avoids the hash-scroll race).
     if (href.startsWith('/#') && href !== '/#collected-works') {
-      const hash = href.slice(1); // e.g. '#works'
-      sessionStorage.setItem('pendingScroll', hash);
-      setTimeout(() => { window.location.href = '/'; }, wasOpen ? 360 : 0);
+      // SPA navigation: store scroll target then switch to home via hash change.
+      // Avoids window.location.href which causes a full page reload.
+      const hash = href.slice(1); // '/#works' → '#works'
+      setPendingScroll(hash);
+      setTimeout(() => { window.location.hash = '#home'; }, wasOpen ? 360 : 0);
+    } else if (href === '/') {
+      setTimeout(() => { window.location.hash = '#home'; }, wasOpen ? 360 : 0);
     } else {
-      setTimeout(() => { window.location.href = href; }, wasOpen ? 360 : 0);
+      setTimeout(() => { window.location.hash = href.replace(/^\//, ''); }, wasOpen ? 360 : 0);
     }
   };
 
@@ -50,7 +53,7 @@ export default function ArchiveNavbar() {
 
           {/* Logo + wordmark */}
           <button
-            onClick={() => { window.location.href = '/'; }}
+            onClick={() => { window.location.hash = '#home'; }}
             aria-label="Pulse of Divinity — return to home"
             className="flex items-center gap-3 group shrink-0"
             style={{

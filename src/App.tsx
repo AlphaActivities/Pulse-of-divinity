@@ -10,6 +10,7 @@ import Contact from './components/Contact';
 import Footer from './components/Footer';
 import CollectedWorksPage from './pages/CollectedWorksPage';
 import { scrollToSection } from './utils/scrollToSection';
+import { takePendingScroll } from './utils/pendingScroll';
 
 function getPage(): 'home' | 'archive' {
   return window.location.hash === '#collected-works' ? 'archive' : 'home';
@@ -24,14 +25,15 @@ export default function App() {
     return () => window.removeEventListener('hashchange', onHashChange);
   }, []);
 
-  // Consume any pending scroll set by ArchiveNavbar before navigating home.
+  // Consume any pending scroll queued by ArchiveNavbar when returning home.
+  // takePendingScroll() is null-safe and clears the value on read.
   useEffect(() => {
     if (page !== 'home') return;
-    const target = sessionStorage.getItem('pendingScroll');
-    if (!target || target === '#collected-works') return;
-    sessionStorage.removeItem('pendingScroll');
-    // Wait for the full home layout (sections + images) to be painted.
-    const id = setTimeout(() => scrollToSection(target), 200);
+    const target = takePendingScroll();
+    if (!target) return;
+    // No page reload occurred — React just swapped the tree. Give it one
+    // paint cycle (~80ms) so section offsetTops are stable before scrolling.
+    const id = setTimeout(() => scrollToSection(target), 80);
     return () => clearTimeout(id);
   }, [page]);
 
