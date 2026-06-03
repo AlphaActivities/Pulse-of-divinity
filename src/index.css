@@ -524,11 +524,11 @@
 
 /* ── Archive back button — slow horizontal ivory-gold light trace ── */
 @keyframes archiveBackTrace {
-  0%   { transform: translateX(-100%); opacity: 0; }
+  0%   { transform: translateX(100%);  opacity: 0; }
   8%   { opacity: 1; }
-  55%  { transform: translateX(100%);  opacity: 1; }
+  55%  { transform: translateX(-100%); opacity: 1; }
   65%  { opacity: 0; }
-  100% { transform: translateX(100%);  opacity: 0; }
+  100% { transform: translateX(-100%); opacity: 0; }
 }
 
 /* ── Archive back arrow — slow return-direction nudge ── */
