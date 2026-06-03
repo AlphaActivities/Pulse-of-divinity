@@ -101,6 +101,7 @@
     position: relative;
     overflow: hidden;
     transition: background-position 0.6s ease, transform 0.35s ease, box-shadow 0.35s ease;
+    animation: heroCtaPulse 3.5s ease-in-out infinite;
     /* iOS prevents small tap areas */
     min-height: 48px;
     touch-action: manipulation;
@@ -139,6 +140,7 @@
     position: relative;
     overflow: hidden;
     transition: background 0.4s ease, border-color 0.4s ease, transform 0.35s ease, box-shadow 0.35s ease;
+    animation: heroCtaBorderGlow 5s ease-in-out infinite;
     min-height: 48px;
     touch-action: manipulation;
   }
@@ -429,6 +431,32 @@
 @keyframes heroFrameGlow {
   from { opacity: 0.35; box-shadow: 0 0 0px rgba(201,162,39,0); }
   to   { opacity: 0.65; box-shadow: 0 0 18px rgba(201,162,39,0.18); }
+}
+
+/* ── Hero CTA primary — radial gold aura breathe ── */
+@keyframes heroCtaPulse {
+  0%, 100% {
+    box-shadow:
+      0 0 0 0 rgba(201,162,39,0),
+      0 4px 18px rgba(201,162,39,0.18);
+  }
+  50% {
+    box-shadow:
+      0 0 22px 6px rgba(201,162,39,0.20),
+      0 8px 32px rgba(201,162,39,0.30);
+  }
+}
+
+/* ── Hero CTA ghost — calm border presence breathe ── */
+@keyframes heroCtaBorderGlow {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(250,243,217,0), 0 2px 12px rgba(250,243,217,0.04);
+    border-color: rgba(250,243,217,0.45);
+  }
+  50% {
+    box-shadow: 0 0 14px 3px rgba(250,243,217,0.10), 0 4px 22px rgba(201,162,39,0.12);
+    border-color: rgba(250,243,217,0.68);
+  }
 }
 
 /* ─────────────────────────────────────────
