@@ -554,6 +554,12 @@
 ::-webkit-scrollbar-thumb { background: rgba(201,162,39,0.3); border-radius: 2px; }
 ::-webkit-scrollbar-thumb:hover { background: rgba(201,162,39,0.55); }
 
+/* Luxury gold scrollbar for dropdown panel */
+.dropdown-luxury-scroll::-webkit-scrollbar { width: 8px; }
+.dropdown-luxury-scroll::-webkit-scrollbar-track { background: rgba(255,255,255,0.02); border-radius: 9999px; }
+.dropdown-luxury-scroll::-webkit-scrollbar-thumb { background: linear-gradient(180deg,#d4af37,#b08d23); border-radius: 9999px; border: 1px solid rgba(212,175,55,0.25); }
+.dropdown-luxury-scroll::-webkit-scrollbar-thumb:hover { background: linear-gradient(180deg,#e6c24e,#c9a227); }
+
 /* ─────────────────────────────────────────
    FORM PLACEHOLDER
 ───────────────────────────────────────── */

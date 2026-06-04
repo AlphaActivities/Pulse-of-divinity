@@ -482,6 +482,7 @@ export default function Contact() {
                     id="interest-listbox"
                     role="listbox"
                     aria-label="Select a piece"
+                    className="dropdown-luxury-scroll"
                     style={{
                       position:'absolute',
                       top:'calc(100% + 4px)',
@@ -494,12 +495,14 @@ export default function Contact() {
                       maxHeight: dropdownOpen ? 'min(360px, 50vh)' : '0',
                       overflowY: dropdownOpen ? 'auto' : 'hidden',
                       WebkitOverflowScrolling: 'touch',
+                      scrollbarColor: '#d4af37 rgba(255, 255, 255, 0.02)',
+                      scrollbarWidth: 'thin',
                       opacity: dropdownOpen ? 1 : 0,
                       pointerEvents: dropdownOpen ? 'auto' : 'none',
                       transition:'max-height 0.35s cubic-bezier(0.25,0.46,0.45,0.94), opacity 0.25s ease',
                     }}
                   >
-                    {pieceOptions.map((o) => {
+                    {pieceOptions.map((o, index) => {
                       const isSelected = form.interest === o.value;
                       return (
                         <button
@@ -516,7 +519,7 @@ export default function Contact() {
                             padding:'12px 16px',
                             background: isSelected ? 'rgba(201,162,39,0.08)' : 'transparent',
                             border:'none',
-                            borderBottom:'1px solid rgba(201,162,39,0.1)',
+                            borderBottom: index < pieceOptions.length - 1 ? '1px solid rgba(212, 175, 55, 0.10)' : 'none',
                             cursor:'pointer',
                             textAlign:'left',
                             transition:'background 0.2s ease',
