@@ -3,6 +3,7 @@ import { Instagram, Facebook, Mail } from 'lucide-react';
 import { useReveal } from '../hooks/useReveal';
 import PrivacyModal from './PrivacyModal';
 import TermsModal from './TermsModal';
+import { trackEmailLinkClick, trackSocialLinkClick } from '../utils/analytics';
 
 const navLinks = [
   { label: 'Home',                href: '#home' },
@@ -133,17 +134,18 @@ export default function Footer() {
 
         {/* Social icons row */}
         <div className="flex items-center justify-center gap-5 mb-10">
-          {[
-            { href: 'https://www.instagram.com/pulseofdivinity/', icon: Instagram, label: 'Instagram' },
-            { href: 'https://www.facebook.com/pulseofdivinity',   icon: Facebook,  label: 'Facebook'  },
-            { href: 'mailto:darcy.pulseofdivinity@gmail.com',      icon: Mail,      label: 'Email'     },
-          ].map(({ href, icon: Icon, label }) => (
+          {([
+            { href: 'https://www.instagram.com/pulseofdivinity/', icon: Instagram, label: 'Instagram', onClick: () => trackSocialLinkClick({ platform: 'instagram', link_location: 'footer' }) },
+            { href: 'https://www.facebook.com/pulseofdivinity',   icon: Facebook,  label: 'Facebook',  onClick: () => trackSocialLinkClick({ platform: 'facebook',  link_location: 'footer' }) },
+            { href: 'mailto:darcy.pulseofdivinity@gmail.com',      icon: Mail,      label: 'Email',     onClick: () => trackEmailLinkClick({ link_location: 'footer' }) },
+          ] as { href: string; icon: React.ElementType; label: string; onClick: () => void }[]).map(({ href, icon: Icon, label, onClick }) => (
             <a
               key={label}
               href={href}
               target={href.startsWith('mailto') ? undefined : '_blank'}
               rel={href.startsWith('mailto') ? undefined : 'noopener noreferrer'}
               aria-label={label}
+              onClick={onClick}
               style={{
                 display: 'flex',
                 alignItems: 'center',

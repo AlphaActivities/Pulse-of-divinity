@@ -11,6 +11,9 @@ import {
   trackCommissionInquirySubmit,
   trackContactFormSubmit,
   trackContactFormError,
+  trackEmailLinkClick,
+  trackPhoneLinkClick,
+  trackSocialLinkClick,
 } from '../utils/analytics';
 
 type FormField = 'name' | 'email' | 'phone' | 'interest' | 'contactMethod' | 'message';
@@ -298,38 +301,56 @@ export default function Contact() {
               </h3>
 
               <div className="space-y-5 sm:space-y-6">
-                {contactLinks.map(({ icon: Icon, label, display, href, sub }) => (
-                  <a
-                    key={label}
-                    href={href}
-                    className="flex items-start gap-4 group"
-                    style={{ textDecoration:'none' }}
+                {/* Phone */}
+                <a
+                  href={CONTACT_PHONE_HREF}
+                  className="flex items-start gap-4 group"
+                  style={{ textDecoration:'none' }}
+                  onClick={() => trackPhoneLinkClick({ link_location: 'contact_sidebar' })}
+                >
+                  <div
+                    style={{ padding:'11px', border:'1px solid rgba(201,162,39,0.28)', marginTop:'2px', flexShrink:0, transition:'background 0.35s ease,border-color 0.35s ease' }}
+                    onMouseEnter={(e) => { const el=e.currentTarget as HTMLElement; el.style.background='rgba(201,162,39,0.1)'; el.style.borderColor='rgba(201,162,39,0.55)'; }}
+                    onMouseLeave={(e) => { const el=e.currentTarget as HTMLElement; el.style.background='transparent'; el.style.borderColor='rgba(201,162,39,0.28)'; }}
+                    onTouchStart={(e) => { const el=e.currentTarget as HTMLElement; el.style.background='rgba(201,162,39,0.1)'; el.style.borderColor='rgba(201,162,39,0.55)'; }}
+                    onTouchEnd={(e) => { const el=e.currentTarget as HTMLElement; el.style.background='transparent'; el.style.borderColor='rgba(201,162,39,0.28)'; }}
                   >
-                    <div
-                      style={{ padding:'11px', border:'1px solid rgba(201,162,39,0.28)', marginTop:'2px', flexShrink:0, transition:'background 0.35s ease,border-color 0.35s ease' }}
-                      onMouseEnter={(e) => { const el=e.currentTarget as HTMLElement; el.style.background='rgba(201,162,39,0.1)'; el.style.borderColor='rgba(201,162,39,0.55)'; }}
-                      onMouseLeave={(e) => { const el=e.currentTarget as HTMLElement; el.style.background='transparent'; el.style.borderColor='rgba(201,162,39,0.28)'; }}
-                      onTouchStart={(e) => { const el=e.currentTarget as HTMLElement; el.style.background='rgba(201,162,39,0.1)'; el.style.borderColor='rgba(201,162,39,0.55)'; }}
-                      onTouchEnd={(e) => { const el=e.currentTarget as HTMLElement; el.style.background='transparent'; el.style.borderColor='rgba(201,162,39,0.28)'; }}
-                    >
-                      <Icon size={16} style={{ color:'#c9a227' }} strokeWidth={1.5} />
-                    </div>
-                    <div className="min-w-0">
-                      <p style={labelStyle}>{label}</p>
-                      <p
-                        className="group-hover:text-gold-700 transition-colors duration-300 break-words"
-                        style={{ fontFamily:'Jost, system-ui, sans-serif', fontWeight:300, fontSize:'0.92rem', letterSpacing:'0.02em', color:'#3e2240' }}
-                      >
-                        {display}
-                      </p>
-                      {sub && (
-                        <p style={{ fontFamily:'Jost,sans-serif', fontWeight:300, fontSize:'9px', letterSpacing:'0.12em', textTransform:'uppercase', color:'#6b5143', marginTop:'3px' }}>
-                          {sub}
-                        </p>
-                      )}
-                    </div>
-                  </a>
-                ))}
+                    <Phone size={16} style={{ color:'#c9a227' }} strokeWidth={1.5} />
+                  </div>
+                  <div className="min-w-0">
+                    <p style={labelStyle}>Phone</p>
+                    <p className="group-hover:text-gold-700 transition-colors duration-300 break-words" style={{ fontFamily:'Jost, system-ui, sans-serif', fontWeight:300, fontSize:'0.92rem', letterSpacing:'0.02em', color:'#3e2240' }}>
+                      {CONTACT_PHONE}
+                    </p>
+                    <p style={{ fontFamily:'Jost,sans-serif', fontWeight:300, fontSize:'9px', letterSpacing:'0.12em', textTransform:'uppercase', color:'#6b5143', marginTop:'3px' }}>
+                      Call or Text Welcome
+                    </p>
+                  </div>
+                </a>
+
+                {/* Email */}
+                <a
+                  href={`mailto:${CONTACT_EMAIL}`}
+                  className="flex items-start gap-4 group"
+                  style={{ textDecoration:'none' }}
+                  onClick={() => trackEmailLinkClick({ link_location: 'contact_sidebar' })}
+                >
+                  <div
+                    style={{ padding:'11px', border:'1px solid rgba(201,162,39,0.28)', marginTop:'2px', flexShrink:0, transition:'background 0.35s ease,border-color 0.35s ease' }}
+                    onMouseEnter={(e) => { const el=e.currentTarget as HTMLElement; el.style.background='rgba(201,162,39,0.1)'; el.style.borderColor='rgba(201,162,39,0.55)'; }}
+                    onMouseLeave={(e) => { const el=e.currentTarget as HTMLElement; el.style.background='transparent'; el.style.borderColor='rgba(201,162,39,0.28)'; }}
+                    onTouchStart={(e) => { const el=e.currentTarget as HTMLElement; el.style.background='rgba(201,162,39,0.1)'; el.style.borderColor='rgba(201,162,39,0.55)'; }}
+                    onTouchEnd={(e) => { const el=e.currentTarget as HTMLElement; el.style.background='transparent'; el.style.borderColor='rgba(201,162,39,0.28)'; }}
+                  >
+                    <Mail size={16} style={{ color:'#c9a227' }} strokeWidth={1.5} />
+                  </div>
+                  <div className="min-w-0">
+                    <p style={labelStyle}>Email</p>
+                    <p className="group-hover:text-gold-700 transition-colors duration-300 break-words" style={{ fontFamily:'Jost, system-ui, sans-serif', fontWeight:300, fontSize:'0.92rem', letterSpacing:'0.02em', color:'#3e2240' }}>
+                      {CONTACT_EMAIL}
+                    </p>
+                  </div>
+                </a>
 
                 {/* Instagram */}
                 <a
@@ -338,6 +359,7 @@ export default function Contact() {
                   rel="noopener noreferrer"
                   className="flex items-start gap-4 group"
                   style={{ textDecoration:'none' }}
+                  onClick={() => trackSocialLinkClick({ platform: 'instagram', link_location: 'contact_sidebar' })}
                 >
                   <div
                     style={{ padding:'11px', border:'1px solid rgba(201,162,39,0.28)', marginTop:'2px', flexShrink:0, transition:'background 0.35s ease,border-color 0.35s ease' }}
@@ -369,6 +391,7 @@ export default function Contact() {
                   rel="noopener noreferrer"
                   className="flex items-start gap-4 group"
                   style={{ textDecoration:'none' }}
+                  onClick={() => trackSocialLinkClick({ platform: 'facebook', link_location: 'contact_sidebar' })}
                 >
                   <div
                     style={{ padding:'11px', border:'1px solid rgba(201,162,39,0.28)', marginTop:'2px', flexShrink:0, transition:'background 0.35s ease,border-color 0.35s ease' }}
