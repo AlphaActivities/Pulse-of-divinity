@@ -280,13 +280,29 @@ export default function WorksAlreadyCherished() {
   const { ref: headerRef, visible: headerVisible } = useReveal();
   const { ref: row2Ref, visible: row2Visible } = useReveal();
   const { ref: closingRef, visible: closingVisible } = useReveal();
-  const [lightbox, setLightbox] = useState<{ image: string; alt: string; title: string } | null>(null);
+  const [lightbox, setLightbox] = useState<{
+    image: string;
+    alt: string;
+    title: string;
+    artworkId: string;
+    artworkCollection: string;
+    artworkStatusCode: string;
+    artworkPrice: number | null;
+  } | null>(null);
 
   const [featured1, featured2, ...archiveWorks] = works;
   const previewWorks = archiveWorks.slice(0, 4);
 
   const handleImageClick = (work: CherishedWork) =>
-    setLightbox({ image: work.image, alt: work.imageAlt, title: work.title });
+    setLightbox({
+      image: work.image,
+      alt: work.imageAlt,
+      title: work.title,
+      artworkId: work.id,
+      artworkCollection: work.collection,
+      artworkStatusCode: work.statusCode,
+      artworkPrice: work.priceNumeric,
+    });
 
   return (
     <>
@@ -614,6 +630,10 @@ export default function WorksAlreadyCherished() {
         image={lightbox.image}
         alt={lightbox.alt}
         title={lightbox.title}
+        artworkId={lightbox.artworkId}
+        artworkCollection={lightbox.artworkCollection}
+        artworkStatusCode={lightbox.artworkStatusCode}
+        artworkPrice={lightbox.artworkPrice}
         onClose={() => setLightbox(null)}
       />
     )}
