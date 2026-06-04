@@ -1,10 +1,12 @@
 import { useState, useRef, useEffect } from 'react';
 import { Mail, Phone, Instagram, Facebook, Send, ChevronDown } from 'lucide-react';
 import { useReveal } from '../hooks/useReveal';
+import { availableWorks } from '../data/availableWorks';
 
 type FormField = 'name' | 'email' | 'phone' | 'interest' | 'contactMethod' | 'message';
 
 interface PieceOption {
+  artworkId: string | null;
   value: string;
   label: string;
   price?: string;
@@ -13,27 +15,26 @@ interface PieceOption {
 }
 
 const pieceOptions: PieceOption[] = [
+  ...availableWorks
+    .filter((w) => w.inquiryEligible)
+    .sort((a, b) => a.sortOrder - b.sortOrder)
+    .map((w) => ({
+      artworkId: w.id,
+      value: w.id,
+      label: w.title,
+      price: w.priceDisplay,
+      image: w.image,
+      sub: w.tag,
+    })),
   {
-    value: 'Starlit Within — $3,200',
-    label: 'Starlit Within',
-    price: '$3,200',
-    image: '/images/For_sale/For_sale_01.PNG',
-    sub: 'Celestial · Inner World · Protection',
-  },
-  {
-    value: 'Bloom Through the Breaking — $2,600',
-    label: 'Bloom Through the Breaking',
-    price: '$2,600',
-    image: '/images/For_sale/For_sale_02.PNG',
-    sub: 'Healing · Contrast · Becoming Whole',
-  },
-  {
-    value: 'Private Commission Inquiry',
+    artworkId: null,
+    value: 'commission',
     label: 'Private Commission Inquiry',
     sub: 'A work created just for you',
   },
   {
-    value: 'General Question',
+    artworkId: null,
+    value: 'general',
     label: 'General Question',
     sub: 'Something else on your mind',
   },
@@ -83,6 +84,7 @@ export default function Contact() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    const selected = pieceOptions.find((o) => o.value === form.interest);
     const body = new URLSearchParams({
       'form-name': 'contact',
       'bot-field': '',
@@ -90,6 +92,9 @@ export default function Contact() {
       email: form.email,
       phone: form.phone,
       interest: form.interest,
+      artworkId: selected?.artworkId ?? '',
+      artworkTitle: selected?.label ?? '',
+      artworkPrice: selected?.price ?? '',
       contactMethod: form.contactMethod,
       message: form.message,
     });

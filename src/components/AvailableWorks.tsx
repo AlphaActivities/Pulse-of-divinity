@@ -2,69 +2,27 @@ import { useState } from 'react';
 import { useReveal } from '../hooks/useReveal';
 import ArtworkLightbox from './ArtworkLightbox';
 import { scrollToSection } from '../utils/scrollToSection';
+import { availableWorks } from '../data/availableWorks';
+import type { Artwork } from '../data/artworkTypes';
 
-interface Painting {
-  id: number;
-  title: string;
-  teaser: string;
-  price: string;
+interface LightboxState {
   image: string;
-  imageAlt: string;
-  story: string;
-  tag: string;
+  alt: string;
+  title: string;
+  artworkId: string;
+  artworkCollection: string;
+  artworkStatusCode: string;
+  artworkPrice: number | null;
 }
-
-const paintings: Painting[] = [
-  {
-    id: 1,
-    title: 'Starlit Within',
-    teaser: 'A celestial portrait of inner softness, protection, and the private universe carried within the heart.',
-    price: '$3,200',
-    image: '/images/For_sale/For_sale_01.PNG',
-    imageAlt: 'Starlit Within original painting by Darcy LaDue',
-    story: 'A celestial portrait of inner softness, protection, and the private universe carried within the heart. This piece brings dreamlike calm, color, and quiet wonder into the space it enters.',
-    tag: 'Celestial · Inner World · Protection',
-  },
-  {
-    id: 2,
-    title: 'Bloom Through the Breaking',
-    teaser: 'A symbolic portrait of healing, contrast, and becoming whole through what once felt broken.',
-    price: '$2,600',
-    image: '/images/For_sale/For_sale_02.PNG',
-    imageAlt: 'Bloom Through the Breaking original painting by Darcy LaDue',
-    story: 'A symbolic portrait of healing, contrast, and becoming whole through what once felt broken. The floral crown softens the fracture, turning vulnerability into quiet strength.',
-    tag: 'Healing · Contrast · Becoming Whole',
-  },
-  {
-    id: 3,
-    title: 'Warmth Remembered',
-    teaser: 'A personal portrait centered around warmth, familiarity, and emotional presence.',
-    price: '$2,900',
-    image: '/images/For_sale/For_sale_03.webp',
-    imageAlt: 'Warmth Remembered original portrait artwork by Darcy LaDue',
-    story: 'A heartfelt portrait capturing kindness, individuality, and the quiet energy carried through expression. The warmth of the smile and rich color tones create a feeling that feels both grounding and deeply personal.',
-    tag: 'Portrait · Presence · Connection',
-  },
-  {
-    id: 4,
-    title: 'Grace in Bloom',
-    teaser: 'A graceful portrait exploring softness, presence, and quiet inner beauty.',
-    price: '$3,400',
-    image: '/images/For_sale/For_sale_04.webp',
-    imageAlt: 'Grace in Bloom original portrait artwork by Darcy LaDue',
-    story: 'A symbolic portrait centered around femininity, gentleness, and emotional warmth. The calm expression, flowing dark hair, and delicate details create a feeling of quiet confidence and timeless grace.',
-    tag: 'Portrait · Heritage · Soft Strength',
-  },
-];
 
 function PaintingCard({
   painting,
   index,
   onImageClick,
 }: {
-  painting: Painting;
+  painting: Artwork;
   index: number;
-  onImageClick: (painting: Painting) => void;
+  onImageClick: (painting: Artwork) => void;
 }) {
   const [storyOpen, setStoryOpen] = useState(false);
   const [hovered,   setHovered]   = useState(false);
@@ -210,7 +168,7 @@ function PaintingCard({
           {/* Info panel */}
           <div className="w-full lg:w-2/5 flex flex-col p-7 sm:p-9 lg:p-11">
             <p aria-hidden="true" style={{ fontFamily:'Cormorant Garamond,serif', fontSize:'2.6rem', fontWeight:300, lineHeight:1, color:'#c9a227', opacity:0.25, marginBottom:'0.85rem' }}>
-              0{painting.id}
+              0{painting.sortOrder}
             </p>
 
             <h3 className="luxury-heading text-plum-900 mb-3" style={{ fontSize:'clamp(1.5rem,2.8vw,2.1rem)' }}>
@@ -229,7 +187,7 @@ function PaintingCard({
               <div className="flex justify-between items-center pt-1.5">
                 <dt style={{ fontFamily:'Jost,sans-serif', fontWeight:400, fontSize:'0.7rem', letterSpacing:'0.18em', textTransform:'uppercase', color:'#573f36' }}>Investment</dt>
                 <dd style={{ fontFamily:'Jost, system-ui, sans-serif', fontSize:'1.1rem', fontWeight:400, color:'#7d4574', letterSpacing:'0.06em' }}>
-                  {painting.price}
+                  {painting.priceDisplay}
                 </dd>
               </div>
             </dl>
@@ -298,7 +256,7 @@ function PaintingCard({
 
 export default function AvailableWorks() {
   const { ref: titleRef, visible: titleVisible } = useReveal();
-  const [lightbox, setLightbox] = useState<{ image: string; alt: string; title: string } | null>(null);
+  const [lightbox, setLightbox] = useState<LightboxState | null>(null);
 
   return (
     <>
@@ -334,12 +292,20 @@ export default function AvailableWorks() {
 
         {/* Cards */}
         <div className="space-y-12 md:space-y-16">
-          {paintings.map((p, i) => (
+          {availableWorks.map((p, i) => (
             <PaintingCard
               key={p.id}
               painting={p}
               index={i}
-              onImageClick={(painting) => setLightbox({ image: painting.image, alt: painting.imageAlt, title: painting.title })}
+              onImageClick={(painting) => setLightbox({
+                image: painting.image,
+                alt: painting.imageAlt,
+                title: painting.title,
+                artworkId: painting.id,
+                artworkCollection: painting.collection,
+                artworkStatusCode: painting.statusCode,
+                artworkPrice: painting.priceNumeric,
+              })}
             />
           ))}
         </div>
@@ -363,6 +329,10 @@ export default function AvailableWorks() {
         image={lightbox.image}
         alt={lightbox.alt}
         title={lightbox.title}
+        artworkId={lightbox.artworkId}
+        artworkCollection={lightbox.artworkCollection}
+        artworkStatusCode={lightbox.artworkStatusCode}
+        artworkPrice={lightbox.artworkPrice}
         onClose={() => setLightbox(null)}
       />
     )}
