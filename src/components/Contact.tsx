@@ -10,6 +10,7 @@ interface PieceOption {
   value: string;
   label: string;
   price?: string;
+  priceNumeric?: number | null;
   image?: string;
   sub?: string;
 }
@@ -23,6 +24,7 @@ const pieceOptions: PieceOption[] = [
       value: w.id,
       label: w.title,
       price: w.priceDisplay,
+      priceNumeric: w.priceNumeric,
       image: w.image,
       sub: w.tag,
     })),

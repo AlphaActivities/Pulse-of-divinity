@@ -14,7 +14,7 @@ interface ArtworkLightboxProps {
   artworkPrice?: number | null;
 }
 
-export default function ArtworkLightbox({ open, image, alt, title, onClose }: ArtworkLightboxProps) {
+export default function ArtworkLightbox({ open, image, alt, title, onClose, artworkId: _artworkId, artworkCollection: _artworkCollection, artworkStatusCode: _artworkStatusCode, artworkPrice: _artworkPrice }: ArtworkLightboxProps) {
   useEffect(() => {
     if (!open) return;
 
