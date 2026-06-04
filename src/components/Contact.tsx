@@ -167,8 +167,9 @@ export default function Contact() {
 
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   const formProgress = Math.min(100,
-    (form.name.trim()            ? 20 : 0) +
-    (emailRegex.test(form.email) ? 25 : 0) +
+    (form.name.trim()            ? 15 : 0) +
+    (emailRegex.test(form.email) ? 20 : 0) +
+    (form.phone.trim()           ? 10 : 0) +
     (form.interest               ? 20 : 0) +
     (form.contactMethod          ? 15 : 0) +
     (form.message.trim()         ? 20 : 0)
