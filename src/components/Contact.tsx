@@ -2,6 +2,16 @@ import { useState, useRef, useEffect } from 'react';
 import { Mail, Phone, Instagram, Facebook, Send, ChevronDown } from 'lucide-react';
 import { useReveal } from '../hooks/useReveal';
 import { availableWorks } from '../data/availableWorks';
+import {
+  trackContactFormStart,
+  trackContactMethodSelected,
+  trackArtworkInquiryStart,
+  trackArtworkInquirySubmit,
+  trackCommissionInquiryStart,
+  trackCommissionInquirySubmit,
+  trackContactFormSubmit,
+  trackContactFormError,
+} from '../utils/analytics';
 
 type FormField = 'name' | 'email' | 'phone' | 'interest' | 'contactMethod' | 'message';
 
@@ -62,6 +72,8 @@ export default function Contact() {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const triggerRef  = useRef<HTMLButtonElement>(null);
+  const formStartFired    = useRef(false);
+  const inquiryStartFired = useRef<string | null>(null);
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -107,6 +119,37 @@ export default function Contact() {
     return `(${digits.slice(0,3)}) ${digits.slice(3,6)}-${digits.slice(6)}`;
   };
 
+  const handleFormStart = () => {
+    if (formStartFired.current) return;
+    formStartFired.current = true;
+    trackContactFormStart();
+  };
+
+  const handleInterestSelect = (value: string) => {
+    set('interest', value);
+    setDropdownOpen(false);
+    setFocused(null);
+    const option = pieceOptions.find((o) => o.value === value);
+    if (!option) return;
+    if (option.artworkId && inquiryStartFired.current !== value) {
+      inquiryStartFired.current = value;
+      trackArtworkInquiryStart({
+        inquiry_type: 'available_work',
+        artwork_id: option.artworkId,
+        artwork_title: option.label,
+        artwork_price: option.priceNumeric ?? null,
+      });
+    } else if (value === 'commission' && inquiryStartFired.current !== 'commission') {
+      inquiryStartFired.current = 'commission';
+      trackCommissionInquiryStart();
+    }
+  };
+
+  const handleContactMethodSelect = (value: string) => {
+    set('contactMethod', value);
+    trackContactMethodSelected(value as 'email' | 'call' | 'text');
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const selected = pieceOptions.find((o) => o.value === form.interest);
@@ -130,12 +173,36 @@ export default function Contact() {
     })
       .then((res) => {
         if (res.ok) {
+          const inquiryType = selected?.artworkId
+            ? 'available_work' as const
+            : selected?.value === 'commission'
+              ? 'commission' as const
+              : 'general' as const;
+          const contactMethod = form.contactMethod as 'email' | 'call' | 'text' | undefined;
+          trackContactFormSubmit({
+            inquiry_type: inquiryType,
+            contact_method: contactMethod || undefined,
+            form_progress: formProgress,
+          });
+          if (selected?.artworkId) {
+            trackArtworkInquirySubmit({
+              inquiry_type: 'available_work',
+              artwork_id: selected.artworkId,
+              artwork_title: selected.label,
+              artwork_price: selected.priceNumeric ?? null,
+              contact_method: contactMethod || undefined,
+            });
+          } else if (selected?.value === 'commission') {
+            trackCommissionInquirySubmit({ contact_method: contactMethod || undefined });
+          }
           setSubmitted(true);
         } else {
+          trackContactFormError({ error_type: 'netlify_submission_failed', status_code: res.status });
           console.error('Netlify form submission failed:', res.status);
         }
       })
       .catch((err) => {
+        trackContactFormError({ error_type: 'network_error' });
         console.error('Netlify form submission error:', err);
       });
   };
@@ -390,7 +457,7 @@ export default function Contact() {
                       value={form.name}
                       placeholder="Full name"
                       onChange={(e) => set('name', e.target.value)}
-                      onFocus={() => setFocused('name')}
+                      onFocus={() => { handleFormStart(); setFocused('name'); }}
                       onBlur={() => setFocused(null)}
                       style={inputStyle('name')}
                     />
@@ -406,7 +473,7 @@ export default function Contact() {
                       value={form.email}
                       placeholder="your@email.com"
                       onChange={(e) => set('email', e.target.value)}
-                      onFocus={() => setFocused('email')}
+                      onFocus={() => { handleFormStart(); setFocused('email'); }}
                       onBlur={() => setFocused(null)}
                       style={inputStyle('email')}
                     />
@@ -427,7 +494,7 @@ export default function Contact() {
                     value={form.phone}
                     placeholder="+1 (234) 567-8901"
                     onChange={(e) => set('phone', formatPhone(e.target.value))}
-                    onFocus={() => setFocused('phone')}
+                    onFocus={() => { handleFormStart(); setFocused('phone'); }}
                     onBlur={() => setFocused(null)}
                     style={inputStyle('phone')}
                   />
@@ -441,7 +508,7 @@ export default function Contact() {
                   <button
                     type="button"
                     ref={triggerRef}
-                    onClick={() => { setDropdownOpen(o => !o); setFocused('interest'); }}
+                    onClick={() => { handleFormStart(); setDropdownOpen(o => !o); setFocused('interest'); }}
                     onBlur={() => { if (!dropdownOpen) setFocused(null); }}
                     aria-haspopup="listbox"
                     aria-expanded={dropdownOpen}
@@ -522,7 +589,7 @@ export default function Contact() {
                           type="button"
                           role="option"
                           aria-selected={isSelected}
-                          onClick={() => { set('interest', o.value); setDropdownOpen(false); setFocused(null); }}
+                          onClick={() => handleInterestSelect(o.value)}
                           style={{
                             width:'100%',
                             display:'flex',
@@ -577,7 +644,7 @@ export default function Contact() {
                         <button
                           key={m.value}
                           type="button"
-                          onClick={() => set('contactMethod', m.value)}
+                          onClick={() => handleContactMethodSelect(m.value)}
                           aria-pressed={active}
                           style={{
                             padding:'10px 20px',
@@ -609,7 +676,7 @@ export default function Contact() {
                     value={form.message}
                     placeholder="Share what drew you here, what you are seeking, or simply say hello…"
                     onChange={(e) => set('message', e.target.value)}
-                    onFocus={() => setFocused('message')}
+                    onFocus={() => { handleFormStart(); setFocused('message'); }}
                     onBlur={() => setFocused(null)}
                     style={{ ...inputStyle('message'), resize:'none', lineHeight:1.85 }}
                   />
