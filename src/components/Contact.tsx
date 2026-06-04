@@ -148,7 +148,7 @@ export default function Contact() {
     outline: 'none',
     fontFamily: 'Jost, system-ui, sans-serif',
     fontWeight: 300,
-    fontSize: 'clamp(0.9rem,1.5vw,0.97rem)',
+    fontSize: 'clamp(1rem,1.5vw,0.97rem)',
     color: '#573f36',
     transition: 'border-color 0.35s ease',
     WebkitAppearance: 'none',
