@@ -59,6 +59,7 @@ export default function Contact() {
   const [focused,   setFocused]   = useState<FormField | null>(null);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const triggerRef  = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -66,9 +67,21 @@ export default function Contact() {
         setDropdownOpen(false);
       }
     };
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setDropdownOpen(false);
+    };
     document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
   }, []);
+
+  useEffect(() => {
+    if (!dropdownOpen) return;
+    triggerRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }, [dropdownOpen]);
 
   const selectedOption = pieceOptions.find(o => o.value === form.interest);
 
@@ -405,10 +418,12 @@ export default function Contact() {
                   {/* Trigger */}
                   <button
                     type="button"
+                    ref={triggerRef}
                     onClick={() => { setDropdownOpen(o => !o); setFocused('interest'); }}
                     onBlur={() => { if (!dropdownOpen) setFocused(null); }}
                     aria-haspopup="listbox"
                     aria-expanded={dropdownOpen}
+                    aria-controls="interest-listbox"
                     style={{
                       width:'100%',
                       display:'flex',
@@ -454,6 +469,7 @@ export default function Contact() {
 
                   {/* Dropdown panel */}
                   <div
+                    id="interest-listbox"
                     role="listbox"
                     aria-label="Select a piece"
                     style={{
@@ -465,8 +481,9 @@ export default function Contact() {
                       background:'#fdfbf0',
                       border:'1px solid rgba(201,162,39,0.28)',
                       boxShadow:'0 16px 48px rgba(62,34,64,0.13)',
-                      overflow:'hidden',
-                      maxHeight: dropdownOpen ? '400px' : '0',
+                      maxHeight: dropdownOpen ? 'min(360px, 50vh)' : '0',
+                      overflowY: dropdownOpen ? 'auto' : 'hidden',
+                      WebkitOverflowScrolling: 'touch',
                       opacity: dropdownOpen ? 1 : 0,
                       pointerEvents: dropdownOpen ? 'auto' : 'none',
                       transition:'max-height 0.35s cubic-bezier(0.25,0.46,0.45,0.94), opacity 0.25s ease',
