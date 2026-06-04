@@ -107,21 +107,6 @@
     touch-action: manipulation;
   }
 
-  /* Slow living-gold warmth that drifts inside the fill — purely additive */
-  .luxury-btn-primary::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: radial-gradient(
-      ellipse 80% 120% at 25% 50%,
-      rgba(255,248,170,0.30) 0%,
-      rgba(255,235,110,0.14) 40%,
-      transparent 68%
-    );
-    pointer-events: none;
-    z-index: 0;
-  }
-
   .luxury-btn-primary::after {
     content: '';
     position: absolute;
@@ -149,18 +134,42 @@
     height: 100%;
     pointer-events: none;
     z-index: 0;
+    overflow: hidden;
     transition: width 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
     background: linear-gradient(
       90deg,
-      rgba(255,248,170,0.52) 0%,
-      rgba(255,235,110,0.36) 32%,
-      rgba(212,175,55,0.22) 65%,
+      rgba(255, 245, 140, 0.42) 0%,
+      rgba(255, 230, 90,  0.34) 45%,
+      rgba(212, 175, 55,  0.26) 75%,
+      rgba(212, 175, 55,  0.08) 100%
+    );
+  }
+
+  /* Leading-edge traveling shimmer line */
+  .btn-progress-fill::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: -12px;
+    width: 24px;
+    height: 100%;
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      rgba(255, 255, 220, 0.55) 38%,
+      rgba(255, 255, 200, 0.85) 50%,
+      rgba(255, 255, 220, 0.55) 62%,
       transparent 100%
     );
-    animation: btnFillBreath 4.5s ease-in-out infinite;
+    animation: fillLeaderTravel 3.2s ease-in-out infinite;
+    pointer-events: none;
   }
-  .btn-progress-fill.is-complete {
-    animation: btnFillComplete 6s ease-in-out infinite;
+
+  /* At 100% — shimmer spans full button, pulses calmly */
+  .btn-progress-fill.is-complete::after {
+    right: 0;
+    width: 100%;
+    animation: fillCompleteGlow 4.8s ease-in-out infinite;
   }
 
   .luxury-btn-ghost {
@@ -537,22 +546,16 @@
   }
 }
 
-/* ── Primary button — living gold warmth (kept for reference, no longer used on ::before) ── */
-@keyframes primaryGoldBreath {
-  0%, 100% { opacity: 0.45; transform: translateX(0%); }
-  50%       { opacity: 1;    transform: translateX(20%); }
+/* ── Send Inquiry button — leading-edge shimmer travels near progress boundary ── */
+@keyframes fillLeaderTravel {
+  0%, 100% { transform: translateX(0px);   opacity: 0.78; }
+  50%       { transform: translateX(-12px); opacity: 1;    }
 }
 
-/* ── Send Inquiry button progress fill — subtle breath within filled zone ── */
-@keyframes btnFillBreath {
-  0%, 100% { opacity: 0.72; }
-  50%       { opacity: 1;   }
-}
-
-/* ── Send Inquiry button — calmer complete-state glow ── */
-@keyframes btnFillComplete {
-  0%, 100% { opacity: 0.88; }
-  50%       { opacity: 1;   }
+/* ── Send Inquiry button — complete state, full-width calm pulse ── */
+@keyframes fillCompleteGlow {
+  0%, 100% { opacity: 0.45; transform: translateX(0); }
+  50%       { opacity: 0.90; transform: translateX(0); }
 }
 
 /* ── Archive back button — slow horizontal ivory-gold light trace ── */
@@ -1124,7 +1127,8 @@ select::placeholder {
   }
 
   /* Freeze progress fill transition and animation */
-  .btn-progress-fill {
+  .btn-progress-fill,
+  .btn-progress-fill::after {
     transition: none !important;
     animation: none !important;
   }
