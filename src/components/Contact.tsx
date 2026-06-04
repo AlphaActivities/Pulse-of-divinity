@@ -87,7 +87,7 @@ export default function Contact() {
     const spaceBelow = window.innerHeight - trigger.bottom;
     if (spaceBelow < panelHeight + 16) {
       window.scrollTo({
-        top: trigger.top + window.scrollY - navHeight - 16,
+        top: trigger.top + window.scrollY - navHeight - 36,
         behavior: 'smooth',
       });
     }
