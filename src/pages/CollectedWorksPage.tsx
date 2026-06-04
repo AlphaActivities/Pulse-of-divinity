@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { ArrowLeft } from 'lucide-react';
 import { works } from '../data/cherishedWorks';
+import { trackPageView, trackCollectionViewed } from '../utils/analytics';
 import type { CherishedWork } from '../data/cherishedWorks';
 import ArchiveCard from '../components/ArchiveCard';
 import ArchiveNavbar from '../components/ArchiveNavbar';
@@ -24,6 +25,8 @@ export default function CollectedWorksPage({ onNavigateHome }: Props) {
 
   useEffect(() => {
     window.scrollTo(0, 0);
+    trackPageView({ page_path: '/collected-works', page_title: 'Collected Works Archive' });
+    trackCollectionViewed({ collection_name: 'collected_archive', artwork_count: works.length });
   }, []);
 
   const handleBack = () => {
