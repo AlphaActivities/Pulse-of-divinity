@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Navbar from './components/Navbar';
 import Hero from './components/Hero';
 import EmotionalBridge from './components/EmotionalBridge';
@@ -11,6 +11,7 @@ import Footer from './components/Footer';
 import CollectedWorksPage from './pages/CollectedWorksPage';
 import { scrollToSection } from './utils/scrollToSection';
 import { takePendingScroll } from './utils/pendingScroll';
+import { trackPageView, trackSectionViewed, trackCollectionViewed } from './utils/analytics';
 
 function getPage(): 'home' | 'archive' {
   return window.location.hash === '#collected-works' ? 'archive' : 'home';
@@ -18,6 +19,48 @@ function getPage(): 'home' | 'archive' {
 
 export default function App() {
   const [page, setPage] = useState<'home' | 'archive'>(getPage);
+  const observedSections = useRef<Set<string>>(new Set());
+
+  // Track home page view once on mount.
+  useEffect(() => {
+    trackPageView({ page_path: '/', page_title: 'Pulse of Divinity Home' });
+  }, []);
+
+  // Track section views once per session using IntersectionObserver.
+  useEffect(() => {
+    if (page !== 'home') return;
+
+    const sectionMap: Record<string, () => void> = {
+      works: () => {
+        trackSectionViewed({ section_name: 'available_works' });
+        trackCollectionViewed({ collection_name: 'available_works', artwork_count: 4 });
+      },
+      about:       () => trackSectionViewed({ section_name: 'artist_story' }),
+      cherished:   () => trackSectionViewed({ section_name: 'cherished_works' }),
+      commissions: () => trackSectionViewed({ section_name: 'commissions' }),
+      contact:     () => trackSectionViewed({ section_name: 'contact' }),
+    };
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (!entry.isIntersecting) return;
+          const id = (entry.target as HTMLElement).id;
+          if (!id || observedSections.current.has(id)) return;
+          observedSections.current.add(id);
+          sectionMap[id]?.();
+        });
+      },
+      { threshold: 0.4 }
+    );
+
+    Object.keys(sectionMap).forEach((id) => {
+      const el = document.getElementById(id);
+      if (el) observer.observe(el);
+    });
+
+    return () => observer.disconnect();
+  }, [page]);
 
   useEffect(() => {
     const onHashChange = () => setPage(getPage());
