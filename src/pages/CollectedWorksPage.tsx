@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { ArrowLeft } from 'lucide-react';
 import { works } from '../data/cherishedWorks';
-import { trackPageView, trackCollectionViewed } from '../utils/analytics';
+import { trackPageView, trackCollectionViewed, trackArtworkLightboxOpen } from '../utils/analytics';
 import type { CherishedWork } from '../data/cherishedWorks';
 import ArchiveCard from '../components/ArchiveCard';
 import ArchiveNavbar from '../components/ArchiveNavbar';
@@ -37,7 +37,14 @@ export default function CollectedWorksPage({ onNavigateHome }: Props) {
     }
   };
 
-  const handleImageClick = (work: CherishedWork) =>
+  const handleImageClick = (work: CherishedWork) => {
+    trackArtworkLightboxOpen({
+      artwork_id: work.id,
+      artwork_title: work.title,
+      artwork_collection: work.collection,
+      artwork_status: work.statusCode,
+      artwork_price: work.priceNumeric,
+    });
     setLightbox({
       image: work.image,
       alt: work.imageAlt,
@@ -47,6 +54,7 @@ export default function CollectedWorksPage({ onNavigateHome }: Props) {
       artworkStatusCode: work.statusCode,
       artworkPrice: work.priceNumeric,
     });
+  };
 
   return (
     <>

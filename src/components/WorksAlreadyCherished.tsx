@@ -4,6 +4,7 @@ import ArtworkLightbox from './ArtworkLightbox';
 import ArchiveCard from './ArchiveCard';
 import { works } from '../data/cherishedWorks';
 import type { CherishedWork } from '../data/cherishedWorks';
+import { trackArtworkLightboxOpen } from '../utils/analytics';
 
 /* ── Status badge ──────────────────────────────────────────────────────────── */
 function StatusBadge({ label }: { label: string }) {
@@ -293,7 +294,14 @@ export default function WorksAlreadyCherished() {
   const [featured1, featured2, ...archiveWorks] = works;
   const previewWorks = archiveWorks.slice(0, 4);
 
-  const handleImageClick = (work: CherishedWork) =>
+  const handleImageClick = (work: CherishedWork) => {
+    trackArtworkLightboxOpen({
+      artwork_id: work.id,
+      artwork_title: work.title,
+      artwork_collection: work.collection,
+      artwork_status: work.statusCode,
+      artwork_price: work.priceNumeric,
+    });
     setLightbox({
       image: work.image,
       alt: work.imageAlt,
@@ -303,6 +311,7 @@ export default function WorksAlreadyCherished() {
       artworkStatusCode: work.statusCode,
       artworkPrice: work.priceNumeric,
     });
+  };
 
   return (
     <>

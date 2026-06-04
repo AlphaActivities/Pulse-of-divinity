@@ -4,6 +4,7 @@ import ArtworkLightbox from './ArtworkLightbox';
 import { scrollToSection } from '../utils/scrollToSection';
 import { availableWorks } from '../data/availableWorks';
 import type { Artwork } from '../data/artworkTypes';
+import { trackArtworkLightboxOpen } from '../utils/analytics';
 
 interface LightboxState {
   image: string;
@@ -297,7 +298,15 @@ export default function AvailableWorks() {
               key={p.id}
               painting={p}
               index={i}
-              onImageClick={(painting) => setLightbox({
+              onImageClick={(painting) => {
+                trackArtworkLightboxOpen({
+                  artwork_id: painting.id,
+                  artwork_title: painting.title,
+                  artwork_collection: painting.collection,
+                  artwork_status: painting.statusCode,
+                  artwork_price: painting.priceNumeric,
+                });
+                setLightbox({
                 image: painting.image,
                 alt: painting.imageAlt,
                 title: painting.title,
@@ -305,7 +314,7 @@ export default function AvailableWorks() {
                 artworkCollection: painting.collection,
                 artworkStatusCode: painting.statusCode,
                 artworkPrice: painting.priceNumeric,
-              })}
+              });}}
             />
           ))}
         </div>
