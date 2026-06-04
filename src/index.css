@@ -118,7 +118,6 @@
       rgba(255,235,110,0.14) 40%,
       transparent 68%
     );
-    animation: primaryGoldBreath 5s ease-in-out infinite;
     pointer-events: none;
     z-index: 0;
   }
@@ -141,6 +140,28 @@
     box-shadow: 0 10px 36px rgba(201,162,39,0.45), 0 2px 10px rgba(201,162,39,0.2);
   }
   .luxury-btn-primary:active { transform: translateY(0); }
+
+  /* ── Send Inquiry form progress fill ── */
+  .btn-progress-fill {
+    position: absolute;
+    left: 0;
+    top: 0;
+    height: 100%;
+    pointer-events: none;
+    z-index: 0;
+    transition: width 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    background: linear-gradient(
+      90deg,
+      rgba(255,248,170,0.52) 0%,
+      rgba(255,235,110,0.36) 32%,
+      rgba(212,175,55,0.22) 65%,
+      transparent 100%
+    );
+    animation: btnFillBreath 4.5s ease-in-out infinite;
+  }
+  .btn-progress-fill.is-complete {
+    animation: btnFillComplete 6s ease-in-out infinite;
+  }
 
   .luxury-btn-ghost {
     display: inline-block;
@@ -516,10 +537,22 @@
   }
 }
 
-/* ── Primary button — living gold warmth drifts across the fill ── */
+/* ── Primary button — living gold warmth (kept for reference, no longer used on ::before) ── */
 @keyframes primaryGoldBreath {
   0%, 100% { opacity: 0.45; transform: translateX(0%); }
   50%       { opacity: 1;    transform: translateX(20%); }
+}
+
+/* ── Send Inquiry button progress fill — subtle breath within filled zone ── */
+@keyframes btnFillBreath {
+  0%, 100% { opacity: 0.72; }
+  50%       { opacity: 1;   }
+}
+
+/* ── Send Inquiry button — calmer complete-state glow ── */
+@keyframes btnFillComplete {
+  0%, 100% { opacity: 0.88; }
+  50%       { opacity: 1;   }
 }
 
 /* ── Archive back button — slow horizontal ivory-gold light trace ── */
@@ -1087,6 +1120,12 @@ select::placeholder {
   /* Freeze all hero background animations */
   .hero-aurora-a,
   .hero-aurora-b {
+    animation: none !important;
+  }
+
+  /* Freeze progress fill transition and animation */
+  .btn-progress-fill {
+    transition: none !important;
     animation: none !important;
   }
 }

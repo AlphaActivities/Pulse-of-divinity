@@ -165,6 +165,15 @@ export default function Contact() {
     marginBottom: '8px',
   };
 
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  const formProgress = Math.min(100,
+    (form.name.trim()            ? 20 : 0) +
+    (emailRegex.test(form.email) ? 25 : 0) +
+    (form.interest               ? 20 : 0) +
+    (form.contactMethod          ? 15 : 0) +
+    (form.message.trim()         ? 20 : 0)
+  );
+
   const contactLinks = [
     {
       icon: Phone,
@@ -608,8 +617,12 @@ export default function Contact() {
                   className="luxury-btn-primary"
                   style={{ width:'100%', display:'flex', alignItems:'center', justifyContent:'center', gap:'10px' }}
                 >
-                  <span>Send Inquiry</span>
-                  <Send size={12} strokeWidth={1.5} />
+                  <div
+                    className={`btn-progress-fill${formProgress >= 100 ? ' is-complete' : ''}`}
+                    style={{ width: `${Math.max(28, formProgress)}%` }}
+                  />
+                  <span style={{ position:'relative', zIndex:2 }}>Send Inquiry</span>
+                  <Send size={12} strokeWidth={1.5} style={{ position:'relative', zIndex:2 }} />
                 </button>
 
                 <p style={{ textAlign:'center', fontFamily:'Jost,sans-serif', fontWeight:300, fontSize:'10px', letterSpacing:'0.08em', color:'#6b5143' }}>
