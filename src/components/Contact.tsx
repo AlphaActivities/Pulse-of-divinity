@@ -79,8 +79,18 @@ export default function Contact() {
   }, []);
 
   useEffect(() => {
-    if (!dropdownOpen) return;
-    triggerRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    if (!dropdownOpen || !triggerRef.current) return;
+    const trigger = triggerRef.current.getBoundingClientRect();
+    const nav = document.querySelector('nav');
+    const navHeight = nav ? Math.ceil(nav.getBoundingClientRect().height) : 68;
+    const panelHeight = Math.min(360, window.innerHeight * 0.5);
+    const spaceBelow = window.innerHeight - trigger.bottom;
+    if (spaceBelow < panelHeight + 16) {
+      window.scrollTo({
+        top: trigger.top + window.scrollY - navHeight - 16,
+        behavior: 'smooth',
+      });
+    }
   }, [dropdownOpen]);
 
   const selectedOption = pieceOptions.find(o => o.value === form.interest);
