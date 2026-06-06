@@ -33,7 +33,7 @@ export default function App() {
     const sectionMap: Record<string, () => void> = {
       works: () => {
         trackSectionViewed({ section_name: 'available_works' });
-        trackCollectionViewed({ collection_name: 'available_works', artwork_count: 4 });
+        trackCollectionViewed({ collection_name: 'available_works', artwork_count: 2 });
       },
       about:       () => trackSectionViewed({ section_name: 'artist_story' }),
       cherished:   () => trackSectionViewed({ section_name: 'cherished_works' }),
