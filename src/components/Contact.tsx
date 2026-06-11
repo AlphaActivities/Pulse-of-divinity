@@ -75,6 +75,7 @@ export default function Contact() {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const triggerRef  = useRef<HTMLButtonElement>(null);
+  const successRef  = useRef<HTMLDivElement>(null);
   const formStartFired    = useRef(false);
   const inquiryStartFired = useRef<string | null>(null);
 
@@ -109,6 +110,26 @@ export default function Contact() {
       });
     }
   }, [dropdownOpen]);
+
+  useEffect(() => {
+    if (!submitted || !successRef.current) return;
+    const el = successRef.current;
+    requestAnimationFrame(() => {
+      const rect = el.getBoundingClientRect();
+      const nav = document.querySelector('nav');
+      const navHeight = nav ? Math.ceil(nav.getBoundingClientRect().height) : 68;
+      const availableHeight = window.innerHeight - navHeight;
+      const targetTop =
+        rect.top +
+        window.scrollY -
+        navHeight -
+        Math.max(0, (availableHeight - rect.height) / 2);
+      window.scrollTo({
+        top: Math.max(0, targetTop),
+        behavior: 'smooth',
+      });
+    });
+  }, [submitted]);
 
   const selectedOption = pieceOptions.find(o => o.value === form.interest);
 
@@ -438,6 +459,7 @@ export default function Contact() {
           <div className="lg:col-span-3">
             {submitted ? (
               <div
+                ref={successRef}
                 className="flex flex-col items-center justify-center text-center py-16 px-6"
                 style={{ border:'1px solid rgba(201,162,39,0.18)', background:'rgba(253,251,240,0.5)', animation:'fadeUp 0.8s ease-out forwards', minHeight:'440px' }}
               >
