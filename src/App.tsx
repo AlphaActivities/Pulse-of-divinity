@@ -14,7 +14,9 @@ import { takePendingScroll } from './utils/pendingScroll';
 import { trackPageView, trackSectionViewed, trackCollectionViewed } from './utils/analytics';
 
 function getPage(): 'home' | 'archive' {
-  return window.location.hash === '#collected-works' ? 'archive' : 'home';
+  if (window.location.pathname === '/collected-works') return 'archive';
+  if (window.location.hash === '#collected-works') return 'archive';
+  return 'home';
 }
 
 export default function App() {
@@ -63,15 +65,25 @@ export default function App() {
   }, [page]);
 
   useEffect(() => {
-    const onHashChange = () => setPage(getPage());
-    window.addEventListener('hashchange', onHashChange);
-    return () => window.removeEventListener('hashchange', onHashChange);
+    const onNavigate = () => setPage(getPage());
+    window.addEventListener('popstate', onNavigate);
+    window.addEventListener('spaNavigate', onNavigate);
+    return () => {
+      window.removeEventListener('popstate', onNavigate);
+      window.removeEventListener('spaNavigate', onNavigate);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (window.location.hash === '#collected-works') {
+      window.history.replaceState(null, '', '/collected-works');
+    }
   }, []);
 
   // Direct React state navigation from archive — no hash roundtrip needed.
   // Updates the URL silently then swaps the page tree synchronously.
   const handleNavigateHome = () => {
-    window.history.replaceState(null, '', '/');
+    window.history.pushState(null, '', '/');
     setPage('home');
   };
 

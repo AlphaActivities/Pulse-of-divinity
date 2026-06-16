@@ -41,7 +41,10 @@ export default function Navbar() {
     setMenuOpen(false);
     document.body.style.overflow = '';
     if (href === '#collected-works') {
-      setTimeout(() => { window.location.hash = '#collected-works'; }, wasOpen ? 80 : 0);
+      setTimeout(() => {
+        window.history.pushState(null, '', '/collected-works');
+        window.dispatchEvent(new CustomEvent('spaNavigate'));
+      }, wasOpen ? 80 : 0);
       return;
     }
     setTimeout(() => { scrollToSection(href); }, wasOpen ? 80 : 0);

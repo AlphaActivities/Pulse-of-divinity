@@ -30,7 +30,7 @@ export default function ArchiveNavbar({ onNavigateHome }: Props) {
   const handleNav = (href: string) => {
     setMenuOpen(false);
     document.body.style.overflow = '';
-    if (href.startsWith('/#') && href !== '/#collected-works') {
+    if (href.startsWith('/#')) {
       // Direct React state swap — no hash roundtrip, no setTimeout, no reload.
       setPendingScroll(href.slice(1)); // '/#works' → '#works'
       onNavigateHome();
