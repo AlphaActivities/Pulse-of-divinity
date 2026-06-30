@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { Mail, Phone, Instagram, Facebook, Send, ChevronDown } from 'lucide-react';
 import { useReveal } from '../hooks/useReveal';
-import { availableWorks } from '../data/availableWorks';
+import { inquiryEligibleWorks } from '../data/artworks';
 import {
   trackContactFormStart,
   trackContactMethodSelected,
@@ -29,9 +29,7 @@ interface PieceOption {
 }
 
 const pieceOptions: PieceOption[] = [
-  ...availableWorks
-    .filter((w) => w.inquiryEligible)
-    .sort((a, b) => a.sortOrder - b.sortOrder)
+  ...inquiryEligibleWorks
     .map((w) => ({
       artworkId: w.id,
       value: w.id,

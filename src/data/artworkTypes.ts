@@ -37,4 +37,9 @@ export interface Artwork {
 
   // Display ordering
   sortOrder: number;
+
+  // Optional descriptive metadata
+  slug?: string;
+  dimensions?: string;
+  medium?: string;
 }

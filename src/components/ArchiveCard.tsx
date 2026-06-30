@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useReveal } from '../hooks/useReveal';
-import type { CherishedWork } from '../data/cherishedWorks';
+import type { Artwork } from '../data/artworkTypes';
 
 function StatusBadge({ label }: { label: string }) {
   return (
@@ -49,9 +49,9 @@ export default function ArchiveCard({
   index,
   onImageClick,
 }: {
-  work: CherishedWork;
+  work: Artwork;
   index: number;
-  onImageClick: (work: CherishedWork) => void;
+  onImageClick: (work: Artwork) => void;
 }) {
   const { ref, visible } = useReveal();
   const [hovered, setHovered] = useState(false);
@@ -63,7 +63,7 @@ export default function ArchiveCard({
     <article
       ref={ref}
       className={`reveal reveal-delay-${(index % 4) + 1} ${visible ? 'visible' : ''} ${isStaggered ? 'sm:mt-12' : ''}`}
-      aria-label={`${work.title} — ${work.status}`}
+      aria-label={`${work.title} — ${work.statusLabel}`}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       onTouchStart={() => setHovered(true)}
@@ -195,7 +195,7 @@ export default function ArchiveCard({
                 color: 'rgba(220,185,80,1)',
               }}
             >
-              {work.status}
+              {work.statusLabel}
             </p>
           </div>
         </div>
@@ -251,7 +251,7 @@ export default function ArchiveCard({
                 color: 'rgba(140,98,12,1)',
               }}
             >
-              {work.value}
+              {work.valueDisplay}
             </p>
           </div>
         </div>

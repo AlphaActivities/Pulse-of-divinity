@@ -2,8 +2,8 @@ import { useState } from 'react';
 import { useReveal } from '../hooks/useReveal';
 import ArtworkLightbox from './ArtworkLightbox';
 import ArchiveCard from './ArchiveCard';
-import { works } from '../data/cherishedWorks';
-import type { CherishedWork } from '../data/cherishedWorks';
+import { cherishedWorks } from '../data/artworks';
+import type { Artwork } from '../data/artworkTypes';
 import { trackArtworkLightboxOpen } from '../utils/analytics';
 
 /* ── Status badge ──────────────────────────────────────────────────────────── */
@@ -54,10 +54,10 @@ function FeaturedCard({
   size = 'primary',
   onImageClick,
 }: {
-  work: CherishedWork;
+  work: Artwork;
   index: number;
   size?: 'primary' | 'secondary';
-  onImageClick: (work: CherishedWork) => void;
+  onImageClick: (work: Artwork) => void;
 }) {
   const { ref, visible } = useReveal();
   const [hovered, setHovered] = useState(false);
@@ -69,7 +69,7 @@ function FeaturedCard({
     <article
       ref={ref}
       className={`reveal reveal-delay-${index + 1} ${visible ? 'visible' : ''}`}
-      aria-label={`${work.title} — ${work.status}`}
+      aria-label={`${work.title} — ${work.statusLabel}`}
       style={{
         flex: isPrimary ? '0 0 63%' : '0 0 35%',
         marginTop: isPrimary ? '0' : 'clamp(3rem, 5vw, 5rem)',
@@ -208,7 +208,7 @@ function FeaturedCard({
         {/* Info */}
         <div style={{ padding: 'clamp(1.5rem, 3vw, 2.25rem)' }}>
           <div style={{ marginBottom: '1rem' }}>
-            <StatusBadge label={work.status} />
+            <StatusBadge label={work.statusLabel} />
           </div>
 
           <h3
@@ -267,7 +267,7 @@ function FeaturedCard({
                 color: 'rgba(140,98,12,1)',
               }}
             >
-              {work.value}
+              {work.valueDisplay}
             </span>
           </div>
         </div>
@@ -291,10 +291,10 @@ export default function WorksAlreadyCherished() {
     artworkPrice: number | null;
   } | null>(null);
 
-  const [featured1, featured2, ...archiveWorks] = works;
+  const [featured1, featured2, ...archiveWorks] = cherishedWorks;
   const previewWorks = archiveWorks.slice(0, 4);
 
-  const handleImageClick = (work: CherishedWork) => {
+  const handleImageClick = (work: Artwork) => {
     trackArtworkLightboxOpen({
       artwork_id: work.id,
       artwork_title: work.title,

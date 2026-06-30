@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useReveal } from '../hooks/useReveal';
 import ArtworkLightbox from './ArtworkLightbox';
 import { scrollToSection } from '../utils/scrollToSection';
-import { availableWorks } from '../data/availableWorks';
+import { availableWorks } from '../data/artworks';
 import type { Artwork } from '../data/artworkTypes';
 import { trackArtworkLightboxOpen } from '../utils/analytics';
 

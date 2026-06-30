@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { ArrowLeft } from 'lucide-react';
-import { works } from '../data/cherishedWorks';
+import { cherishedWorks } from '../data/artworks';
 import { trackPageView, trackCollectionViewed, trackArtworkLightboxOpen } from '../utils/analytics';
-import type { CherishedWork } from '../data/cherishedWorks';
+import type { Artwork } from '../data/artworkTypes';
 import ArchiveCard from '../components/ArchiveCard';
 import ArchiveNavbar from '../components/ArchiveNavbar';
 import ArtworkLightbox from '../components/ArtworkLightbox';
@@ -26,7 +26,7 @@ export default function CollectedWorksPage({ onNavigateHome }: Props) {
   useEffect(() => {
     window.scrollTo(0, 0);
     trackPageView({ page_path: '/collected-works', page_title: 'Collected Works Archive' });
-    trackCollectionViewed({ collection_name: 'collected_archive', artwork_count: works.length });
+    trackCollectionViewed({ collection_name: 'collected_archive', artwork_count: cherishedWorks.length });
   }, []);
 
   const handleBack = () => {
@@ -37,7 +37,7 @@ export default function CollectedWorksPage({ onNavigateHome }: Props) {
     }
   };
 
-  const handleImageClick = (work: CherishedWork) => {
+  const handleImageClick = (work: Artwork) => {
     trackArtworkLightboxOpen({
       artwork_id: work.id,
       artwork_title: work.title,
@@ -218,7 +218,7 @@ export default function CollectedWorksPage({ onNavigateHome }: Props) {
               className="grid grid-cols-1 sm:grid-cols-2"
               style={{ gap: 'clamp(2rem, 4vw, 3.5rem)' }}
             >
-              {works.map((work, i) => (
+              {cherishedWorks.map((work, i) => (
                 <ArchiveCard key={work.id} work={work} index={i} onImageClick={handleImageClick} />
               ))}
             </div>
