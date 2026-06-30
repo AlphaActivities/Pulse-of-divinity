@@ -9,7 +9,7 @@ import ArtworkLightbox from '../components/ArtworkLightbox';
 import Footer from '../components/Footer';
 
 interface Props {
-  onNavigateHome: (scrollY?: number) => void;
+  onNavigateHome: () => void;
 }
 
 export default function CollectedWorksPage({ onNavigateHome }: Props) {
@@ -30,12 +30,7 @@ export default function CollectedWorksPage({ onNavigateHome }: Props) {
   }, []);
 
   const handleBack = () => {
-    if (window.history.state?.fromSite) {
-      const lpScrollY: number = window.history.state.lpScrollY ?? 0;
-      onNavigateHome(lpScrollY);
-    } else {
-      onNavigateHome();
-    }
+    onNavigateHome();
   };
 
   const handleImageClick = (work: Artwork) => {

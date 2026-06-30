@@ -42,7 +42,9 @@ export default function Navbar() {
     document.body.style.overflow = '';
     if (href === '#collected-works') {
       setTimeout(() => {
-        window.history.pushState({ fromSite: true, lpScrollY: window.scrollY }, '', '/collected-works');
+        sessionStorage.setItem('lpScrollRestore', String(Math.round(window.scrollY)));
+        sessionStorage.setItem('lpScrollRestoreInternal', '1');
+        window.history.pushState({ fromSite: true }, '', '/collected-works');
         window.dispatchEvent(new CustomEvent('spaNavigate'));
       }, wasOpen ? 80 : 0);
       return;

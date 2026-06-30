@@ -86,25 +86,10 @@ export default function App() {
     }
   }, []);
 
-  // Direct React state navigation from archive — no hash roundtrip needed.
-  // Updates the URL silently then swaps the page tree synchronously.
-  // Optional scrollY restores the LP position for internal back-navigation.
-  const handleNavigateHome = (scrollY?: number) => {
+  // Direct React state navigation from archive — updates URL and swaps the page tree.
+  const handleNavigateHome = () => {
     window.history.pushState(null, '', '/');
     setPage('home');
-    if (scrollY !== undefined && scrollY > 0) {
-      const target = scrollY;
-      const attempt = (attemptsLeft: number) => {
-        if (document.body.scrollHeight >= target + window.innerHeight || attemptsLeft <= 0) {
-          window.scrollTo(0, target);
-        } else {
-          requestAnimationFrame(() => attempt(attemptsLeft - 1));
-        }
-      };
-      requestAnimationFrame(() => {
-        requestAnimationFrame(() => attempt(8));
-      });
-    }
   };
 
   // Consume any pending scroll queued by ArchiveNavbar when returning home.
@@ -119,6 +104,45 @@ export default function App() {
       raf2 = requestAnimationFrame(() => scrollToSection(target));
     });
     return () => { cancelAnimationFrame(raf1); cancelAnimationFrame(raf2); };
+  }, [page]);
+
+  // Restore LP scroll position after internal navigation from the landing page.
+  // Uses sessionStorage so the value survives pushState without being erased.
+  // Polls until document.body is tall enough to support the target (covers
+  // the image-load race where scrollHeight is smaller than target on first rAF).
+  useEffect(() => {
+    if (page !== 'home') return;
+
+    const internal = sessionStorage.getItem('lpScrollRestoreInternal');
+    const rawY = sessionStorage.getItem('lpScrollRestore');
+    if (!internal || !rawY) return;
+
+    const target = parseInt(rawY, 10);
+    if (!target || target <= 0) {
+      sessionStorage.removeItem('lpScrollRestore');
+      sessionStorage.removeItem('lpScrollRestoreInternal');
+      return;
+    }
+
+    // Clear immediately — don't re-apply on subsequent renders or refresh.
+    sessionStorage.removeItem('lpScrollRestore');
+    sessionStorage.removeItem('lpScrollRestoreInternal');
+
+    let rafId: number;
+    let attempts = 0;
+    const MAX_ATTEMPTS = 60;
+
+    const attempt = () => {
+      attempts += 1;
+      if (document.body.scrollHeight >= target + window.innerHeight || attempts >= MAX_ATTEMPTS) {
+        window.scrollTo(0, target);
+        return;
+      }
+      rafId = requestAnimationFrame(attempt);
+    };
+
+    rafId = requestAnimationFrame(attempt);
+    return () => cancelAnimationFrame(rafId);
   }, [page]);
 
   if (page === 'archive') {
