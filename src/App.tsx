@@ -82,9 +82,17 @@ export default function App() {
 
   // Direct React state navigation from archive — no hash roundtrip needed.
   // Updates the URL silently then swaps the page tree synchronously.
-  const handleNavigateHome = () => {
+  // Optional scrollY restores the LP position for internal back-navigation.
+  const handleNavigateHome = (scrollY?: number) => {
     window.history.pushState(null, '', '/');
     setPage('home');
+    if (scrollY !== undefined && scrollY > 0) {
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          window.scrollTo({ top: scrollY, behavior: 'instant' });
+        });
+      });
+    }
   };
 
   // Consume any pending scroll queued by ArchiveNavbar when returning home.
