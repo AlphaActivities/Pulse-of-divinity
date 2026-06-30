@@ -13,6 +13,12 @@ import { scrollToSection } from './utils/scrollToSection';
 import { takePendingScroll } from './utils/pendingScroll';
 import { trackPageView, trackSectionViewed, trackCollectionViewed } from './utils/analytics';
 
+// Give the SPA full control over scroll position — prevents the browser from
+// auto-restoring scroll on popstate and interfering with our manual restoration.
+if ('scrollRestoration' in history) {
+  history.scrollRestoration = 'manual';
+}
+
 function getPage(): 'home' | 'archive' {
   if (window.location.pathname === '/collected-works') return 'archive';
   if (window.location.hash === '#collected-works') return 'archive';
@@ -87,10 +93,16 @@ export default function App() {
     window.history.pushState(null, '', '/');
     setPage('home');
     if (scrollY !== undefined && scrollY > 0) {
+      const target = scrollY;
+      const attempt = (attemptsLeft: number) => {
+        if (document.body.scrollHeight >= target + window.innerHeight || attemptsLeft <= 0) {
+          window.scrollTo(0, target);
+        } else {
+          requestAnimationFrame(() => attempt(attemptsLeft - 1));
+        }
+      };
       requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-          window.scrollTo({ top: scrollY, behavior: 'instant' });
-        });
+        requestAnimationFrame(() => attempt(8));
       });
     }
   };
