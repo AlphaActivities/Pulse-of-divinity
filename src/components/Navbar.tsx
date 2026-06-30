@@ -42,7 +42,7 @@ export default function Navbar() {
     document.body.style.overflow = '';
     if (href === '#collected-works') {
       setTimeout(() => {
-        window.history.pushState(null, '', '/collected-works');
+        window.history.pushState({ fromSite: true }, '', '/collected-works');
         window.dispatchEvent(new CustomEvent('spaNavigate'));
       }, wasOpen ? 80 : 0);
       return;

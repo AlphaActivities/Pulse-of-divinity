@@ -30,7 +30,7 @@ export default function CollectedWorksPage({ onNavigateHome }: Props) {
   }, []);
 
   const handleBack = () => {
-    if (window.history.length > 1) {
+    if (window.history.state?.fromSite) {
       window.history.back();
     } else {
       onNavigateHome();
