@@ -5,6 +5,7 @@ import ArchiveCard from './ArchiveCard';
 import { cherishedWorks } from '../data/artworks';
 import type { Artwork } from '../data/artworkTypes';
 import { trackArtworkLightboxOpen } from '../utils/analytics';
+import { navigateToArchive } from '../utils/navigateToArchive';
 
 /* ── Status badge ──────────────────────────────────────────────────────────── */
 function StatusBadge({ label }: { label: string }) {
@@ -473,7 +474,7 @@ export default function WorksAlreadyCherished() {
           </div>
 
           <button
-            onClick={() => { window.location.hash = '#collected-works'; }}
+            onClick={() => navigateToArchive()}
             style={{
               background: 'none',
               border: '1px solid rgba(201,162,39,0.55)',

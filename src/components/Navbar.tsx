@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { scrollToSection } from '../utils/scrollToSection';
+import { navigateToArchive } from '../utils/navigateToArchive';
 
 const navItems = [
   { label: 'Home',                href: '#home' },
@@ -41,12 +42,7 @@ export default function Navbar() {
     setMenuOpen(false);
     document.body.style.overflow = '';
     if (href === '#collected-works') {
-      setTimeout(() => {
-        sessionStorage.setItem('lpScrollRestore', String(Math.round(window.scrollY)));
-        sessionStorage.setItem('lpScrollRestoreInternal', '1');
-        window.history.pushState({ fromSite: true }, '', '/collected-works');
-        window.dispatchEvent(new CustomEvent('spaNavigate'));
-      }, wasOpen ? 80 : 0);
+      setTimeout(() => navigateToArchive(), wasOpen ? 80 : 0);
       return;
     }
     setTimeout(() => { scrollToSection(href); }, wasOpen ? 80 : 0);
