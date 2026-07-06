@@ -33,7 +33,8 @@ interface InquiryParams {
   inquiry_type: 'available_work' | 'commission' | 'general';
   artwork_id?: string;
   artwork_title?: string;
-  artwork_price?: number | null;
+  artwork_collection?: string;
+  artwork_price_numeric?: number | null;
   contact_method?: 'email' | 'call' | 'text';
 }
 

@@ -156,12 +156,13 @@ export default function Contact() {
     const option = pieceOptions.find((o) => o.value === value);
     if (!option) return;
     if (option.artworkId && inquiryStartFired.current !== value) {
+      const artworkId: string = option.artworkId;
       inquiryStartFired.current = value;
       trackArtworkInquiryStart({
         inquiry_type: 'available_work',
-        artwork_id: option.artworkId,
+        artwork_id: artworkId,
         artwork_title: option.label,
-        artwork_price: option.priceNumeric ?? null,
+        artwork_price_numeric: option.priceNumeric ?? null,
       });
     } else if (value === 'commission' && inquiryStartFired.current !== 'commission') {
       inquiryStartFired.current = 'commission';
@@ -212,11 +213,13 @@ export default function Contact() {
             form_progress: formProgress,
           });
           if (selected?.artworkId) {
+            const artworkId: string = selected.artworkId;
             trackArtworkInquirySubmit({
               inquiry_type: 'available_work',
-              artwork_id: selected.artworkId,
+              artwork_id: artworkId,
               artwork_title: selected.label,
-              artwork_price: selected.priceNumeric ?? null,
+              artwork_collection: selected.collection ?? '',
+              artwork_price_numeric: selected.priceNumeric ?? null,
               contact_method: contactMethod || undefined,
             });
           } else if (selected?.value === 'commission') {

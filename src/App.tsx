@@ -12,6 +12,7 @@ import CollectedWorksPage from './pages/CollectedWorksPage';
 import { scrollToSection } from './utils/scrollToSection';
 import { takePendingScroll } from './utils/pendingScroll';
 import { trackPageView, trackSectionViewed, trackCollectionViewed } from './utils/analytics';
+import { availableWorks } from './data/artworks';
 
 // Give the SPA full control over scroll position — prevents the browser from
 // auto-restoring scroll on popstate and interfering with our manual restoration.
@@ -41,9 +42,9 @@ export default function App() {
     const sectionMap: Record<string, () => void> = {
       works: () => {
         trackSectionViewed({ section_name: 'available_works' });
-        trackCollectionViewed({ collection_name: 'available_works', artwork_count: 2 });
+        trackCollectionViewed({ collection_name: 'available_works', artwork_count: availableWorks.length });
       },
-      about:       () => trackSectionViewed({ section_name: 'artist_story' }),
+      about:       () => trackSectionViewed({ section_name: 'about' }),
       cherished:   () => trackSectionViewed({ section_name: 'cherished_works' }),
       commissions: () => trackSectionViewed({ section_name: 'commissions' }),
       contact:     () => trackSectionViewed({ section_name: 'contact' }),
