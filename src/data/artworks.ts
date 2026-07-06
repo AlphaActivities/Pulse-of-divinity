@@ -3,7 +3,7 @@ import type { Artwork } from './artworkTypes';
 export const artworks: Artwork[] = [
   // ── Available Works ──────────────────────────────────────────────────────────
   {
-    id: 'for-sale-starlit-within',
+    id: 'for-sale-cosmic-energy',
     slug: 'cosmic-energy',
     collection: 'for-sale',
     sortOrder: 1,
@@ -277,7 +277,9 @@ export const artworks: Artwork[] = [
 ];
 
 export const availableWorks = artworks.filter(a => a.statusCode === 'available');
-export const cherishedWorks = artworks.filter(a => a.collection === 'cherished');
+export const cherishedWorks = artworks
+  .filter(a => a.collection === 'cherished')
+  .sort((a, b) => a.sortOrder - b.sortOrder);
 export const inquiryEligibleWorks = artworks
   .filter(a => a.inquiryEligible)
   .sort((a, b) => a.sortOrder - b.sortOrder);
