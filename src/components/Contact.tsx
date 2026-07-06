@@ -24,6 +24,7 @@ interface PieceOption {
   label: string;
   price?: string;
   priceNumeric?: number | null;
+  collection?: string;
   image?: string;
   sub?: string;
 }
@@ -36,6 +37,7 @@ const pieceOptions: PieceOption[] = [
       label: w.title,
       price: w.priceDisplay,
       priceNumeric: w.priceNumeric,
+      collection: w.collection,
       image: w.image,
       sub: w.tag,
     })),
@@ -175,6 +177,11 @@ export default function Contact() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const selected = pieceOptions.find((o) => o.value === form.interest);
+    const inquiryType: 'available_work' | 'commission' | 'general' = selected?.artworkId
+      ? 'available_work'
+      : selected?.value === 'commission'
+        ? 'commission'
+        : 'general';
     const body = new URLSearchParams({
       'form-name': 'contact',
       'bot-field': '',
@@ -182,9 +189,12 @@ export default function Contact() {
       email: form.email,
       phone: form.phone,
       interest: form.interest,
+      inquiryType,
       artworkId: selected?.artworkId ?? '',
-      artworkTitle: selected?.label ?? '',
-      artworkPrice: selected?.price ?? '',
+      artworkTitle: selected?.artworkId ? (selected.label ?? '') : '',
+      artworkCollection: selected?.artworkId ? (selected.collection ?? '') : '',
+      artworkPrice: selected?.artworkId ? (selected.price ?? '') : '',
+      artworkPriceNumeric: selected?.artworkId ? String(selected.priceNumeric ?? '') : '',
       contactMethod: form.contactMethod,
       message: form.message,
     });
@@ -195,11 +205,6 @@ export default function Contact() {
     })
       .then((res) => {
         if (res.ok) {
-          const inquiryType = selected?.artworkId
-            ? 'available_work' as const
-            : selected?.value === 'commission'
-              ? 'commission' as const
-              : 'general' as const;
           const contactMethod = form.contactMethod as 'email' | 'call' | 'text' | undefined;
           trackContactFormSubmit({
             inquiry_type: inquiryType,
