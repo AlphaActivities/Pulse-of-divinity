@@ -7,10 +7,27 @@ declare global {
 
 // ── Private helpers ───────────────────────────────────────────────────────────
 
+function pageContext(): Record<string, string> {
+  if (typeof window === 'undefined') return {};
+  return {
+    page_location: window.location.href,
+    page_title: document.title,
+  };
+}
+
 function fireGtag(command: string, eventName: string, params: Record<string, unknown>): void {
   if (typeof window === 'undefined') return;
   if (typeof window.gtag !== 'function') return;
-  window.gtag(command, eventName, params);
+  window.gtag(command, eventName, { ...pageContext(), ...params });
+}
+
+const COLLECTION_LABELS: Record<string, string> = {
+  'for-sale': 'available_works',
+  'cherished': 'collected_archive',
+};
+
+function normalizeCollection(value: string): string {
+  return COLLECTION_LABELS[value] ?? value;
 }
 
 function logDev(eventName: string, params: Record<string, unknown>): void {
@@ -34,6 +51,7 @@ interface InquiryParams {
   artwork_id?: string;
   artwork_title?: string;
   artwork_collection?: string;
+  artwork_status?: string;
   artwork_price_numeric?: number | null;
   contact_method?: 'email' | 'call' | 'text';
 }
@@ -85,18 +103,25 @@ export function trackSectionViewed(params: SectionParams): void {
 }
 
 export function trackArtworkLightboxOpen(params: ArtworkParams): void {
-  logDev('artwork_lightbox_open', params);
-  fireGtag('event', 'artwork_lightbox_open', params);
+  const payload = { ...params, artwork_collection: normalizeCollection(params.artwork_collection) };
+  logDev('artwork_lightbox_open', payload);
+  fireGtag('event', 'artwork_lightbox_open', payload);
 }
 
 export function trackArtworkInquiryStart(params: InquiryParams): void {
-  logDev('artwork_inquiry_start', params);
-  fireGtag('event', 'artwork_inquiry_start', params);
+  const payload = params.artwork_collection
+    ? { ...params, artwork_collection: normalizeCollection(params.artwork_collection) }
+    : params;
+  logDev('artwork_inquiry_start', payload);
+  fireGtag('event', 'artwork_inquiry_start', payload);
 }
 
 export function trackArtworkInquirySubmit(params: InquiryParams): void {
-  logDev('artwork_inquiry_submit', params);
-  fireGtag('event', 'artwork_inquiry_submit', params);
+  const payload = params.artwork_collection
+    ? { ...params, artwork_collection: normalizeCollection(params.artwork_collection) }
+    : params;
+  logDev('artwork_inquiry_submit', payload);
+  fireGtag('event', 'artwork_inquiry_submit', payload);
 }
 
 export function trackCommissionInquiryStart(): void {

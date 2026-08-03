@@ -15,6 +15,7 @@ import {
   trackPhoneLinkClick,
   trackSocialLinkClick,
 } from '../utils/analytics';
+import type { ArtworkStatusCode } from '../data/artworkTypes';
 
 type FormField = 'name' | 'email' | 'phone' | 'interest' | 'contactMethod' | 'message';
 
@@ -25,6 +26,7 @@ interface PieceOption {
   price?: string;
   priceNumeric?: number | null;
   collection?: string;
+  statusCode?: ArtworkStatusCode;
   image?: string;
   sub?: string;
 }
@@ -38,6 +40,7 @@ const pieceOptions: PieceOption[] = [
       price: w.priceDisplay,
       priceNumeric: w.priceNumeric,
       collection: w.collection,
+      statusCode: w.statusCode,
       image: w.image,
       sub: w.tag,
     })),
@@ -162,6 +165,8 @@ export default function Contact() {
         inquiry_type: 'available_work',
         artwork_id: artworkId,
         artwork_title: option.label,
+        artwork_collection: option.collection ?? '',
+        artwork_status: option.statusCode ?? '',
         artwork_price_numeric: option.priceNumeric ?? null,
       });
     } else if (value === 'commission' && inquiryStartFired.current !== 'commission') {
@@ -219,6 +224,7 @@ export default function Contact() {
               artwork_id: artworkId,
               artwork_title: selected.label,
               artwork_collection: selected.collection ?? '',
+              artwork_status: selected.statusCode ?? '',
               artwork_price_numeric: selected.priceNumeric ?? null,
               contact_method: contactMethod || undefined,
             });
