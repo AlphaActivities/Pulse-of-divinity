@@ -290,7 +290,7 @@ export default function CollectedWorksPage({ onNavigateHome }: Props) {
           </div>
         </main>
 
-        <Footer />
+        <Footer onNavigateHome={onNavigateHome} />
       </div>
 
       {lightbox && (

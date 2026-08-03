@@ -4,6 +4,8 @@ import { useReveal } from '../hooks/useReveal';
 import PrivacyModal from './PrivacyModal';
 import TermsModal from './TermsModal';
 import { trackEmailLinkClick, trackSocialLinkClick } from '../utils/analytics';
+import { scrollToSection } from '../utils/scrollToSection';
+import { setPendingScroll } from '../utils/pendingScroll';
 
 const navLinks = [
   { label: 'Home',                href: '#home' },
@@ -13,11 +15,25 @@ const navLinks = [
   { label: 'Contact',             href: '#contact' },
 ];
 
-export default function Footer() {
+interface Props {
+  onNavigateHome?: () => void;
+}
+
+export default function Footer({ onNavigateHome }: Props) {
   const year = new Date().getFullYear();
   const { ref, visible } = useReveal();
   const [privacyOpen, setPrivacyOpen] = useState(false);
   const [termsOpen,   setTermsOpen]   = useState(false);
+
+  const handleNavClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
+    e.preventDefault();
+    if (onNavigateHome) {
+      setPendingScroll(href);
+      onNavigateHome();
+    } else {
+      scrollToSection(href);
+    }
+  };
 
   return (
     <>
@@ -119,6 +135,7 @@ export default function Footer() {
                       textDecoration: 'none',
                       transition: 'color 0.3s ease',
                     }}
+                    onClick={(e) => handleNavClick(e, item.href)}
                     onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.color = '#c9a227'; }}
                     onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.color = 'rgba(250,243,217,0.5)'; }}
                     onTouchStart={(e) => { (e.currentTarget as HTMLElement).style.color = '#c9a227'; }}
