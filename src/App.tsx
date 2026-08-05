@@ -29,11 +29,21 @@ function getPage(): 'home' | 'archive' {
 export default function App() {
   const [page, setPage] = useState<'home' | 'archive'>(getPage);
   const observedSections = useRef<Set<string>>(new Set());
+  const lastTrackedPath = useRef<string | null>(null);
 
-  // Track home page view once on mount.
+  // Single authoritative page-view effect. Fires once per real route change,
+  // including the initial load and SPA transitions in both directions.
+  // lastTrackedPath guards against duplicate firing (React Strict Mode,
+  // remounts, repeated navigation calls).
   useEffect(() => {
-    trackPageView({ page_path: '/', page_title: 'Pulse of Divinity Home' });
-  }, []);
+    const config = page === 'archive'
+      ? { page_path: '/collected-works', page_title: 'Collected Works Archive' }
+      : { page_path: '/', page_title: 'Pulse of Divinity Home' };
+
+    if (lastTrackedPath.current === config.page_path) return;
+    lastTrackedPath.current = config.page_path;
+    trackPageView(config);
+  }, [page]);
 
   // Track section views once per session using IntersectionObserver.
   useEffect(() => {
