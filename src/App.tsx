@@ -30,6 +30,7 @@ export default function App() {
   const [page, setPage] = useState<'home' | 'archive'>(getPage);
   const observedSections = useRef<Set<string>>(new Set());
   const lastTrackedPath = useRef<string | null>(null);
+  const [pendingInquiryArtworkId, setPendingInquiryArtworkId] = useState<string | null>(null);
 
   // Single authoritative page-view effect. Fires once per real route change,
   // including the initial load and SPA transitions in both directions.
@@ -166,11 +167,14 @@ export default function App() {
       <main>
         <Hero />
         <EmotionalBridge />
-        <AvailableWorks />
+        <AvailableWorks onInquire={(artworkId) => {
+          setPendingInquiryArtworkId(artworkId);
+          scrollToSection('#contact');
+        }} />
         <About />
         <WorksAlreadyCherished />
         <Commissions />
-        <Contact />
+        <Contact pendingInquiryArtworkId={pendingInquiryArtworkId} onInquiryConsumed={() => setPendingInquiryArtworkId(null)} />
       </main>
       <Footer />
     </div>

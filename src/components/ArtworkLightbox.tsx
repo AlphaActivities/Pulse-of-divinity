@@ -7,14 +7,9 @@ interface ArtworkLightboxProps {
   alt: string;
   title?: string;
   onClose: () => void;
-  // Tracking-ready fields — stored for future GA4 events, not rendered
-  artworkId?: string;
-  artworkCollection?: string;
-  artworkStatusCode?: string;
-  artworkPrice?: number | null;
 }
 
-export default function ArtworkLightbox({ open, image, alt, title, onClose, artworkId: _artworkId, artworkCollection: _artworkCollection, artworkStatusCode: _artworkStatusCode, artworkPrice: _artworkPrice }: ArtworkLightboxProps) {
+export default function ArtworkLightbox({ open, image, alt, title, onClose }: ArtworkLightboxProps) {
   useEffect(() => {
     if (!open) return;
 

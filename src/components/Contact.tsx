@@ -68,12 +68,14 @@ const CONTACT_EMAIL = 'darcy.pulseofdivinity@gmail.com';
 const CONTACT_PHONE = '+1 (458) 488-0450';
 const CONTACT_PHONE_HREF = 'tel:+14584880450';
 
-export default function Contact() {
+export default function Contact({ pendingInquiryArtworkId, onInquiryConsumed }: { pendingInquiryArtworkId: string | null; onInquiryConsumed: () => void }) {
   const { ref: titleRef, visible: titleVisible } = useReveal();
   const { ref: formRef,  visible: formVisible  } = useReveal();
 
   const [form, setForm] = useState({ name:'', email:'', phone:'', interest:'', contactMethod:'', message:'' });
   const [submitted, setSubmitted] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errors, setErrors] = useState<Partial<Record<FormField, string>>>({});
   const [focused,   setFocused]   = useState<FormField | null>(null);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -81,6 +83,17 @@ export default function Contact() {
   const successRef  = useRef<HTMLDivElement>(null);
   const formStartFired    = useRef(false);
   const inquiryStartFired = useRef<string | null>(null);
+  const artworkInquiryStartFired = useRef(false);
+  const handleInterestSelectRef = useRef<(value: string) => void>(() => {});
+
+  useEffect(() => {
+    if (!pendingInquiryArtworkId) return;
+    const option = pieceOptions.find((o) => o.artworkId === pendingInquiryArtworkId);
+    if (option) {
+      handleInterestSelectRef.current(option.value);
+    }
+    onInquiryConsumed();
+  }, [pendingInquiryArtworkId, onInquiryConsumed]);
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -156,11 +169,12 @@ export default function Contact() {
     set('interest', value);
     setDropdownOpen(false);
     setFocused(null);
+    setErrors((prev) => ({ ...prev, interest: undefined }));
     const option = pieceOptions.find((o) => o.value === value);
     if (!option) return;
-    if (option.artworkId && inquiryStartFired.current !== value) {
+    if (option.artworkId && !artworkInquiryStartFired.current) {
       const artworkId: string = option.artworkId;
-      inquiryStartFired.current = value;
+      artworkInquiryStartFired.current = true;
       trackArtworkInquiryStart({
         inquiry_type: 'available_work',
         artwork_id: artworkId,
@@ -175,13 +189,35 @@ export default function Contact() {
     }
   };
 
+  handleInterestSelectRef.current = handleInterestSelect;
+
   const handleContactMethodSelect = (value: string) => {
     set('contactMethod', value);
+    setErrors((prev) => ({ ...prev, contactMethod: undefined }));
     trackContactMethodSelected(value as 'email' | 'call' | 'text');
+  };
+
+  const validate = (): Partial<Record<FormField, string>> => {
+    const errs: Partial<Record<FormField, string>> = {};
+    if (!form.name.trim()) errs.name = 'Please enter your name';
+    if (!form.email.trim()) errs.email = 'Please enter your email';
+    else if (!emailRegex.test(form.email)) errs.email = 'Please enter a valid email address';
+    if (!form.interest) errs.interest = 'Please select an option';
+    if (!form.contactMethod) errs.contactMethod = 'Please select a contact method';
+    if (!form.message.trim()) errs.message = 'Please enter a message';
+    return errs;
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (isSubmitting) return;
+    const validationErrors = validate();
+    if (Object.keys(validationErrors).length > 0) {
+      setErrors(validationErrors);
+      return;
+    }
+    setErrors({});
+    setIsSubmitting(true);
     const selected = pieceOptions.find((o) => o.value === form.interest);
     const inquiryType: 'available_work' | 'commission' | 'general' = selected?.artworkId
       ? 'available_work'
@@ -240,6 +276,9 @@ export default function Contact() {
       .catch((err) => {
         trackContactFormError({ error_type: 'network_error' });
         console.error('Netlify form submission error:', err);
+      })
+      .finally(() => {
+        setIsSubmitting(false);
       });
   };
 
@@ -248,7 +287,7 @@ export default function Contact() {
     width: '100%',
     background: 'transparent',
     border: 'none',
-    borderBottom: `1px solid ${focused === field ? '#c9a227' : 'rgba(107,81,67,0.35)'}`,
+    borderBottom: `1px solid ${errors[field] ? '#b85450' : focused === field ? '#c9a227' : 'rgba(107,81,67,0.35)'}`,
     padding: '12px 0',
     outline: 'none',
     fontFamily: 'Jost, system-ui, sans-serif',
@@ -280,22 +319,15 @@ export default function Contact() {
     (form.message.trim()         ? 20 : 0)
   );
 
-  const contactLinks = [
-    {
-      icon: Phone,
-      label: 'Phone',
-      display: CONTACT_PHONE,
-      href: CONTACT_PHONE_HREF,
-      sub: 'Call or Text Welcome',
-    },
-    {
-      icon: Mail,
-      label: 'Email',
-      display: CONTACT_EMAIL,
-      href: `mailto:${CONTACT_EMAIL}`,
-      sub: '',
-    },
-  ];
+  const errorTextStyle: React.CSSProperties = {
+    fontFamily: 'Jost, sans-serif',
+    fontWeight: 300,
+    fontSize: '10px',
+    letterSpacing: '0.12em',
+    textTransform: 'uppercase',
+    color: '#b85450',
+    marginTop: '6px',
+  };
 
   return (
     <section
@@ -518,6 +550,7 @@ export default function Contact() {
                       onBlur={() => setFocused(null)}
                       style={inputStyle('name')}
                     />
+                    {errors.name && <p style={errorTextStyle} role="alert">{errors.name}</p>}
                   </div>
                   <div>
                     <label htmlFor="f-email" style={labelStyle}>Email Address</label>
@@ -534,6 +567,7 @@ export default function Contact() {
                       onBlur={() => setFocused(null)}
                       style={inputStyle('email')}
                     />
+                    {errors.email && <p style={errorTextStyle} role="alert">{errors.email}</p>}
                   </div>
                 </div>
 
@@ -691,6 +725,8 @@ export default function Contact() {
                   </div>
                 </div>
 
+                {errors.interest && <p style={errorTextStyle} role="alert">{errors.interest}</p>}
+
                 {/* Preferred contact method */}
                 <fieldset style={{ border:'none', padding:0, margin:0 }}>
                   <legend style={labelStyle}>Preferred Contact Method</legend>
@@ -722,6 +758,8 @@ export default function Contact() {
                   </div>
                 </fieldset>
 
+                {errors.contactMethod && <p style={errorTextStyle} role="alert">{errors.contactMethod}</p>}
+
                 {/* Message */}
                 <div>
                   <label htmlFor="f-message" style={labelStyle}>Your Message</label>
@@ -737,18 +775,20 @@ export default function Contact() {
                     onBlur={() => setFocused(null)}
                     style={{ ...inputStyle('message'), resize:'none', lineHeight:1.85 }}
                   />
+                  {errors.message && <p style={errorTextStyle} role="alert">{errors.message}</p>}
                 </div>
 
                 <button
                   type="submit"
                   className="luxury-btn-primary"
-                  style={{ width:'100%', display:'flex', alignItems:'center', justifyContent:'center', gap:'10px' }}
+                  disabled={isSubmitting}
+                  style={{ width:'100%', display:'flex', alignItems:'center', justifyContent:'center', gap:'10px', opacity: isSubmitting ? 0.6 : 1, cursor: isSubmitting ? 'wait' : 'pointer' }}
                 >
                   <div
                     className={`btn-progress-fill${formProgress >= 100 ? ' is-complete' : ''}`}
                     style={{ width: `${Math.max(28, formProgress)}%` }}
                   />
-                  <span style={{ position:'relative', zIndex:2 }}>Send Inquiry</span>
+                  <span style={{ position:'relative', zIndex:2 }}>{isSubmitting ? 'Sending…' : 'Send Inquiry'}</span>
                   <Send size={12} strokeWidth={1.5} style={{ position:'relative', zIndex:2 }} />
                 </button>
 

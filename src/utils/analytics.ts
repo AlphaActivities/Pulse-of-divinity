@@ -15,7 +15,7 @@ function pageContext(): Record<string, string> {
   };
 }
 
-function fireGtag(command: string, eventName: string, params: Record<string, unknown>): void {
+function fireGtag(command: string, eventName: string, params: object): void {
   if (typeof window === 'undefined') return;
   if (typeof window.gtag !== 'function') return;
   window.gtag(command, eventName, { ...pageContext(), ...params });
@@ -30,7 +30,7 @@ function normalizeCollection(value: string): string {
   return COLLECTION_LABELS[value] ?? value;
 }
 
-function logDev(eventName: string, params: Record<string, unknown>): void {
+function logDev(eventName: string, params: object): void {
   if (import.meta.env.DEV) {
     console.log('[GA4]', eventName, params);
   }

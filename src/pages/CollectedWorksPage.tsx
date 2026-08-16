@@ -17,10 +17,6 @@ export default function CollectedWorksPage({ onNavigateHome }: Props) {
     image: string;
     alt: string;
     title: string;
-    artworkId: string;
-    artworkCollection: string;
-    artworkStatusCode: string;
-    artworkPrice: number | null;
   } | null>(null);
 
   useEffect(() => {
@@ -44,10 +40,6 @@ export default function CollectedWorksPage({ onNavigateHome }: Props) {
       image: work.image,
       alt: work.imageAlt,
       title: work.title,
-      artworkId: work.id,
-      artworkCollection: work.collection,
-      artworkStatusCode: work.statusCode,
-      artworkPrice: work.priceNumeric,
     });
   };
 
@@ -298,10 +290,6 @@ export default function CollectedWorksPage({ onNavigateHome }: Props) {
           image={lightbox.image}
           alt={lightbox.alt}
           title={lightbox.title}
-          artworkId={lightbox.artworkId}
-          artworkCollection={lightbox.artworkCollection}
-          artworkStatusCode={lightbox.artworkStatusCode}
-          artworkPrice={lightbox.artworkPrice}
           onClose={() => setLightbox(null)}
         />
       )}

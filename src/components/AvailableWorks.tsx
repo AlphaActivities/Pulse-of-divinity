@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { useReveal } from '../hooks/useReveal';
 import ArtworkLightbox from './ArtworkLightbox';
-import { scrollToSection } from '../utils/scrollToSection';
 import { availableWorks } from '../data/artworks';
 import type { Artwork } from '../data/artworkTypes';
 import { trackArtworkLightboxOpen } from '../utils/analytics';
@@ -10,20 +9,18 @@ interface LightboxState {
   image: string;
   alt: string;
   title: string;
-  artworkId: string;
-  artworkCollection: string;
-  artworkStatusCode: string;
-  artworkPrice: number | null;
 }
 
 function PaintingCard({
   painting,
   index,
   onImageClick,
+  onInquire,
 }: {
   painting: Artwork;
   index: number;
   onImageClick: (painting: Artwork) => void;
+  onInquire: (artworkId: string) => void;
 }) {
   const [storyOpen, setStoryOpen] = useState(false);
   const [hovered,   setHovered]   = useState(false);
@@ -222,7 +219,7 @@ function PaintingCard({
             {/* CTA */}
             <button
               className="luxury-btn-plum w-full mt-6"
-              onClick={() => scrollToSection('#contact')}
+              onClick={() => onInquire(painting.id)}
             >
               Inquire About This Piece
             </button>
@@ -255,7 +252,7 @@ function PaintingCard({
   );
 }
 
-export default function AvailableWorks() {
+export default function AvailableWorks({ onInquire }: { onInquire: (artworkId: string) => void }) {
   const { ref: titleRef, visible: titleVisible } = useReveal();
   const [lightbox, setLightbox] = useState<LightboxState | null>(null);
 
@@ -298,6 +295,7 @@ export default function AvailableWorks() {
               key={p.id}
               painting={p}
               index={i}
+              onInquire={onInquire}
               onImageClick={(painting) => {
                 trackArtworkLightboxOpen({
                   artwork_id: painting.id,
@@ -310,10 +308,6 @@ export default function AvailableWorks() {
                 image: painting.image,
                 alt: painting.imageAlt,
                 title: painting.title,
-                artworkId: painting.id,
-                artworkCollection: painting.collection,
-                artworkStatusCode: painting.statusCode,
-                artworkPrice: painting.priceNumeric,
               });}}
             />
           ))}
@@ -338,10 +332,6 @@ export default function AvailableWorks() {
         image={lightbox.image}
         alt={lightbox.alt}
         title={lightbox.title}
-        artworkId={lightbox.artworkId}
-        artworkCollection={lightbox.artworkCollection}
-        artworkStatusCode={lightbox.artworkStatusCode}
-        artworkPrice={lightbox.artworkPrice}
         onClose={() => setLightbox(null)}
       />
     )}

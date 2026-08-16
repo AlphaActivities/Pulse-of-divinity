@@ -286,10 +286,6 @@ export default function WorksAlreadyCherished() {
     image: string;
     alt: string;
     title: string;
-    artworkId: string;
-    artworkCollection: string;
-    artworkStatusCode: string;
-    artworkPrice: number | null;
   } | null>(null);
 
   const [featured1, featured2, ...archiveWorks] = cherishedWorks;
@@ -307,10 +303,6 @@ export default function WorksAlreadyCherished() {
       image: work.image,
       alt: work.imageAlt,
       title: work.title,
-      artworkId: work.id,
-      artworkCollection: work.collection,
-      artworkStatusCode: work.statusCode,
-      artworkPrice: work.priceNumeric,
     });
   };
 
@@ -640,10 +632,6 @@ export default function WorksAlreadyCherished() {
         image={lightbox.image}
         alt={lightbox.alt}
         title={lightbox.title}
-        artworkId={lightbox.artworkId}
-        artworkCollection={lightbox.artworkCollection}
-        artworkStatusCode={lightbox.artworkStatusCode}
-        artworkPrice={lightbox.artworkPrice}
         onClose={() => setLightbox(null)}
       />
     )}
