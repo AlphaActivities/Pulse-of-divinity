@@ -37,6 +37,7 @@ function Bird({ scale, opacity, wingPhase }: { scale: number; opacity: number; w
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
+    const c: CanvasRenderingContext2D = ctx;
 
     ctx.clearRect(0, 0, W, H);
     ctx.save();
@@ -64,76 +65,76 @@ function Bird({ scale, opacity, wingPhase }: { scale: number; opacity: number; w
       const midX = cx + side * 24 * s;
 
       // Main wing surface (filled silhouette)
-      ctx.beginPath();
-      ctx.moveTo(cx + side * 6 * s, cy - 1 * s);
+      c.beginPath();
+      c.moveTo(cx + side * 6 * s, cy - 1 * s);
       // leading edge sweeps out to tip
-      ctx.bezierCurveTo(
+      c.bezierCurveTo(
         cx + side * 18 * s, cy + mid * 0.6,
         cx + side * 34 * s, cy + tip * 0.85,
         tipX, cy + tip,
       );
       // trailing edge curves back with feather droop
-      ctx.bezierCurveTo(
+      c.bezierCurveTo(
         cx + side * 38 * s, cy + trail + 5 * s,
         cx + side * 28 * s, cy + trail + 4 * s,
         midX, cy + trail + 2 * s,
       );
-      ctx.bezierCurveTo(
+      c.bezierCurveTo(
         cx + side * 18 * s, cy + trail + 1.5 * s,
         cx + side * 10 * s, cy + 3 * s,
         cx + side * 6 * s, cy + 1 * s,
       );
-      ctx.closePath();
+      c.closePath();
 
       // Rich dark plumage gradient — dark charcoal with warm undertone
-      const grad = ctx.createLinearGradient(cx, cy - 10 * s, cx, cy + tip + 8 * s);
+      const grad = c.createLinearGradient(cx, cy - 10 * s, cx, cy + tip + 8 * s);
       grad.addColorStop(0,   'rgba(42, 34, 28, 0.95)');
       grad.addColorStop(0.4, 'rgba(30, 22, 16, 0.92)');
       grad.addColorStop(0.8, 'rgba(22, 14, 10, 0.88)');
       grad.addColorStop(1,   'rgba(15,  8,  5, 0.82)');
-      ctx.fillStyle = grad;
-      ctx.fill();
+      c.fillStyle = grad;
+      c.fill();
 
       // Subtle iridescent sheen on upper wing surface
-      ctx.beginPath();
-      ctx.moveTo(cx + side * 7 * s, cy - 0.5 * s);
-      ctx.bezierCurveTo(
+      c.beginPath();
+      c.moveTo(cx + side * 7 * s, cy - 0.5 * s);
+      c.bezierCurveTo(
         cx + side * 18 * s, cy + mid * 0.5,
         cx + side * 30 * s, cy + tip * 0.75,
         cx + side * 44 * s, cy + tip * 0.92,
       );
-      ctx.bezierCurveTo(
+      c.bezierCurveTo(
         cx + side * 36 * s, cy + tip * 0.85,
         cx + side * 22 * s, cy + mid * 0.4,
         cx + side * 8 * s, cy - 0.5 * s,
       );
-      ctx.closePath();
-      const sheen = ctx.createLinearGradient(cx, cy + tip * 0.3, tipX, cy + tip);
+      c.closePath();
+      const sheen = c.createLinearGradient(cx, cy + tip * 0.3, tipX, cy + tip);
       sheen.addColorStop(0,   'rgba(90, 75, 55, 0.30)');
       sheen.addColorStop(0.5, 'rgba(70, 58, 40, 0.15)');
       sheen.addColorStop(1,   'rgba(50, 40, 28, 0.05)');
-      ctx.fillStyle = sheen;
-      ctx.fill();
+      c.fillStyle = sheen;
+      c.fill();
 
       // Inner covert panel — slightly lighter warm brown
-      ctx.beginPath();
-      ctx.moveTo(cx + side * 7 * s, cy);
-      ctx.bezierCurveTo(
+      c.beginPath();
+      c.moveTo(cx + side * 7 * s, cy);
+      c.bezierCurveTo(
         cx + side * 14 * s, cy + mid * 0.55,
         cx + side * 20 * s, cy + tip * 0.70,
         cx + side * 26 * s, cy + tip * 0.78,
       );
-      ctx.bezierCurveTo(
+      c.bezierCurveTo(
         cx + side * 20 * s, cy + trail * 0.6 + 2 * s,
         cx + side * 14 * s, cy + trail * 0.4 + 1.5 * s,
         cx + side * 7 * s, cy + 0.5 * s,
       );
-      ctx.closePath();
-      const covert = ctx.createLinearGradient(cx + side * 7 * s, cy, cx + side * 26 * s, cy + tip);
+      c.closePath();
+      const covert = c.createLinearGradient(cx + side * 7 * s, cy, cx + side * 26 * s, cy + tip);
       covert.addColorStop(0,   'rgba(62, 50, 38, 0.70)');
       covert.addColorStop(1,   'rgba(40, 30, 20, 0.45)');
-      ctx.fillStyle = covert;
-      ctx.fill();
+      c.fillStyle = covert;
+      c.fill();
 
       // Primary feather separation lines (subtle)
       for (let i = 0; i < 5; i++) {
@@ -142,12 +143,12 @@ function Bird({ scale, opacity, wingPhase }: { scale: number; opacity: number; w
         const fy = cy + tip * (0.72 + t * 0.18);
         const bx = cx + side * (26 + i * 3.5) * s;
         const by = cy + trail * 0.7 + 3 * s;
-        ctx.beginPath();
-        ctx.moveTo(bx, by);
-        ctx.quadraticCurveTo(fx - side * 1 * s, fy + 2 * s, fx, fy);
-        ctx.strokeStyle = `rgba(18, 10, 6, ${0.35 + t * 0.2})`;
-        ctx.lineWidth = 0.5 * s;
-        ctx.stroke();
+        c.beginPath();
+        c.moveTo(bx, by);
+        c.quadraticCurveTo(fx - side * 1 * s, fy + 2 * s, fx, fy);
+        c.strokeStyle = `rgba(18, 10, 6, ${0.35 + t * 0.2})`;
+        c.lineWidth = 0.5 * s;
+        c.stroke();
       }
     }
 
