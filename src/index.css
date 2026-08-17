@@ -1320,6 +1320,11 @@ select::placeholder {
   margin: 1.25rem auto 0;
 }
 
+.admin-entrance-divider {
+  opacity: 0;
+  width: 0;
+}
+
 /* ── Auth form ── */
 .admin-auth-form {
   display: flex;
