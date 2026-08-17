@@ -50,6 +50,14 @@ export default function AdminShell({ profile, onLogout, activePage, children }: 
       <header className="admin-header">
         <div className="admin-header-left">
           <div className="admin-brand">
+            <img
+              src="/images/admin-logo-mark.webp"
+              alt=""
+              aria-hidden="true"
+              className="admin-brand-logo"
+              width="24"
+              height="24"
+            />
             <span className="admin-brand-name">Pulse of Divinity</span>
             <span className="admin-brand-separator">—</span>
             <span className="admin-brand-section">Admin</span>

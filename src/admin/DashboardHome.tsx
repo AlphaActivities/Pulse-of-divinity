@@ -9,6 +9,8 @@ import type { DashboardSummary } from './leadsApi';
 interface Props {
   profile: AdminProfile;
   onLeadClick: (leadId: string) => void;
+  justLoggedIn?: boolean;
+  onRevealed?: () => void;
 }
 
 const INQUIRY_LABELS: Record<string, string> = {
@@ -33,7 +35,7 @@ function formatDate(dateStr: string | null): string {
   return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 }
 
-export default function DashboardHome({ profile, onLeadClick }: Props) {
+export default function DashboardHome({ profile, onLeadClick, justLoggedIn, onRevealed }: Props) {
   const navigate = useNavigate();
   const [data, setData] = useState<DashboardSummary | null>(null);
   const [loading, setLoading] = useState(true);
@@ -64,6 +66,13 @@ export default function DashboardHome({ profile, onLeadClick }: Props) {
   useEffect(() => {
     loadDashboard();
   }, [loadDashboard]);
+
+  useEffect(() => {
+    if (justLoggedIn && onRevealed) {
+      const t = setTimeout(onRevealed, 600);
+      return () => clearTimeout(t);
+    }
+  }, [justLoggedIn, onRevealed]);
 
   const handleCardClick = (filter: string) => {
     if (filter === 'new') {
@@ -113,7 +122,7 @@ export default function DashboardHome({ profile, onLeadClick }: Props) {
   ];
 
   return (
-    <div className="admin-dashboard-page">
+    <div className={`admin-dashboard-page${justLoggedIn ? ' admin-dashboard-reveal' : ''}`}>
       <div className="admin-dashboard-header">
         <h1 className="admin-page-heading">Collector Intelligence</h1>
         <p className="admin-dashboard-subtext">

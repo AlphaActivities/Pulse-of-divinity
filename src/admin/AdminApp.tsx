@@ -13,6 +13,7 @@ import type { AdminOption } from './leadsApi';
 export default function AdminApp() {
   const [profile, setProfile] = useState<AdminProfile | null>(null);
   const [loading, setLoading] = useState(true);
+  const [justLoggedIn, setJustLoggedIn] = useState(false);
   const [admins, setAdmins] = useState<AdminOption[]>([]);
   const [dashboardLeadId, setDashboardLeadId] = useState<string | null>(null);
   const location = useLocation();
@@ -69,17 +70,34 @@ export default function AdminApp() {
 
   const handleLoginSuccess = (newProfile: AdminProfile) => {
     setProfile(newProfile);
+    setJustLoggedIn(true);
   };
 
   const handleLogout = () => {
     setProfile(null);
+    setJustLoggedIn(false);
+  };
+
+  const handleDashboardRevealed = () => {
+    setJustLoggedIn(false);
   };
 
   if (loading) {
     return (
-      <div className="admin-loading-screen">
-        <div className="admin-loading-spinner" />
-        <p className="admin-loading-text">Verifying session...</p>
+      <div className="admin-loading-screen admin-verify-screen">
+        <div className="admin-verify-content">
+          <img
+            src="/images/admin-logo-mark.webp"
+            alt=""
+            aria-hidden="true"
+            className="admin-verify-logo"
+            width="48"
+            height="48"
+          />
+          <div className="admin-verify-divider" />
+          <div className="admin-loading-spinner" />
+          <p className="admin-loading-text">Verifying Session</p>
+        </div>
       </div>
     );
   }
@@ -99,7 +117,7 @@ export default function AdminApp() {
           profile ? (
             <Navigate to="/admin" replace />
           ) : (
-            <AdminLogin onSuccess={handleLoginSuccess} />
+            <AdminLogin onSuccess={handleLoginSuccess} skipEntrance={false} />
           )
         }
       />
@@ -107,7 +125,12 @@ export default function AdminApp() {
         path="/"
         element={guard(
           <AdminShell profile={profile!} onLogout={handleLogout} activePage="dashboard">
-            <DashboardHome profile={profile!} onLeadClick={(id) => setDashboardLeadId(id)} />
+            <DashboardHome
+              profile={profile!}
+              onLeadClick={(id) => setDashboardLeadId(id)}
+              justLoggedIn={justLoggedIn}
+              onRevealed={handleDashboardRevealed}
+            />
             {dashboardLeadId && (
               <LeadDetailDrawer
                 leadId={dashboardLeadId}

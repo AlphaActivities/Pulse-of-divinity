@@ -5,11 +5,19 @@ import type { AdminProfile } from './auth';
 
 interface Props {
   onSuccess: (profile: AdminProfile) => void;
+  skipEntrance: boolean;
 }
 
-export default function AdminLogin({ onSuccess }: Props) {
+const ENTRANCE_DURATION = 2000;
+const SUCCESS_TRANSITION_DURATION = 1100;
+
+export default function AdminLogin({ onSuccess, skipEntrance }: Props) {
   const navigate = useNavigate();
   const emailRef = useRef<HTMLInputElement>(null);
+  const successTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const entranceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const mountedRef = useRef(true);
+
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -17,9 +25,35 @@ export default function AdminLogin({ onSuccess }: Props) {
   const [resetMode, setResetMode] = useState(false);
   const [resetSent, setResetSent] = useState(false);
 
+  const [entranceComplete, setEntranceComplete] = useState(skipEntrance);
+  const [authTransitioning, setAuthTransitioning] = useState(false);
+
   useEffect(() => {
-    emailRef.current?.focus();
-  }, []);
+    mountedRef.current = true;
+
+    if (!skipEntrance) {
+      entranceTimerRef.current = setTimeout(() => {
+        if (mountedRef.current) {
+          setEntranceComplete(true);
+          emailRef.current?.focus();
+        }
+      }, ENTRANCE_DURATION);
+    } else {
+      emailRef.current?.focus();
+    }
+
+    return () => {
+      mountedRef.current = false;
+      if (successTimerRef.current) {
+        clearTimeout(successTimerRef.current);
+        successTimerRef.current = null;
+      }
+      if (entranceTimerRef.current) {
+        clearTimeout(entranceTimerRef.current);
+        entranceTimerRef.current = null;
+      }
+    };
+  }, [skipEntrance]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -29,22 +63,34 @@ export default function AdminLogin({ onSuccess }: Props) {
     const { session, error: loginError } = await loginWithPassword(email, password);
 
     if (loginError || !session) {
-      setError(loginError || 'Login failed');
-      setLoading(false);
+      if (mountedRef.current) {
+        setError(loginError || 'Login failed');
+        setLoading(false);
+      }
       return;
     }
 
     const { profile, error: profileError } = await fetchAdminProfileInline(session.access_token);
 
     if (profileError || !profile) {
-      setError(profileError || 'Access denied');
-      setLoading(false);
+      if (mountedRef.current) {
+        setError(profileError || 'Access denied');
+        setLoading(false);
+      }
       return;
     }
 
+    if (!mountedRef.current) return;
+
     setLoading(false);
+    setAuthTransitioning(true);
     onSuccess(profile);
-    navigate('/admin', { replace: true });
+
+    successTimerRef.current = setTimeout(() => {
+      if (mountedRef.current) {
+        navigate('/admin', { replace: true });
+      }
+    }, SUCCESS_TRANSITION_DURATION);
   };
 
   const handleReset = async (e: React.FormEvent) => {
@@ -61,6 +107,29 @@ export default function AdminLogin({ onSuccess }: Props) {
     }
     setResetSent(true);
   };
+
+  if (authTransitioning) {
+    return (
+      <div className="admin-auth-container admin-auth-transitioning" aria-hidden="true">
+        <div className="admin-auth-success-overlay" />
+        <div className="admin-auth-card admin-auth-card-dissolving">
+          <div className="admin-auth-header">
+            <img
+              src="/images/admin-logo-small.webp"
+              alt=""
+              aria-hidden="true"
+              className="admin-auth-logo"
+              width="56"
+              height="56"
+            />
+            <p className="admin-auth-eyebrow">Pulse of Divinity</p>
+            <h1 className="admin-auth-title">Welcome</h1>
+            <div className="admin-auth-divider" />
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (resetSent) {
     return (
@@ -88,19 +157,42 @@ export default function AdminLogin({ onSuccess }: Props) {
     );
   }
 
+  const entranceClass = skipEntrance
+    ? ''
+    : entranceComplete
+      ? 'admin-entrance-done'
+      : 'admin-entrance-active';
+
+  const formLocked = !skipEntrance && !entranceComplete;
+
   return (
-    <div className="admin-auth-container">
-      <div className="admin-auth-card">
+    <div className={`admin-auth-container admin-entrance-container ${entranceClass}`}>
+      <div className="admin-entrance-overlay" aria-hidden="true" />
+
+      <div className="admin-auth-card admin-entrance-card">
         <div className="admin-auth-header">
+          <img
+            src="/images/admin-logo-small.webp"
+            alt="Pulse of Divinity"
+            className="admin-auth-logo"
+            width="56"
+            height="56"
+          />
           <p className="admin-auth-eyebrow">Pulse of Divinity</p>
           <h1 className="admin-auth-title">
             {resetMode ? 'Reset Password' : 'Admin Access'}
           </h1>
-          <div className="admin-auth-divider" />
+          <div className="admin-auth-divider admin-entrance-divider" />
         </div>
 
         {!resetMode ? (
-          <form onSubmit={handleLogin} className="admin-auth-form" autoComplete="on">
+          <form
+            onSubmit={handleLogin}
+            className="admin-auth-form admin-entrance-form"
+            autoComplete="on"
+            style={formLocked ? { pointerEvents: 'none' } : undefined}
+            aria-hidden={formLocked ? true : undefined}
+          >
             <div className="admin-field-group">
               <label htmlFor="admin-email" className="admin-field-label">
                 Email
@@ -114,7 +206,8 @@ export default function AdminLogin({ onSuccess }: Props) {
                 required
                 autoComplete="email"
                 className="admin-field-input"
-                disabled={loading}
+                disabled={loading || formLocked}
+                tabIndex={formLocked ? -1 : 0}
               />
             </div>
 
@@ -130,7 +223,8 @@ export default function AdminLogin({ onSuccess }: Props) {
                 required
                 autoComplete="current-password"
                 className="admin-field-input"
-                disabled={loading}
+                disabled={loading || formLocked}
+                tabIndex={formLocked ? -1 : 0}
               />
             </div>
 
@@ -142,10 +236,17 @@ export default function AdminLogin({ onSuccess }: Props) {
 
             <button
               type="submit"
-              className="admin-btn-primary"
-              disabled={loading}
+              className={`admin-btn-primary ${loading ? 'admin-btn-loading' : ''}`}
+              disabled={loading || formLocked}
             >
-              {loading ? 'Signing in...' : 'Sign In'}
+              {loading ? (
+                <span className="admin-btn-shimmer" aria-label="Signing in">
+                  <span className="admin-btn-shimmer-text">Signing in</span>
+                  <span className="admin-btn-shimmer-sweep" />
+                </span>
+              ) : (
+                'Sign In'
+              )}
             </button>
 
             <button
@@ -155,13 +256,17 @@ export default function AdminLogin({ onSuccess }: Props) {
                 setError(null);
                 setResetMode(true);
               }}
-              disabled={loading}
+              disabled={loading || formLocked}
+              tabIndex={formLocked ? -1 : 0}
             >
               Forgot Password?
             </button>
           </form>
         ) : (
-          <form onSubmit={handleReset} className="admin-auth-form">
+          <form
+            onSubmit={handleReset}
+            className="admin-auth-form"
+          >
             <div className="admin-field-group">
               <label htmlFor="reset-email" className="admin-field-label">
                 Email
