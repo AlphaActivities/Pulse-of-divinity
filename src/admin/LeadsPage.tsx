@@ -1,8 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Search, ChevronLeft, ChevronRight, AlertCircle, RotateCw } from 'lucide-react';
 import { getStoredSession } from './auth';
-import { fetchLeads, fetchAdminOptions } from './leadsApi';
-import type { LeadListItem, LeadDetail, PrimaryFilter, AdminOption } from './leadsApi';
+import { fetchLeads } from './leadsApi';
+import type { LeadListItem, LeadDetail, PrimaryFilter } from './leadsApi';
 import LeadDetailDrawer from './LeadDetailDrawer';
 
 const STATUS_LABELS: Record<string, string> = {
@@ -69,25 +69,11 @@ export default function LeadsPage() {
   const [page, setPage] = useState(1);
   const [primaryFilter, setPrimaryFilter] = useState<PrimaryFilter>('all_active');
   const [statusFilter, setStatusFilter] = useState('');
-  const [assignmentFilter, setAssignmentFilter] = useState('');
   const [searchInput, setSearchInput] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
-  const [admins, setAdmins] = useState<AdminOption[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedLeadId, setSelectedLeadId] = useState<string | null>(null);
-
-  useEffect(() => {
-    let cancelled = false;
-    async function loadAdmins() {
-      const session = getStoredSession();
-      if (!session) return;
-      const { data } = await fetchAdminOptions(session.access_token);
-      if (!cancelled && data) setAdmins(data);
-    }
-    loadAdmins();
-    return () => { cancelled = true; };
-  }, []);
 
   const loadLeads = useCallback(async () => {
     setLoading(true);
@@ -103,7 +89,6 @@ export default function LeadsPage() {
     const { data, error: fetchError, status } = await fetchLeads(session.access_token, {
       primaryFilter,
       statusFilter,
-      assignmentFilter,
       search: searchQuery,
       page,
     });
@@ -123,7 +108,7 @@ export default function LeadsPage() {
       setTotalPages(data.total_pages);
     }
     setLoading(false);
-  }, [primaryFilter, statusFilter, assignmentFilter, searchQuery, page]);
+  }, [primaryFilter, statusFilter, searchQuery, page]);
 
   useEffect(() => {
     loadLeads();
@@ -136,11 +121,6 @@ export default function LeadsPage() {
 
   const handleStatusFilterChange = (value: string) => {
     setStatusFilter(value);
-    setPage(1);
-  };
-
-  const handleAssignmentFilterChange = (value: string) => {
-    setAssignmentFilter(value);
     setPage(1);
   };
 
@@ -171,8 +151,6 @@ export default function LeadsPage() {
       return {
         ...l,
         status: updatedLead.status,
-        assigned_admin_id: updatedLead.assigned_admin_id,
-        assigned_admin_name: updatedLead.assigned_admin_name,
         follow_up_at: updatedLead.follow_up_at,
       };
     }));
@@ -213,13 +191,6 @@ export default function LeadsPage() {
     }
     setSelectedLeadId(null);
   };
-
-  const assignmentOptions = [
-    { value: '', label: 'All Admins' },
-    { value: 'me', label: 'Assigned to Me' },
-    { value: 'unassigned', label: 'Unassigned' },
-    ...admins.map((a) => ({ value: `admin:${a.id}`, label: a.display_name })),
-  ];
 
   return (
     <div className="admin-leads-page">
@@ -284,18 +255,6 @@ export default function LeadsPage() {
                 <option key={o.value} value={o.value}>{o.label}</option>
               ))}
             </select>
-
-            <label htmlFor="assignment-filter" className="admin-sr-only">Filter by assignment</label>
-            <select
-              id="assignment-filter"
-              value={assignmentFilter}
-              onChange={(e) => handleAssignmentFilterChange(e.target.value)}
-              className="admin-filter-select"
-            >
-              {assignmentOptions.map((o) => (
-                <option key={o.value} value={o.value}>{o.label}</option>
-              ))}
-            </select>
           </div>
         </div>
       </div>
@@ -329,7 +288,6 @@ export default function LeadsPage() {
                     <th scope="col">Inquiry</th>
                     <th scope="col">Artwork</th>
                     <th scope="col">Status</th>
-                    <th scope="col">Assigned</th>
                     <th scope="col">Follow-Up</th>
                     <th scope="col">Received</th>
                   </tr>
@@ -362,11 +320,6 @@ export default function LeadsPage() {
                       <td>
                         <span className={`admin-status-badge admin-status-${lead.status.toLowerCase()}`}>
                           {STATUS_LABELS[lead.status] || lead.status}
-                        </span>
-                      </td>
-                      <td>
-                        <span className="admin-lead-assigned">
-                          {lead.assigned_admin_name || 'Unassigned'}
                         </span>
                       </td>
                       <td>
@@ -410,12 +363,6 @@ export default function LeadsPage() {
                       <span className="admin-lead-card-value">{lead.artwork_title}</span>
                     </div>
                   )}
-                  <div className="admin-lead-card-row">
-                    <span className="admin-lead-card-label">Assigned</span>
-                    <span className="admin-lead-card-value">
-                      {lead.assigned_admin_name || 'Unassigned'}
-                    </span>
-                  </div>
                   <div className="admin-lead-card-row">
                     <span className="admin-lead-card-label">Follow-Up</span>
                     <span className={`admin-lead-card-value ${isOverdue(lead.follow_up_at, lead.archived) ? 'overdue' : ''}`}>
@@ -462,7 +409,6 @@ export default function LeadsPage() {
       {selectedLeadId && (
         <LeadDetailDrawer
           leadId={selectedLeadId}
-          admins={admins}
           onClose={handleDrawerClose}
           onLeadUpdated={handleLeadUpdated}
           onLeadArchived={handleLeadArchived}

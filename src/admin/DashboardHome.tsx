@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { AlertCircle, RotateCw, Clock, Calendar, Trophy, UserPlus, Users, Sparkles } from 'lucide-react';
+import { AlertCircle, RotateCw, Clock, Calendar, Trophy, Users, Sparkles } from 'lucide-react';
 import { getStoredSession } from './auth';
 import type { AdminProfile } from './auth';
 import { fetchDashboardSummary } from './leadsApi';
@@ -125,7 +125,6 @@ export default function DashboardHome({ profile, onLeadClick, justLoggedIn, onRe
     { key: 'due_today', label: 'Follow-Ups Due', value: data.summary.due_today, icon: Calendar, onClick: () => handleCardClick('due_today') },
     { key: 'overdue', label: 'Overdue', value: data.summary.overdue, icon: Clock, onClick: () => handleCardClick('overdue') },
     { key: 'won', label: 'Won', value: data.summary.won, icon: Trophy, onClick: () => handleCardClick('won') },
-    { key: 'unassigned', label: 'Unassigned', value: data.summary.unassigned, icon: UserPlus, onClick: () => handleCardClick('unassigned') },
   ];
 
   return (
@@ -182,7 +181,6 @@ export default function DashboardHome({ profile, onLeadClick, justLoggedIn, onRe
                   </span>
                 </div>
                 <div className="admin-attention-meta">
-                  <span className="admin-attention-assigned">{lead.assigned_admin_name || 'Unassigned'}</span>
                   <span className={`admin-attention-date ${lead.overdue ? 'overdue' : 'today'}`}>
                     {formatDate(lead.follow_up_at)}
                   </span>

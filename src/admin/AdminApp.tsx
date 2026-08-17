@@ -14,14 +14,11 @@ import DashboardHome from './DashboardHome';
 import LeadDetailDrawer from './LeadDetailDrawer';
 import { getStoredSession, clearSession, fetchAdminProfile } from './auth';
 import type { AdminProfile } from './auth';
-import { fetchAdminOptions } from './leadsApi';
-import type { AdminOption } from './leadsApi';
 
 export default function AdminApp() {
   const [profile, setProfile] = useState<AdminProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [justLoggedIn, setJustLoggedIn] = useState(false);
-  const [admins, setAdmins] = useState<AdminOption[]>([]);
   const [dashboardLeadId, setDashboardLeadId] = useState<string | null>(null);
   const location = useLocation();
 
@@ -58,17 +55,6 @@ export default function AdminApp() {
   useEffect(() => {
     verifySession();
   }, [verifySession]);
-
-  useEffect(() => {
-    if (profile) {
-      const session = getStoredSession();
-      if (session) {
-        fetchAdminOptions(session.access_token).then(({ data }) => {
-          if (data) setAdmins(data);
-        });
-      }
-    }
-  }, [profile]);
 
   const handleLoginSuccess = (newProfile: AdminProfile) => {
     setProfile(newProfile);
@@ -136,7 +122,6 @@ export default function AdminApp() {
               {dashboardLeadId && (
                 <LeadDetailDrawer
                   leadId={dashboardLeadId}
-                  admins={admins}
                   onClose={() => setDashboardLeadId(null)}
                   onLeadUpdated={() => {}}
                   onLeadArchived={() => setDashboardLeadId(null)}

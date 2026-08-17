@@ -2,11 +2,10 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { X, Mail, Phone, Archive, RotateCcw, AlertCircle, Check } from 'lucide-react';
 import { getStoredSession } from './auth';
 import { fetchLeadDetail, updateLead, fetchNotes, addNote } from './leadsApi';
-import type { LeadDetail, AdminOption, UpdateLeadBody, LeadNote } from './leadsApi';
+import type { LeadDetail, UpdateLeadBody, LeadNote } from './leadsApi';
 
 interface Props {
   leadId: string;
-  admins: AdminOption[];
   onClose: () => void;
   onLeadUpdated: (lead: LeadDetail) => void;
   onLeadArchived: (lead: LeadDetail) => void;
@@ -86,7 +85,6 @@ function isToday(followUpAt: string | null): boolean {
 
 export default function LeadDetailDrawer({
   leadId,
-  admins,
   onClose,
   onLeadUpdated,
   onLeadArchived,
@@ -98,7 +96,6 @@ export default function LeadDetailDrawer({
 
   // Editable form state
   const [status, setStatus] = useState('');
-  const [assignedAdminId, setAssignedAdminId] = useState<string>('');
   const [followUpAt, setFollowUpAt] = useState<string>('');
   const [outcome, setOutcome] = useState<string>('');
 
@@ -147,7 +144,6 @@ export default function LeadDetailDrawer({
 
     setLead(data);
     setStatus(data.status);
-    setAssignedAdminId(data.assigned_admin_id || '');
     setFollowUpAt(toDateInputValue(data.follow_up_at));
     setOutcome(data.outcome || '');
     setLoading(false);
@@ -213,7 +209,6 @@ export default function LeadDetailDrawer({
   const hasChanges = (): boolean => {
     if (!lead) return false;
     if (status !== lead.status) return true;
-    if ((assignedAdminId || '') !== (lead.assigned_admin_id || '')) return true;
     if (toDateInputValue(followUpAt || null) !== toDateInputValue(lead.follow_up_at)) return true;
     if ((outcome || '') !== (lead.outcome || '')) return true;
     return false;
@@ -236,11 +231,6 @@ export default function LeadDetailDrawer({
 
     if (status !== lead.status) body.status = status;
 
-    const currentAssigned = lead.assigned_admin_id || '';
-    if (assignedAdminId !== currentAssigned) {
-      body.assigned_admin_id = assignedAdminId || null;
-    }
-
     const currentDateVal = toDateInputValue(lead.follow_up_at);
     const newDateVal = followUpAt ? followUpAt : '';
     if (newDateVal !== currentDateVal) {
@@ -261,7 +251,6 @@ export default function LeadDetailDrawer({
 
     setLead(data);
     setStatus(data.status);
-    setAssignedAdminId(data.assigned_admin_id || '');
     setFollowUpAt(toDateInputValue(data.follow_up_at));
     setOutcome(data.outcome || '');
     setSaving(false);
@@ -328,11 +317,6 @@ export default function LeadDetailDrawer({
     setSaving(false);
     onLeadRestored(data);
   };
-
-  const assignmentOptions = [
-    { value: '', label: 'Unassigned' },
-    ...admins.map((a) => ({ value: a.id, label: a.display_name })),
-  ];
 
   const overdue = lead ? isOverdue(lead.follow_up_at, lead.archived) : false;
   const today = lead ? isToday(lead.follow_up_at) : false;
@@ -474,21 +458,6 @@ export default function LeadDetailDrawer({
                     disabled={saving}
                   >
                     {STATUS_OPTIONS.map((o) => (
-                      <option key={o.value} value={o.value}>{o.label}</option>
-                    ))}
-                  </select>
-                </div>
-
-                <div className="admin-detail-field">
-                  <label htmlFor="detail-assignment" className="admin-detail-label">Assigned Admin</label>
-                  <select
-                    id="detail-assignment"
-                    value={assignedAdminId}
-                    onChange={(e) => setAssignedAdminId(e.target.value)}
-                    className="admin-filter-select admin-detail-select"
-                    disabled={saving}
-                  >
-                    {assignmentOptions.map((o) => (
                       <option key={o.value} value={o.value}>{o.label}</option>
                     ))}
                   </select>
