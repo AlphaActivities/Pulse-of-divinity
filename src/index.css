@@ -1165,7 +1165,7 @@ select::placeholder {
   .admin-entrance-active .admin-auth-logo,
   .admin-auth-logo {
     opacity: 0.85 !important;
-    transform: translateX(-30px) !important;
+    transform: translateX(-23px) !important;
     animation: none !important;
   }
 
@@ -1296,8 +1296,8 @@ select::placeholder {
 .admin-auth-logo {
   display: block;
   margin: 0 auto 1.25rem;
-  margin-left: calc(50% - 30px);
-  transform: translateX(-30px);
+  margin-left: calc(50% - 23px);
+  transform: translateX(-23px);
   opacity: 0.85;
 }
 
@@ -1539,7 +1539,7 @@ select::placeholder {
   opacity: 0;
   animation: adminEntranceLogo 0.6s ease forwards;
   animation-delay: 0.5s;
-  transform: translateX(-30px) translateY(8px);
+  transform: translateX(-23px) translateY(8px);
 }
 
 .admin-entrance-active .admin-auth-eyebrow {
@@ -1584,7 +1584,7 @@ select::placeholder {
 
 .admin-entrance-done .admin-auth-logo {
   opacity: 0.85;
-  transform: translateX(-30px);
+  transform: translateX(-23px);
 }
 
 .admin-entrance-done .admin-auth-eyebrow,
@@ -1615,8 +1615,8 @@ select::placeholder {
 }
 
 @keyframes adminEntranceLogo {
-  from { opacity: 0; transform: translateX(-30px) translateY(8px); }
-  to { opacity: 0.85; transform: translateX(-30px) translateY(0); }
+  from { opacity: 0; transform: translateX(-23px) translateY(8px); }
+  to { opacity: 0.85; transform: translateX(-23px) translateY(0); }
 }
 
 @keyframes adminEntranceText {
