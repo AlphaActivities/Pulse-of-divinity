@@ -88,7 +88,7 @@ export default function AdminApp() {
     profile ? (
       element
     ) : (
-      <Navigate to="/admin/login" replace state={{ from: location.pathname }} />
+      <Navigate to="login" replace state={{ from: location.pathname }} />
     );
 
   return (
@@ -104,7 +104,7 @@ export default function AdminApp() {
         }
       />
       <Route
-        path="/admin"
+        path="/"
         element={guard(
           <AdminShell profile={profile!} onLogout={handleLogout} activePage="dashboard">
             <DashboardHome profile={profile!} onLeadClick={(id) => setDashboardLeadId(id)} />
@@ -122,7 +122,7 @@ export default function AdminApp() {
         )}
       />
       <Route
-        path="/admin/leads"
+        path="leads"
         element={guard(
           <AdminShell profile={profile!} onLogout={handleLogout} activePage="leads">
             <LeadsPage />
@@ -136,7 +136,7 @@ export default function AdminApp() {
 
 export function AdminRouter() {
   return (
-    <BrowserRouter>
+    <BrowserRouter basename="/admin">
       <AdminApp />
     </BrowserRouter>
   );
