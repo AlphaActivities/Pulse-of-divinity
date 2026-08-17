@@ -1,5 +1,18 @@
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string;
 const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY as string;
+const API_TIMEOUT_MS = 12000;
+
+function fetchWithTimeout(
+  url: string,
+  options: RequestInit,
+  timeoutMs: number = API_TIMEOUT_MS
+): Promise<Response> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  return fetch(url, { ...options, signal: controller.signal }).finally(() =>
+    clearTimeout(timer)
+  );
+}
 
 export type PrimaryFilter = 'all_active' | 'new' | 'follow_up' | 'archived';
 
@@ -86,7 +99,7 @@ export async function fetchLeads(
   if (params.search) searchParams.set('search', params.search);
 
   try {
-    const res = await fetch(
+    const res = await fetchWithTimeout(
       `${SUPABASE_URL}/functions/v1/list-leads?${searchParams.toString()}`,
       {
         method: 'GET',
@@ -105,7 +118,7 @@ export async function fetchLeads(
     const data = (await res.json()) as ListLeadsResponse;
     return { data, error: null, status: 200 };
   } catch {
-    return { data: null, error: 'Network error', status: 0 };
+    return { data: null, error: 'Unable to connect. Please try again.', status: 0 };
   }
 }
 
@@ -114,7 +127,7 @@ export async function fetchLeadDetail(
   leadId: string,
 ): Promise<{ data: LeadDetail | null; error: string | null; status: number }> {
   try {
-    const res = await fetch(
+    const res = await fetchWithTimeout(
       `${SUPABASE_URL}/functions/v1/get-lead?id=${encodeURIComponent(leadId)}`,
       {
         method: 'GET',
@@ -134,7 +147,7 @@ export async function fetchLeadDetail(
     const data = (await res.json()) as LeadDetail;
     return { data, error: null, status: 200 };
   } catch {
-    return { data: null, error: 'Network error', status: 0 };
+    return { data: null, error: 'Unable to connect. Please try again.', status: 0 };
   }
 }
 
@@ -143,7 +156,7 @@ export async function updateLead(
   body: UpdateLeadBody,
 ): Promise<{ data: LeadDetail | null; error: string | null; status: number }> {
   try {
-    const res = await fetch(`${SUPABASE_URL}/functions/v1/update-lead`, {
+    const res = await fetchWithTimeout(`${SUPABASE_URL}/functions/v1/update-lead`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -164,7 +177,7 @@ export async function updateLead(
     const data = (await res.json()) as LeadDetail;
     return { data, error: null, status: 200 };
   } catch {
-    return { data: null, error: 'Network error', status: 0 };
+    return { data: null, error: 'Unable to connect. Please try again.', status: 0 };
   }
 }
 
@@ -215,7 +228,7 @@ export async function fetchAdminOptions(
   token: string,
 ): Promise<{ data: AdminOption[] | null; error: string | null }> {
   try {
-    const res = await fetch(`${SUPABASE_URL}/functions/v1/list-admins`, {
+    const res = await fetchWithTimeout(`${SUPABASE_URL}/functions/v1/list-admins`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -228,7 +241,7 @@ export async function fetchAdminOptions(
     const data = (await res.json()) as AdminOption[];
     return { data, error: null };
   } catch {
-    return { data: null, error: 'Network error' };
+    return { data: null, error: 'Unable to connect. Please try again.' };
   }
 }
 
@@ -237,7 +250,7 @@ export async function fetchNotes(
   leadId: string,
 ): Promise<{ data: LeadNote[] | null; error: string | null; status: number }> {
   try {
-    const res = await fetch(
+    const res = await fetchWithTimeout(
       `${SUPABASE_URL}/functions/v1/list-notes?lead_id=${encodeURIComponent(leadId)}`,
       {
         method: 'GET',
@@ -254,7 +267,7 @@ export async function fetchNotes(
     const data = (await res.json()) as { notes: LeadNote[] };
     return { data: data.notes, error: null, status: 200 };
   } catch {
-    return { data: null, error: 'Network error', status: 0 };
+    return { data: null, error: 'Unable to connect. Please try again.', status: 0 };
   }
 }
 
@@ -264,7 +277,7 @@ export async function addNote(
   body: string,
 ): Promise<{ data: LeadNote | null; error: string | null; status: number }> {
   try {
-    const res = await fetch(`${SUPABASE_URL}/functions/v1/add-note`, {
+    const res = await fetchWithTimeout(`${SUPABASE_URL}/functions/v1/add-note`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -283,7 +296,7 @@ export async function addNote(
     const data = (await res.json()) as LeadNote;
     return { data, error: null, status: 200 };
   } catch {
-    return { data: null, error: 'Network error', status: 0 };
+    return { data: null, error: 'Unable to connect. Please try again.', status: 0 };
   }
 }
 
@@ -291,7 +304,7 @@ export async function fetchDashboardSummary(
   token: string,
 ): Promise<{ data: DashboardSummary | null; error: string | null; status: number }> {
   try {
-    const res = await fetch(`${SUPABASE_URL}/functions/v1/dashboard-summary`, {
+    const res = await fetchWithTimeout(`${SUPABASE_URL}/functions/v1/dashboard-summary`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -305,6 +318,6 @@ export async function fetchDashboardSummary(
     const data = (await res.json()) as DashboardSummary;
     return { data, error: null, status: 200 };
   } catch {
-    return { data: null, error: 'Network error', status: 0 };
+    return { data: null, error: 'Unable to connect. Please try again.', status: 0 };
   }
 }

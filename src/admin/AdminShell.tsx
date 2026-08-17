@@ -11,8 +11,8 @@ interface Props {
 }
 
 const NAV_ITEMS = [
-  { key: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, path: '/admin' },
-  { key: 'leads', label: 'Leads', icon: Users, path: '/admin/leads' },
+  { key: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, path: '/' },
+  { key: 'leads', label: 'Leads', icon: Users, path: '/leads' },
 ] as const;
 
 export default function AdminShell({ profile, onLogout, children }: Props) {
@@ -21,9 +21,9 @@ export default function AdminShell({ profile, onLogout, children }: Props) {
   const [loggingOut, setLoggingOut] = useState(false);
 
   const activePage =
-    location.pathname === '/admin' || location.pathname === '/admin/'
+    location.pathname === '/' || location.pathname === '/admin' || location.pathname === '/admin/'
       ? 'dashboard'
-      : location.pathname.startsWith('/admin/leads')
+      : location.pathname.startsWith('/leads') || location.pathname.startsWith('/admin/leads')
         ? 'leads'
         : 'dashboard';
 
@@ -37,7 +37,7 @@ export default function AdminShell({ profile, onLogout, children }: Props) {
     }
     setLoggingOut(false);
     onLogout();
-    navigate('/admin/login', { replace: true });
+    navigate('/login', { replace: true });
   };
 
   useEffect(() => {
@@ -45,7 +45,7 @@ export default function AdminShell({ profile, onLogout, children }: Props) {
       const session = getStoredSession();
       if (!session) {
         onLogout();
-        navigate('/admin/login', { replace: true });
+        navigate('/login', { replace: true });
       }
     };
     window.addEventListener('popstate', handlePopState);

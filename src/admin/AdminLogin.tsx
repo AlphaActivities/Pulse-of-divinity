@@ -94,7 +94,7 @@ export default function AdminLogin({ onSuccess, skipEntrance }: Props) {
 
       successTimerRef.current = setTimeout(() => {
         if (mountedRef.current) {
-          navigate('/admin', { replace: true });
+          navigate('/', { replace: true });
         }
       }, SUCCESS_TRANSITION_DURATION);
     } catch {

@@ -115,7 +115,7 @@ export default function AdminApp() {
 
   return (
     <Routes>
-      <Route path="login" element={<Navigate to="/admin" replace />} />
+      <Route path="login" element={<Navigate to="/" replace />} />
       <Route
         element={
           <AdminShell profile={profile} onLogout={handleLogout}>
@@ -148,7 +148,7 @@ export default function AdminApp() {
         />
         <Route path="leads" element={<LeadsPage />} />
       </Route>
-      <Route path="*" element={<Navigate to="/admin" replace />} />
+      <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
 }

@@ -76,11 +76,9 @@ export default function DashboardHome({ profile, onLeadClick, justLoggedIn, onRe
 
   const handleCardClick = (filter: string) => {
     if (filter === 'new') {
-      navigate('/admin/leads');
-      // Note: Phase 7B filter state is managed within LeadsPage; deep-linking to specific filters
-      // would require additional routing complexity. For V1, cards navigate to /admin/leads.
+      navigate('/leads');
     } else {
-      navigate('/admin/leads');
+      navigate('/leads');
     }
   };
 
@@ -110,7 +108,16 @@ export default function DashboardHome({ profile, onLeadClick, justLoggedIn, onRe
     );
   }
 
-  if (!data) return null;
+  if (!data) {
+    return (
+      <div className="admin-dashboard-page">
+        <div className="admin-leads-loading">
+          <div className="admin-loading-spinner" />
+          <p className="admin-loading-text">Loading dashboard...</p>
+        </div>
+      </div>
+    );
+  }
 
   const cards = [
     { key: 'new', label: 'New Leads', value: data.summary.new, icon: Sparkles, onClick: () => handleCardClick('new') },
@@ -193,7 +200,7 @@ export default function DashboardHome({ profile, onLeadClick, justLoggedIn, onRe
       <section className="admin-dashboard-section">
         <div className="admin-dashboard-section-header">
           <h2 className="admin-dashboard-section-title">Recent Collector Inquiries</h2>
-          <button className="admin-view-all-btn" onClick={() => navigate('/admin/leads')}>
+          <button className="admin-view-all-btn" onClick={() => navigate('/leads')}>
             View All Leads
           </button>
         </div>
