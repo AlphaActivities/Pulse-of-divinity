@@ -62,7 +62,10 @@ export async function loginWithPassword(
     const data = await res.json();
 
     if (!res.ok) {
-      return { session: null, error: 'Invalid email or password.' };
+      if (res.status === 400) {
+        return { session: null, error: 'Invalid email or password.' };
+      }
+      return { session: null, error: 'Unable to connect. Please try again.' };
     }
 
     const session: AdminSession = {
