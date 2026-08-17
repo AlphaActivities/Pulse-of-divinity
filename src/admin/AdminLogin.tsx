@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { loginWithPassword, requestPasswordReset } from './auth';
+import { loginWithPassword, requestPasswordReset, clearSession } from './auth';
 import type { AdminProfile } from './auth';
 
 interface Props {
@@ -10,6 +10,7 @@ interface Props {
 
 const ENTRANCE_DURATION = 2000;
 const SUCCESS_TRANSITION_DURATION = 1100;
+const PROFILE_TIMEOUT_MS = 12000;
 
 export default function AdminLogin({ onSuccess, skipEntrance }: Props) {
   const navigate = useNavigate();
@@ -57,55 +58,79 @@ export default function AdminLogin({ onSuccess, skipEntrance }: Props) {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (loading) return;
     setError(null);
     setLoading(true);
 
-    const { session, error: loginError } = await loginWithPassword(email, password);
+    try {
+      const { session, error: loginError } = await loginWithPassword(email, password);
 
-    if (loginError || !session) {
+      if (loginError || !session) {
+        if (mountedRef.current) {
+          setError(loginError || 'Invalid email or password.');
+          setLoading(false);
+        }
+        return;
+      }
+
+      const { profile, error: profileError } = await fetchAdminProfileInline(
+        session.access_token
+      );
+
+      if (profileError || !profile) {
+        clearSession();
+        if (mountedRef.current) {
+          setError(profileError || 'Access denied');
+          setLoading(false);
+        }
+        return;
+      }
+
+      if (!mountedRef.current) return;
+
+      setLoading(false);
+      setAuthTransitioning(true);
+      onSuccess(profile);
+
+      successTimerRef.current = setTimeout(() => {
+        if (mountedRef.current) {
+          navigate('/admin', { replace: true });
+        }
+      }, SUCCESS_TRANSITION_DURATION);
+    } catch {
       if (mountedRef.current) {
-        setError(loginError || 'Login failed');
+        setError('Unable to connect. Please try again.');
         setLoading(false);
       }
-      return;
     }
-
-    const { profile, error: profileError } = await fetchAdminProfileInline(session.access_token);
-
-    if (profileError || !profile) {
-      if (mountedRef.current) {
-        setError(profileError || 'Access denied');
-        setLoading(false);
-      }
-      return;
-    }
-
-    if (!mountedRef.current) return;
-
-    setLoading(false);
-    setAuthTransitioning(true);
-    onSuccess(profile);
-
-    successTimerRef.current = setTimeout(() => {
-      if (mountedRef.current) {
-        navigate('/admin', { replace: true });
-      }
-    }, SUCCESS_TRANSITION_DURATION);
   };
 
   const handleReset = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (loading) return;
     setError(null);
     setLoading(true);
 
-    const { error: resetError } = await requestPasswordReset(email);
+    try {
+      const { error: resetError } = await requestPasswordReset(email);
 
-    setLoading(false);
-    if (resetError) {
-      setError(resetError);
-      return;
+      if (resetError) {
+        if (mountedRef.current) {
+          setError(resetError);
+          setLoading(false);
+        }
+        return;
+      }
+      if (mountedRef.current) {
+        setResetSent(true);
+        setLoading(false);
+      }
+    } catch {
+      if (mountedRef.current) {
+        setError('Unable to connect. Please try again.');
+        setLoading(false);
+      }
     }
-    setResetSent(true);
   };
 
   if (authTransitioning) {
@@ -324,6 +349,9 @@ async function fetchAdminProfileInline(
   const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY as string;
 
   try {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), PROFILE_TIMEOUT_MS);
+
     const res = await fetch(`${SUPABASE_URL}/functions/v1/get-me`, {
       method: 'GET',
       headers: {
@@ -331,7 +359,10 @@ async function fetchAdminProfileInline(
         apikey: SUPABASE_ANON_KEY,
         Authorization: `Bearer ${token}`,
       },
+      signal: controller.signal,
     });
+
+    clearTimeout(timer);
 
     if (res.status === 401) return { profile: null, error: 'Authentication required' };
     if (res.status === 403) return { profile: null, error: 'Access denied — not an approved admin' };
@@ -340,6 +371,6 @@ async function fetchAdminProfileInline(
     const data = await res.json();
     return { profile: data as AdminProfile, error: null };
   } catch {
-    return { profile: null, error: 'Network error' };
+    return { profile: null, error: 'Unable to connect. Please try again.' };
   }
 }
