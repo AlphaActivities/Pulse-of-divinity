@@ -119,8 +119,8 @@ export default function AdminLogin({ onSuccess, skipEntrance }: Props) {
               alt=""
               aria-hidden="true"
               className="admin-auth-logo"
-              width="56"
-              height="56"
+              width="73"
+              height="73"
             />
             <p className="admin-auth-eyebrow">Pulse of Divinity</p>
             <h1 className="admin-auth-title">Welcome</h1>
@@ -175,8 +175,8 @@ export default function AdminLogin({ onSuccess, skipEntrance }: Props) {
             src="/images/admin-logo-small.webp"
             alt="Pulse of Divinity"
             className="admin-auth-logo"
-            width="56"
-            height="56"
+            width="73"
+            height="73"
           />
           <p className="admin-auth-eyebrow">Pulse of Divinity</p>
           <h1 className="admin-auth-title">
