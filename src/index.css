@@ -1133,3 +1133,472 @@ select::placeholder {
     animation: none !important;
   }
 }
+
+/* ─────────────────────────────────────────
+   ADMIN INTERFACE — Private dark luxury shell
+   Scoped to /admin/* — does not affect public site
+───────────────────────────────────────── */
+
+/* ── Loading screen ── */
+.admin-loading-screen {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: #1a0f1a;
+  gap: 1.5rem;
+}
+
+.admin-loading-spinner {
+  width: 32px;
+  height: 32px;
+  border: 2px solid rgba(201, 162, 39, 0.2);
+  border-top-color: #c9a227;
+  border-radius: 50%;
+  animation: adminSpin 0.8s linear infinite;
+}
+
+@keyframes adminSpin {
+  to { transform: rotate(360deg); }
+}
+
+.admin-loading-text {
+  font-family: 'Jost', system-ui, sans-serif;
+  font-weight: 300;
+  font-size: 0.75rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: rgba(250, 243, 217, 0.5);
+}
+
+/* ── Auth container ── */
+.admin-auth-container {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(170deg, #1a0f1a 0%, #2a1629 50%, #1a0f1a 100%);
+  padding: 2rem 1.25rem;
+}
+
+.admin-auth-card {
+  width: 100%;
+  max-width: 400px;
+  background: rgba(42, 22, 41, 0.6);
+  border: 1px solid rgba(201, 162, 39, 0.15);
+  border-radius: 4px;
+  padding: clamp(2rem, 5vw, 3rem);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+/* ── Auth header ── */
+.admin-auth-header {
+  text-align: center;
+  margin-bottom: 2.5rem;
+}
+
+.admin-auth-eyebrow {
+  font-family: 'Jost', system-ui, sans-serif;
+  font-weight: 300;
+  font-size: 0.65rem;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  color: rgba(201, 162, 39, 0.85);
+  margin-bottom: 1rem;
+}
+
+.admin-auth-title {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-weight: 300;
+  font-size: 1.85rem;
+  letter-spacing: 0.02em;
+  color: #faf3d9;
+  margin: 0;
+}
+
+.admin-auth-divider {
+  width: 40px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, #c9a227, transparent);
+  margin: 1.25rem auto 0;
+}
+
+/* ── Auth form ── */
+.admin-auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.admin-field-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.admin-field-label {
+  font-family: 'Jost', system-ui, sans-serif;
+  font-weight: 400;
+  font-size: 0.65rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(250, 243, 217, 0.55);
+}
+
+.admin-field-input {
+  width: 100%;
+  padding: 0.75rem 0.875rem;
+  background: rgba(26, 15, 26, 0.5);
+  border: 1px solid rgba(201, 162, 39, 0.15);
+  border-radius: 3px;
+  color: #faf3d9;
+  font-family: 'Jost', system-ui, sans-serif;
+  font-size: 0.875rem;
+  font-weight: 300;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+  min-height: 44px;
+  box-sizing: border-box;
+}
+
+.admin-field-input:focus {
+  outline: none;
+  border-color: rgba(201, 162, 39, 0.5);
+  box-shadow: 0 0 0 2px rgba(201, 162, 39, 0.1);
+}
+
+.admin-field-input::placeholder {
+  color: rgba(250, 243, 217, 0.25);
+}
+
+/* ── Auth error ── */
+.admin-auth-error {
+  padding: 0.75rem 0.875rem;
+  background: rgba(155, 95, 145, 0.12);
+  border: 1px solid rgba(155, 95, 145, 0.25);
+  border-radius: 3px;
+  color: rgba(250, 243, 217, 0.8);
+  font-family: 'Jost', system-ui, sans-serif;
+  font-size: 0.75rem;
+  font-weight: 300;
+  line-height: 1.5;
+}
+
+/* ── Buttons ── */
+.admin-btn-primary {
+  width: 100%;
+  padding: 0.875rem 1.5rem;
+  background: linear-gradient(135deg, #c9a227 0%, #dfc236 50%, #c9a227 100%);
+  background-size: 200% 100%;
+  border: none;
+  border-radius: 3px;
+  color: #2a1629;
+  font-family: 'Jost', system-ui, sans-serif;
+  font-size: 0.65rem;
+  font-weight: 500;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  cursor: pointer;
+  min-height: 44px;
+  transition: background-position 0.5s ease, transform 0.3s ease, box-shadow 0.3s ease;
+  margin-top: 0.5rem;
+}
+
+.admin-btn-primary:hover:not(:disabled) {
+  background-position: right center;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 24px rgba(201, 162, 39, 0.25);
+}
+
+.admin-btn-primary:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.admin-btn-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.admin-btn-secondary {
+  width: 100%;
+  padding: 0.75rem 1.5rem;
+  background: transparent;
+  border: 1px solid rgba(201, 162, 39, 0.25);
+  border-radius: 3px;
+  color: rgba(250, 243, 217, 0.7);
+  font-family: 'Jost', system-ui, sans-serif;
+  font-size: 0.65rem;
+  font-weight: 400;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  cursor: pointer;
+  min-height: 44px;
+  transition: border-color 0.3s ease, color 0.3s ease;
+  margin-top: 0.5rem;
+}
+
+.admin-btn-secondary:hover {
+  border-color: rgba(201, 162, 39, 0.5);
+  color: #faf3d9;
+}
+
+.admin-link-button {
+  background: none;
+  border: none;
+  color: rgba(201, 162, 39, 0.7);
+  font-family: 'Jost', system-ui, sans-serif;
+  font-size: 0.7rem;
+  font-weight: 300;
+  letter-spacing: 0.1em;
+  cursor: pointer;
+  padding: 0.5rem 0;
+  transition: color 0.3s ease;
+  text-align: center;
+  width: 100%;
+}
+
+.admin-link-button:hover:not(:disabled) {
+  color: #c9a227;
+}
+
+.admin-link-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ── Reset confirmation ── */
+.admin-reset-confirmation {
+  font-family: 'Jost', system-ui, sans-serif;
+  font-size: 0.85rem;
+  font-weight: 300;
+  line-height: 1.7;
+  color: rgba(250, 243, 217, 0.7);
+  text-align: center;
+  margin-bottom: 1.5rem;
+}
+
+/* ── Admin shell ── */
+.admin-shell {
+  min-height: 100vh;
+  background: #1a0f1a;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── Admin header ── */
+.admin-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 1.5rem;
+  height: 64px;
+  background: rgba(42, 22, 41, 0.4);
+  border-bottom: 1px solid rgba(201, 162, 39, 0.12);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  flex-shrink: 0;
+}
+
+.admin-header-left,
+.admin-header-right {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.admin-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  white-space: nowrap;
+}
+
+.admin-brand-name {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-weight: 400;
+  font-size: 1.1rem;
+  letter-spacing: 0.02em;
+  color: #faf3d9;
+}
+
+.admin-brand-separator {
+  color: rgba(201, 162, 39, 0.4);
+  font-size: 0.9rem;
+}
+
+.admin-brand-section {
+  font-family: 'Jost', system-ui, sans-serif;
+  font-weight: 400;
+  font-size: 0.65rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: rgba(201, 162, 39, 0.85);
+}
+
+.admin-user-info {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.1rem;
+}
+
+.admin-user-label {
+  font-family: 'Jost', system-ui, sans-serif;
+  font-weight: 300;
+  font-size: 0.55rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(250, 243, 217, 0.35);
+}
+
+.admin-user-name {
+  font-family: 'Jost', system-ui, sans-serif;
+  font-weight: 400;
+  font-size: 0.8rem;
+  color: #faf3d9;
+}
+
+.admin-btn-logout {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: transparent;
+  border: 1px solid rgba(201, 162, 39, 0.2);
+  border-radius: 3px;
+  padding: 0.5rem 0.875rem;
+  color: rgba(250, 243, 217, 0.7);
+  font-family: 'Jost', system-ui, sans-serif;
+  font-size: 0.6rem;
+  font-weight: 400;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  cursor: pointer;
+  min-height: 36px;
+  transition: border-color 0.3s ease, color 0.3s ease;
+}
+
+.admin-btn-logout:hover:not(:disabled) {
+  border-color: rgba(201, 162, 39, 0.5);
+  color: #faf3d9;
+}
+
+.admin-btn-logout:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ── Admin main content ── */
+.admin-main {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 1.5rem;
+}
+
+.admin-welcome {
+  text-align: center;
+  max-width: 480px;
+}
+
+.admin-welcome-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 64px;
+  height: 64px;
+  border: 1px solid rgba(201, 162, 39, 0.2);
+  border-radius: 50%;
+  color: rgba(201, 162, 39, 0.6);
+  margin-bottom: 1.75rem;
+}
+
+.admin-welcome-heading {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-weight: 300;
+  font-size: 1.75rem;
+  letter-spacing: 0.02em;
+  color: #faf3d9;
+  margin: 0 0 1.25rem;
+}
+
+.admin-welcome-divider {
+  width: 50px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, #c9a227, transparent);
+  margin: 0 auto 1.5rem;
+}
+
+.admin-welcome-text {
+  font-family: 'Jost', system-ui, sans-serif;
+  font-weight: 300;
+  font-size: 0.9rem;
+  line-height: 1.7;
+  color: rgba(250, 243, 217, 0.6);
+  margin: 0 0 0.75rem;
+}
+
+.admin-welcome-subtext {
+  font-family: 'Jost', system-ui, sans-serif;
+  font-weight: 300;
+  font-size: 0.75rem;
+  line-height: 1.7;
+  color: rgba(250, 243, 217, 0.35);
+  margin: 0;
+}
+
+/* ── Admin mobile ── */
+@media (max-width: 640px) {
+  .admin-header {
+    padding: 0 1rem;
+    height: 56px;
+  }
+
+  .admin-header-left,
+  .admin-header-right {
+    gap: 0.75rem;
+  }
+
+  .admin-brand-name {
+    font-size: 0.95rem;
+  }
+
+  .admin-brand-separator {
+    display: none;
+  }
+
+  .admin-brand-section {
+    display: none;
+  }
+
+  .admin-user-label {
+    display: none;
+  }
+
+  .admin-user-name {
+    font-size: 0.75rem;
+  }
+
+  .admin-btn-logout span {
+    display: none;
+  }
+
+  .admin-btn-logout {
+    padding: 0.5rem;
+    width: 36px;
+    justify-content: center;
+  }
+
+  .admin-auth-card {
+    padding: 1.75rem 1.5rem;
+  }
+
+  .admin-auth-title {
+    font-size: 1.6rem;
+  }
+
+  .admin-welcome-heading {
+    font-size: 1.5rem;
+  }
+}

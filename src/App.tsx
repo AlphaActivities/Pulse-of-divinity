@@ -9,6 +9,7 @@ import Commissions from './components/Commissions';
 import Contact from './components/Contact';
 import Footer from './components/Footer';
 import CollectedWorksPage from './pages/CollectedWorksPage';
+import { AdminRouter } from './admin/AdminApp';
 import { scrollToSection } from './utils/scrollToSection';
 import { takePendingScroll } from './utils/pendingScroll';
 import { trackPageView, trackSectionViewed, trackCollectionViewed } from './utils/analytics';
@@ -27,6 +28,8 @@ function getPage(): 'home' | 'archive' {
 }
 
 export default function App() {
+  const isAdminRoute = window.location.pathname.startsWith('/admin');
+
   const [page, setPage] = useState<'home' | 'archive'>(getPage);
   const observedSections = useRef<Set<string>>(new Set());
   const lastTrackedPath = useRef<string | null>(null);
@@ -156,6 +159,10 @@ export default function App() {
     rafId = requestAnimationFrame(attempt);
     return () => cancelAnimationFrame(rafId);
   }, [page]);
+
+  if (isAdminRoute) {
+    return <AdminRouter />;
+  }
 
   if (page === 'archive') {
     return <CollectedWorksPage onNavigateHome={handleNavigateHome} />;
