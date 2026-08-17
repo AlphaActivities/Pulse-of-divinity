@@ -178,7 +178,7 @@ export async function fetchAdminProfile(
       return { profile: null, error: 'Authentication required', status: 401 };
     }
     if (res.status === 403) {
-      return { profile: null, error: 'Access denied', status: 403 };
+      return { profile: null, error: 'Your account is not authorized for admin access.', status: 403 };
     }
     if (!res.ok) {
       return {

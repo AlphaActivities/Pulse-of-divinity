@@ -1,13 +1,12 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Lock, LogOut, LayoutDashboard, Users } from 'lucide-react';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { LogOut, LayoutDashboard, Users } from 'lucide-react';
 import { logout, getStoredSession, clearSession } from './auth';
 import type { AdminProfile } from './auth';
 
 interface Props {
   profile: AdminProfile;
   onLogout: () => void;
-  activePage: 'dashboard' | 'leads';
   children?: React.ReactNode;
 }
 
@@ -16,9 +15,17 @@ const NAV_ITEMS = [
   { key: 'leads', label: 'Leads', icon: Users, path: '/admin/leads' },
 ] as const;
 
-export default function AdminShell({ profile, onLogout, activePage, children }: Props) {
+export default function AdminShell({ profile, onLogout, children }: Props) {
   const navigate = useNavigate();
+  const location = useLocation();
   const [loggingOut, setLoggingOut] = useState(false);
+
+  const activePage =
+    location.pathname === '/admin' || location.pathname === '/admin/'
+      ? 'dashboard'
+      : location.pathname.startsWith('/admin/leads')
+        ? 'leads'
+        : 'dashboard';
 
   const handleLogout = async () => {
     setLoggingOut(true);
@@ -98,23 +105,7 @@ export default function AdminShell({ profile, onLogout, activePage, children }: 
       </header>
 
       <main className="admin-main admin-main-with-nav">
-        {children ?? (
-          <div className="admin-welcome">
-            <div className="admin-welcome-icon">
-              <Lock size={28} strokeWidth={1.2} />
-            </div>
-            <h1 className="admin-welcome-heading">
-              Secure Admin Access Confirmed
-            </h1>
-            <div className="admin-welcome-divider" />
-            <p className="admin-welcome-text">
-              Welcome, {profile.display_name}. Your admin session is active and authorized.
-            </p>
-            <p className="admin-welcome-subtext">
-              Collector Intelligence Dashboard functionality will arrive in the next phase.
-            </p>
-          </div>
-        )}
+        {children}
       </main>
     </div>
   );

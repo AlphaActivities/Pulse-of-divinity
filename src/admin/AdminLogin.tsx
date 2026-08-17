@@ -80,7 +80,7 @@ export default function AdminLogin({ onSuccess, skipEntrance }: Props) {
       if (profileError || !profile) {
         clearSession();
         if (mountedRef.current) {
-          setError(profileError || 'Access denied');
+          setError(profileError || 'Your account is not authorized for admin access.');
           setLoading(false);
         }
         return;
@@ -365,7 +365,7 @@ async function fetchAdminProfileInline(
     clearTimeout(timer);
 
     if (res.status === 401) return { profile: null, error: 'Authentication required' };
-    if (res.status === 403) return { profile: null, error: 'Access denied — not an approved admin' };
+    if (res.status === 403) return { profile: null, error: 'Your account is not authorized for admin access.' };
     if (!res.ok) return { profile: null, error: 'Failed to verify admin access' };
 
     const data = await res.json();

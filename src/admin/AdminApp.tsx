@@ -1,5 +1,12 @@
 import { useState, useEffect, useCallback } from 'react';
-import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import {
+  BrowserRouter,
+  Routes,
+  Route,
+  Navigate,
+  Outlet,
+  useLocation,
+} from 'react-router-dom';
 import AdminLogin from './AdminLogin';
 import AdminShell from './AdminShell';
 import LeadsPage from './LeadsPage';
@@ -26,16 +33,11 @@ export default function AdminApp() {
       return false;
     }
 
-    const { profile: adminProfile, error, status } = await fetchAdminProfile(session.access_token);
+    const { profile: adminProfile, error, status } = await fetchAdminProfile(
+      session.access_token
+    );
 
-    if (status === 401) {
-      clearSession();
-      setProfile(null);
-      setLoading(false);
-      return false;
-    }
-
-    if (status === 403) {
+    if (status === 401 || status === 403) {
       clearSession();
       setProfile(null);
       setLoading(false);
@@ -102,56 +104,50 @@ export default function AdminApp() {
     );
   }
 
-  const guard = (element: React.ReactNode) =>
-    profile ? (
-      element
-    ) : (
-      <Navigate to="login" replace state={{ from: location.pathname }} />
+  if (!profile) {
+    return (
+      <Routes>
+        <Route path="login" element={<AdminLogin onSuccess={handleLoginSuccess} skipEntrance={false} />} />
+        <Route path="*" element={<Navigate to="login" replace state={{ from: location.pathname }} />} />
+      </Routes>
     );
+  }
 
   return (
     <Routes>
+      <Route path="login" element={<Navigate to="/admin" replace />} />
       <Route
-        path="login"
         element={
-          profile ? (
-            <Navigate to="/admin" replace />
-          ) : (
-            <AdminLogin onSuccess={handleLoginSuccess} skipEntrance={false} />
-          )
+          <AdminShell profile={profile} onLogout={handleLogout}>
+            <Outlet />
+          </AdminShell>
         }
-      />
-      <Route
-        path="/"
-        element={guard(
-          <AdminShell profile={profile!} onLogout={handleLogout} activePage="dashboard">
-            <DashboardHome
-              profile={profile!}
-              onLeadClick={(id) => setDashboardLeadId(id)}
-              justLoggedIn={justLoggedIn}
-              onRevealed={handleDashboardRevealed}
-            />
-            {dashboardLeadId && (
-              <LeadDetailDrawer
-                leadId={dashboardLeadId}
-                admins={admins}
-                onClose={() => setDashboardLeadId(null)}
-                onLeadUpdated={() => {}}
-                onLeadArchived={() => setDashboardLeadId(null)}
-                onLeadRestored={() => {}}
+      >
+        <Route
+          path="/"
+          element={
+            <>
+              <DashboardHome
+                profile={profile}
+                onLeadClick={(id) => setDashboardLeadId(id)}
+                justLoggedIn={justLoggedIn}
+                onRevealed={handleDashboardRevealed}
               />
-            )}
-          </AdminShell>
-        )}
-      />
-      <Route
-        path="leads"
-        element={guard(
-          <AdminShell profile={profile!} onLogout={handleLogout} activePage="leads">
-            <LeadsPage />
-          </AdminShell>
-        )}
-      />
+              {dashboardLeadId && (
+                <LeadDetailDrawer
+                  leadId={dashboardLeadId}
+                  admins={admins}
+                  onClose={() => setDashboardLeadId(null)}
+                  onLeadUpdated={() => {}}
+                  onLeadArchived={() => setDashboardLeadId(null)}
+                  onLeadRestored={() => {}}
+                />
+              )}
+            </>
+          }
+        />
+        <Route path="leads" element={<LeadsPage />} />
+      </Route>
       <Route path="*" element={<Navigate to="/admin" replace />} />
     </Routes>
   );
