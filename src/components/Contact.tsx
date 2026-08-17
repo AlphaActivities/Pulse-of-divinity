@@ -224,9 +224,11 @@ export default function Contact({ pendingInquiryArtworkId, onInquiryConsumed }: 
       : selected?.value === 'commission'
         ? 'commission'
         : 'general';
+    const submissionId = (crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(36).slice(2)}`);
     const body = new URLSearchParams({
       'form-name': 'contact',
       'bot-field': '',
+      submissionId,
       name: form.name,
       email: form.email,
       phone: form.phone,
@@ -268,6 +270,32 @@ export default function Contact({ pendingInquiryArtworkId, onInquiryConsumed }: 
             trackCommissionInquirySubmit({ contact_method: contactMethod || undefined });
           }
           setSubmitted(true);
+
+          const crmPayload = {
+            submissionId,
+            name: form.name,
+            email: form.email,
+            phone: form.phone,
+            contactMethod: form.contactMethod,
+            inquiryType,
+            interest: form.interest,
+            artworkId: selected?.artworkId ?? '',
+            artworkTitle: selected?.artworkId ? (selected.label ?? '') : '',
+            artworkCollection: selected?.artworkId ? (selected.collection ?? '') : '',
+            artworkPrice: selected?.artworkId ? (selected.price ?? '') : '',
+            artworkPriceNumeric: selected?.artworkId ? String(selected.priceNumeric ?? '') : '',
+            message: form.message,
+          };
+          fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/create-lead`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+            },
+            body: JSON.stringify(crmPayload),
+          }).catch((crmErr) => {
+            console.error('CRM persistence error:', crmErr);
+          });
         } else {
           trackContactFormError({ error_type: 'netlify_submission_failed', status_code: res.status });
           console.error('Netlify form submission failed:', res.status);
