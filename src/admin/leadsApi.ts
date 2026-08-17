@@ -22,6 +22,40 @@ export interface LeadListItem {
   created_at: string;
 }
 
+export interface LeadDetail {
+  id: string;
+  name: string;
+  email: string;
+  phone: string | null;
+  contact_method: string;
+  inquiry_type: string;
+  interest: string;
+  message: string;
+  artwork_id: string | null;
+  artwork_title: string | null;
+  artwork_collection: string | null;
+  artwork_price_display: string | null;
+  artwork_price_numeric: number | null;
+  status: string;
+  assigned_admin_id: string | null;
+  assigned_admin_name: string | null;
+  follow_up_at: string | null;
+  outcome: string | null;
+  archived: boolean;
+  archived_at: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface UpdateLeadBody {
+  id: string;
+  status?: string | null;
+  assigned_admin_id?: string | null;
+  follow_up_at?: string | null;
+  outcome?: string | null;
+  archived?: boolean;
+}
+
 export interface ListLeadsResponse {
   leads: LeadListItem[];
   total: number;
@@ -69,6 +103,65 @@ export async function fetchLeads(
     if (!res.ok) return { data: null, error: 'Failed to retrieve leads', status: res.status };
 
     const data = (await res.json()) as ListLeadsResponse;
+    return { data, error: null, status: 200 };
+  } catch {
+    return { data: null, error: 'Network error', status: 0 };
+  }
+}
+
+export async function fetchLeadDetail(
+  token: string,
+  leadId: string,
+): Promise<{ data: LeadDetail | null; error: string | null; status: number }> {
+  try {
+    const res = await fetch(
+      `${SUPABASE_URL}/functions/v1/get-lead?id=${encodeURIComponent(leadId)}`,
+      {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          apikey: SUPABASE_ANON_KEY,
+          Authorization: `Bearer ${token}`,
+        },
+      },
+    );
+
+    if (res.status === 401) return { data: null, error: 'Authentication required', status: 401 };
+    if (res.status === 403) return { data: null, error: 'Access denied', status: 403 };
+    if (res.status === 404) return { data: null, error: 'Lead not found', status: 404 };
+    if (!res.ok) return { data: null, error: 'Unable to load this lead.', status: res.status };
+
+    const data = (await res.json()) as LeadDetail;
+    return { data, error: null, status: 200 };
+  } catch {
+    return { data: null, error: 'Network error', status: 0 };
+  }
+}
+
+export async function updateLead(
+  token: string,
+  body: UpdateLeadBody,
+): Promise<{ data: LeadDetail | null; error: string | null; status: number }> {
+  try {
+    const res = await fetch(`${SUPABASE_URL}/functions/v1/update-lead`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        apikey: SUPABASE_ANON_KEY,
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(body),
+    });
+
+    if (res.status === 401) return { data: null, error: 'Authentication required', status: 401 };
+    if (res.status === 403) return { data: null, error: 'Access denied', status: 403 };
+    if (res.status === 400) {
+      const errData = await res.json().catch(() => ({}));
+      return { data: null, error: errData.error || 'Invalid request', status: 400 };
+    }
+    if (!res.ok) return { data: null, error: 'Unable to save changes. Please try again.', status: res.status };
+
+    const data = (await res.json()) as LeadDetail;
     return { data, error: null, status: 200 };
   } catch {
     return { data: null, error: 'Network error', status: 0 };

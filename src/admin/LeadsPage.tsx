@@ -2,7 +2,8 @@ import { useState, useEffect, useCallback } from 'react';
 import { Search, ChevronLeft, ChevronRight, AlertCircle, RotateCw } from 'lucide-react';
 import { getStoredSession } from './auth';
 import { fetchLeads, fetchAdminOptions } from './leadsApi';
-import type { LeadListItem, PrimaryFilter, AdminOption } from './leadsApi';
+import type { LeadListItem, LeadDetail, PrimaryFilter, AdminOption } from './leadsApi';
+import LeadDetailDrawer from './LeadDetailDrawer';
 
 const STATUS_LABELS: Record<string, string> = {
   NEW: 'New',
@@ -74,6 +75,7 @@ export default function LeadsPage() {
   const [admins, setAdmins] = useState<AdminOption[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [selectedLeadId, setSelectedLeadId] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -152,6 +154,64 @@ export default function LeadsPage() {
     setSearchInput('');
     setSearchQuery('');
     setPage(1);
+  };
+
+  const handleLeadClick = (leadId: string) => {
+    setSelectedLeadId(leadId);
+  };
+
+  const handleDrawerClose = () => {
+    setSelectedLeadId(null);
+  };
+
+  const handleLeadUpdated = (updatedLead: LeadDetail) => {
+    // Update the lead in the list with new CRM fields
+    setLeads(prev => prev.map(l => {
+      if (l.id !== updatedLead.id) return l;
+      return {
+        ...l,
+        status: updatedLead.status,
+        assigned_admin_id: updatedLead.assigned_admin_id,
+        assigned_admin_name: updatedLead.assigned_admin_name,
+        follow_up_at: updatedLead.follow_up_at,
+      };
+    }));
+
+    // If the updated lead no longer matches the current filter, reload
+    if (!leadMatchesFilter(updatedLead, primaryFilter)) {
+      loadLeads();
+    }
+  };
+
+  const handleLeadArchived = (archivedLead: LeadDetail) => {
+    // Archived lead should leave active views
+    if (primaryFilter !== 'archived') {
+      setLeads(prev => prev.filter(l => l.id !== archivedLead.id));
+      setTotal(prev => prev - 1);
+    } else {
+      // Already in archived view, just update the list item
+      setLeads(prev => prev.map(l => l.id === archivedLead.id ? {
+        ...l,
+        archived: true,
+        archived_at: archivedLead.archived_at,
+      } : l));
+    }
+    setSelectedLeadId(null);
+  };
+
+  const handleLeadRestored = (restoredLead: LeadDetail) => {
+    // Restored lead should leave archived view
+    if (primaryFilter === 'archived') {
+      setLeads(prev => prev.filter(l => l.id !== restoredLead.id));
+      setTotal(prev => prev - 1);
+    } else {
+      setLeads(prev => prev.map(l => l.id === restoredLead.id ? {
+        ...l,
+        archived: false,
+        archived_at: null,
+      } : l));
+    }
+    setSelectedLeadId(null);
   };
 
   const assignmentOptions = [
@@ -276,7 +336,13 @@ export default function LeadsPage() {
                 </thead>
                 <tbody>
                   {leads.map((lead) => (
-                    <tr key={lead.id}>
+                    <tr
+                      key={lead.id}
+                      className="admin-lead-row"
+                      onClick={() => handleLeadClick(lead.id)}
+                      tabIndex={0}
+                      onKeyDown={(e) => { if (e.key === 'Enter') handleLeadClick(lead.id); }}
+                    >
                       <td>
                         <div className="admin-lead-collector">
                           <span className="admin-lead-name">{lead.name}</span>
@@ -319,7 +385,13 @@ export default function LeadsPage() {
 
             <div className="admin-leads-cards admin-mobile-only">
               {leads.map((lead) => (
-                <div key={lead.id} className="admin-lead-card">
+                <div
+                  key={lead.id}
+                  className="admin-lead-card admin-lead-card-clickable"
+                  onClick={() => handleLeadClick(lead.id)}
+                  tabIndex={0}
+                  onKeyDown={(e) => { if (e.key === 'Enter') handleLeadClick(lead.id); }}
+                >
                   <div className="admin-lead-card-top">
                     <span className="admin-lead-card-name">{lead.name}</span>
                     <span className={`admin-status-badge admin-status-${lead.status.toLowerCase()}`}>
@@ -386,6 +458,32 @@ export default function LeadsPage() {
           </>
         )}
       </div>
+
+      {selectedLeadId && (
+        <LeadDetailDrawer
+          leadId={selectedLeadId}
+          admins={admins}
+          onClose={handleDrawerClose}
+          onLeadUpdated={handleLeadUpdated}
+          onLeadArchived={handleLeadArchived}
+          onLeadRestored={handleLeadRestored}
+        />
+      )}
     </div>
   );
+}
+
+function leadMatchesFilter(lead: LeadDetail, filter: PrimaryFilter): boolean {
+  switch (filter) {
+    case 'all_active':
+      return !lead.archived;
+    case 'new':
+      return !lead.archived && lead.status === 'NEW';
+    case 'follow_up':
+      return !lead.archived && lead.status === 'FOLLOW_UP';
+    case 'archived':
+      return lead.archived;
+    default:
+      return true;
+  }
 }
