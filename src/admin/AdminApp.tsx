@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import AdminLogin from './AdminLogin';
 import AdminShell from './AdminShell';
+import LeadsPage from './LeadsPage';
 import { getStoredSession, clearSession, fetchAdminProfile } from './auth';
 import type { AdminProfile } from './auth';
 
@@ -66,6 +67,13 @@ export default function AdminApp() {
     );
   }
 
+  const guard = (element: React.ReactNode) =>
+    profile ? (
+      element
+    ) : (
+      <Navigate to="/admin/login" replace state={{ from: location.pathname }} />
+    );
+
   return (
     <Routes>
       <Route
@@ -80,17 +88,17 @@ export default function AdminApp() {
       />
       <Route
         path="/admin"
-        element={
-          profile ? (
-            <AdminShell profile={profile} onLogout={handleLogout} />
-          ) : (
-            <Navigate
-              to="/admin/login"
-              replace
-              state={{ from: location.pathname }}
-            />
-          )
-        }
+        element={guard(
+          <AdminShell profile={profile!} onLogout={handleLogout} activePage="dashboard" />
+        )}
+      />
+      <Route
+        path="/admin/leads"
+        element={guard(
+          <AdminShell profile={profile!} onLogout={handleLogout} activePage="leads">
+            <LeadsPage />
+          </AdminShell>
+        )}
       />
       <Route path="*" element={<Navigate to="/admin" replace />} />
     </Routes>

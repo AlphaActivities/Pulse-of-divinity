@@ -1,15 +1,22 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Lock, LogOut } from 'lucide-react';
+import { Lock, LogOut, LayoutDashboard, Users } from 'lucide-react';
 import { logout, getStoredSession, clearSession } from './auth';
 import type { AdminProfile } from './auth';
 
 interface Props {
   profile: AdminProfile;
   onLogout: () => void;
+  activePage: 'dashboard' | 'leads';
+  children?: React.ReactNode;
 }
 
-export default function AdminShell({ profile, onLogout }: Props) {
+const NAV_ITEMS = [
+  { key: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, path: '/admin' },
+  { key: 'leads', label: 'Leads', icon: Users, path: '/admin/leads' },
+] as const;
+
+export default function AdminShell({ profile, onLogout, activePage, children }: Props) {
   const navigate = useNavigate();
   const [loggingOut, setLoggingOut] = useState(false);
 
@@ -47,6 +54,23 @@ export default function AdminShell({ profile, onLogout }: Props) {
             <span className="admin-brand-separator">—</span>
             <span className="admin-brand-section">Admin</span>
           </div>
+          <nav className="admin-nav" aria-label="Admin navigation">
+            {NAV_ITEMS.map((item) => {
+              const Icon = item.icon;
+              const isActive = activePage === item.key;
+              return (
+                <button
+                  key={item.key}
+                  className={`admin-nav-item ${isActive ? 'active' : ''}`}
+                  onClick={() => navigate(item.path)}
+                  aria-current={isActive ? 'page' : undefined}
+                >
+                  <Icon size={14} strokeWidth={1.5} />
+                  <span>{item.label}</span>
+                </button>
+              );
+            })}
+          </nav>
         </div>
         <div className="admin-header-right">
           <div className="admin-user-info">
@@ -65,22 +89,24 @@ export default function AdminShell({ profile, onLogout }: Props) {
         </div>
       </header>
 
-      <main className="admin-main">
-        <div className="admin-welcome">
-          <div className="admin-welcome-icon">
-            <Lock size={28} strokeWidth={1.2} />
+      <main className="admin-main admin-main-with-nav">
+        {children ?? (
+          <div className="admin-welcome">
+            <div className="admin-welcome-icon">
+              <Lock size={28} strokeWidth={1.2} />
+            </div>
+            <h1 className="admin-welcome-heading">
+              Secure Admin Access Confirmed
+            </h1>
+            <div className="admin-welcome-divider" />
+            <p className="admin-welcome-text">
+              Welcome, {profile.display_name}. Your admin session is active and authorized.
+            </p>
+            <p className="admin-welcome-subtext">
+              Collector Intelligence Dashboard functionality will arrive in the next phase.
+            </p>
           </div>
-          <h1 className="admin-welcome-heading">
-            Secure Admin Access Confirmed
-          </h1>
-          <div className="admin-welcome-divider" />
-          <p className="admin-welcome-text">
-            Welcome, {profile.display_name}. Your admin session is active and authorized.
-          </p>
-          <p className="admin-welcome-subtext">
-            Collector Intelligence Dashboard functionality will arrive in the next phase.
-          </p>
-        </div>
+        )}
       </main>
     </div>
   );
