@@ -1220,8 +1220,6 @@ select::placeholder {
 }
 
 .admin-verify-logo {
-  position: relative;
-  left: -2px;
   opacity: 0;
   animation: adminVerifyFadeIn 0.6s ease forwards;
   animation-delay: 0.1s;

@@ -93,8 +93,8 @@ export default function AdminApp() {
             alt=""
             aria-hidden="true"
             className="admin-verify-logo"
-            width="62"
-            height="62"
+            width="48"
+            height="48"
           />
           <div className="admin-verify-divider" />
           <div className="admin-loading-spinner" />
