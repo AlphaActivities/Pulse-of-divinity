@@ -1134,7 +1134,11 @@ select::placeholder {
   }
 
   /* ── Admin entrance & transition animations — resolve to final state ── */
-  .admin-verify-logo,
+  .admin-verify-logo {
+    opacity: 0.7 !important;
+    transform: translateX(-4px) !important;
+    animation: none !important;
+  }
   .admin-verify-divider {
     opacity: 0.7 !important;
     transform: none !important;
@@ -1221,8 +1225,13 @@ select::placeholder {
 
 .admin-verify-logo {
   opacity: 0;
-  animation: adminVerifyFadeIn 0.6s ease forwards;
+  animation: adminVerifyLogoFadeIn 0.6s ease forwards;
   animation-delay: 0.1s;
+}
+
+@keyframes adminVerifyLogoFadeIn {
+  from { opacity: 0; transform: translate(-4px, 4px); }
+  to { opacity: 0.7; transform: translateX(-4px); }
 }
 
 .admin-verify-divider {
