@@ -1160,7 +1160,6 @@ select::placeholder {
   .admin-entrance-active .admin-entrance-form {
     opacity: 1 !important;
     transform: none !important;
-    width: 40px !important;
     animation: none !important;
   }
 
@@ -1322,7 +1321,8 @@ select::placeholder {
 
 .admin-entrance-divider {
   opacity: 0;
-  width: 0;
+  transform: scaleX(0);
+  transform-origin: center;
 }
 
 /* ── Auth form ── */
@@ -1547,7 +1547,8 @@ select::placeholder {
 
 .admin-entrance-active .admin-entrance-divider {
   opacity: 0;
-  width: 0;
+  transform: scaleX(0);
+  transform-origin: center;
   animation: adminEntranceDivider 0.6s ease forwards;
   animation-delay: 1.0s;
 }
@@ -1583,7 +1584,9 @@ select::placeholder {
 
 .admin-entrance-done .admin-entrance-divider {
   opacity: 1;
-  width: 40px;
+  transform: scaleX(1);
+  transform-origin: center;
+  animation: none;
 }
 
 .admin-entrance-done .admin-entrance-form {
@@ -1612,8 +1615,8 @@ select::placeholder {
 }
 
 @keyframes adminEntranceDivider {
-  from { opacity: 0; width: 0; }
-  to { opacity: 1; width: 40px; }
+  from { opacity: 0; transform: scaleX(0); }
+  to { opacity: 1; transform: scaleX(1); }
 }
 
 @keyframes adminEntranceCard {
