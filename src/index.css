@@ -2640,3 +2640,461 @@ select::placeholder {
     gap: 0.5rem;
   }
 }
+
+/* ─────────────────────────────────────────
+   DASHBOARD HOME
+───────────────────────────────────────── */
+
+.admin-dashboard-page {
+  padding: clamp(1.5rem, 4vw, 2.5rem) clamp(1rem, 4vw, 3rem);
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.admin-dashboard-header {
+  margin-bottom: 2rem;
+}
+
+.admin-dashboard-subtext {
+  font-family: 'Jost', system-ui, sans-serif;
+  font-size: 0.8rem;
+  font-weight: 300;
+  color: rgba(250, 243, 217, 0.45);
+  margin: 0.5rem 0 0;
+}
+
+/* ── Summary cards ── */
+.admin-summary-cards {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.875rem;
+  margin-bottom: 2.5rem;
+}
+
+.admin-summary-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 1.5rem 1rem;
+  background: rgba(42, 22, 41, 0.3);
+  border: 1px solid rgba(201, 162, 39, 0.08);
+  border-radius: 4px;
+  cursor: pointer;
+  transition: border-color 0.25s ease, background 0.25s ease;
+  text-align: center;
+}
+
+.admin-summary-card:hover {
+  border-color: rgba(201, 162, 39, 0.2);
+  background: rgba(42, 22, 41, 0.5);
+}
+
+.admin-summary-card:focus-visible {
+  outline: none;
+  border-color: rgba(201, 162, 39, 0.3);
+  box-shadow: 0 0 0 2px rgba(201, 162, 39, 0.1);
+}
+
+.admin-summary-card-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border: 1px solid rgba(201, 162, 39, 0.15);
+  border-radius: 50%;
+  color: rgba(201, 162, 39, 0.6);
+  margin-bottom: 0.25rem;
+}
+
+.admin-summary-card-value {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-weight: 300;
+  font-size: 2rem;
+  color: #faf3d9;
+  line-height: 1;
+}
+
+.admin-summary-card-label {
+  font-family: 'Jost', system-ui, sans-serif;
+  font-size: 0.6rem;
+  font-weight: 400;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(250, 243, 217, 0.4);
+}
+
+/* ── Dashboard sections ── */
+.admin-dashboard-section {
+  margin-bottom: 2.5rem;
+}
+
+.admin-dashboard-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+
+.admin-dashboard-section-title {
+  font-family: 'Jost', system-ui, sans-serif;
+  font-weight: 400;
+  font-size: 0.65rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: rgba(201, 162, 39, 0.7);
+  margin: 0;
+}
+
+.admin-view-all-btn {
+  background: none;
+  border: none;
+  color: rgba(201, 162, 39, 0.6);
+  font-family: 'Jost', system-ui, sans-serif;
+  font-size: 0.6rem;
+  font-weight: 400;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: color 0.25s ease;
+}
+
+.admin-view-all-btn:hover {
+  color: #c9a227;
+}
+
+/* ── Attention list ── */
+.admin-attention-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.admin-attention-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 1rem;
+  background: rgba(42, 22, 41, 0.25);
+  border: 1px solid rgba(201, 162, 39, 0.06);
+  border-radius: 3px;
+  cursor: pointer;
+  transition: border-color 0.25s ease, background 0.25s ease;
+  text-align: left;
+  width: 100%;
+}
+
+.admin-attention-item:hover {
+  border-color: rgba(201, 162, 39, 0.15);
+  background: rgba(42, 22, 41, 0.4);
+}
+
+.admin-attention-item:focus-visible {
+  outline: none;
+  border-color: rgba(201, 162, 39, 0.25);
+  box-shadow: 0 0 0 2px rgba(201, 162, 39, 0.1);
+}
+
+.admin-attention-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.admin-attention-name {
+  font-family: 'Jost', system-ui, sans-serif;
+  font-size: 0.85rem;
+  font-weight: 400;
+  color: #faf3d9;
+}
+
+.admin-attention-detail {
+  font-family: 'Jost', system-ui, sans-serif;
+  font-size: 0.72rem;
+  font-weight: 300;
+  color: rgba(250, 243, 217, 0.4);
+}
+
+.admin-attention-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-shrink: 0;
+}
+
+.admin-attention-assigned {
+  font-family: 'Jost', system-ui, sans-serif;
+  font-size: 0.68rem;
+  font-weight: 300;
+  color: rgba(250, 243, 217, 0.35);
+}
+
+.admin-attention-date {
+  font-family: 'Jost', system-ui, sans-serif;
+  font-size: 0.68rem;
+  font-weight: 300;
+  color: rgba(250, 243, 217, 0.5);
+}
+
+.admin-attention-date.overdue {
+  color: rgba(220, 100, 80, 0.85);
+}
+
+.admin-attention-badge {
+  font-family: 'Jost', system-ui, sans-serif;
+  font-size: 0.55rem;
+  font-weight: 400;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 0.15rem 0.5rem;
+  border-radius: 3px;
+  white-space: nowrap;
+}
+
+.admin-attention-badge.overdue {
+  color: rgba(220, 100, 80, 0.85);
+  background: rgba(220, 100, 80, 0.1);
+  border: 1px solid rgba(220, 100, 80, 0.2);
+}
+
+.admin-attention-badge.today {
+  color: rgba(201, 162, 39, 0.85);
+  background: rgba(201, 162, 39, 0.1);
+  border: 1px solid rgba(201, 162, 39, 0.2);
+}
+
+/* ── Recent list ── */
+.admin-recent-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.admin-recent-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 1rem;
+  background: rgba(42, 22, 41, 0.25);
+  border: 1px solid rgba(201, 162, 39, 0.06);
+  border-radius: 3px;
+  cursor: pointer;
+  transition: border-color 0.25s ease, background 0.25s ease;
+  text-align: left;
+  width: 100%;
+}
+
+.admin-recent-item:hover {
+  border-color: rgba(201, 162, 39, 0.15);
+  background: rgba(42, 22, 41, 0.4);
+}
+
+.admin-recent-item:focus-visible {
+  outline: none;
+  border-color: rgba(201, 162, 39, 0.25);
+  box-shadow: 0 0 0 2px rgba(201, 162, 39, 0.1);
+}
+
+.admin-recent-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.admin-recent-name {
+  font-family: 'Jost', system-ui, sans-serif;
+  font-size: 0.85rem;
+  font-weight: 400;
+  color: #faf3d9;
+}
+
+.admin-recent-detail {
+  font-family: 'Jost', system-ui, sans-serif;
+  font-size: 0.72rem;
+  font-weight: 300;
+  color: rgba(250, 243, 217, 0.4);
+}
+
+.admin-recent-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-shrink: 0;
+}
+
+.admin-recent-date {
+  font-family: 'Jost', system-ui, sans-serif;
+  font-size: 0.68rem;
+  font-weight: 300;
+  color: rgba(250, 243, 217, 0.35);
+}
+
+/* ── Dashboard empty ── */
+.admin-dashboard-empty {
+  padding: 2rem 1rem;
+  text-align: center;
+}
+
+/* ── Dashboard mobile ── */
+@media (max-width: 768px) {
+  .admin-summary-cards {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 480px) {
+  .admin-summary-cards {
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5rem;
+  }
+
+  .admin-summary-card {
+    padding: 1rem 0.75rem;
+  }
+
+  .admin-summary-card-value {
+    font-size: 1.5rem;
+  }
+
+  .admin-attention-meta,
+  .admin-recent-meta {
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.25rem;
+  }
+}
+
+/* ─────────────────────────────────────────
+   NOTES — in lead detail drawer
+───────────────────────────────────────── */
+
+.admin-notes-loading {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem 0;
+}
+
+.admin-loading-spinner-sm {
+  width: 20px;
+  height: 20px;
+  border-width: 1.5px;
+}
+
+.admin-notes-empty {
+  font-family: 'Jost', system-ui, sans-serif;
+  font-size: 0.8rem;
+  font-weight: 300;
+  color: rgba(250, 243, 217, 0.35);
+  margin: 0;
+  padding: 0.5rem 0;
+}
+
+.admin-notes-timeline {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.admin-note-item {
+  padding: 0.75rem;
+  background: rgba(42, 22, 41, 0.3);
+  border: 1px solid rgba(201, 162, 39, 0.06);
+  border-radius: 3px;
+}
+
+.admin-note-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.4rem;
+}
+
+.admin-note-author {
+  font-family: 'Jost', system-ui, sans-serif;
+  font-size: 0.72rem;
+  font-weight: 400;
+  color: rgba(201, 162, 39, 0.85);
+}
+
+.admin-note-date {
+  font-family: 'Jost', system-ui, sans-serif;
+  font-size: 0.65rem;
+  font-weight: 300;
+  color: rgba(250, 243, 217, 0.3);
+}
+
+.admin-note-body {
+  font-family: 'Jost', system-ui, sans-serif;
+  font-size: 0.82rem;
+  font-weight: 300;
+  color: rgba(250, 243, 217, 0.75);
+  line-height: 1.6;
+  margin: 0;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+
+.admin-note-input-area {
+  margin-top: 0.5rem;
+}
+
+.admin-note-textarea {
+  width: 100%;
+  padding: 0.625rem 0.75rem;
+  background: rgba(26, 15, 26, 0.5);
+  border: 1px solid rgba(201, 162, 39, 0.15);
+  border-radius: 3px;
+  color: #faf3d9;
+  font-family: 'Jost', system-ui, sans-serif;
+  font-size: 0.82rem;
+  font-weight: 300;
+  line-height: 1.5;
+  resize: vertical;
+  min-height: 72px;
+  box-sizing: border-box;
+  transition: border-color 0.25s ease;
+}
+
+.admin-note-textarea:focus {
+  outline: none;
+  border-color: rgba(201, 162, 39, 0.4);
+}
+
+.admin-note-textarea::placeholder {
+  color: rgba(250, 243, 217, 0.25);
+}
+
+.admin-note-input-footer {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+}
+
+.admin-note-error {
+  font-family: 'Jost', system-ui, sans-serif;
+  font-size: 0.7rem;
+  font-weight: 300;
+  color: rgba(220, 100, 80, 0.85);
+  flex: 1;
+}
+
+.admin-note-char-count {
+  font-family: 'Jost', system-ui, sans-serif;
+  font-size: 0.65rem;
+  font-weight: 300;
+  color: rgba(250, 243, 217, 0.25);
+  white-space: nowrap;
+}
+
+.admin-note-add-btn {
+  width: auto;
+  margin-top: 0;
+  padding: 0.5rem 1.25rem;
+  white-space: nowrap;
+}

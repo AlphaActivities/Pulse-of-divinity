@@ -1,8 +1,8 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { X, Mail, Phone, Archive, RotateCcw, AlertCircle, Check } from 'lucide-react';
 import { getStoredSession } from './auth';
-import { fetchLeadDetail, updateLead } from './leadsApi';
-import type { LeadDetail, AdminOption, UpdateLeadBody } from './leadsApi';
+import { fetchLeadDetail, updateLead, fetchNotes, addNote } from './leadsApi';
+import type { LeadDetail, AdminOption, UpdateLeadBody, LeadNote } from './leadsApi';
 
 interface Props {
   leadId: string;
@@ -49,6 +49,12 @@ function formatDate(dateStr: string | null): string {
   if (!dateStr) return '—';
   const d = new Date(dateStr);
   return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+}
+
+function formatDateTime(dateStr: string): string {
+  const d = new Date(dateStr);
+  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) +
+    ' at ' + d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
 }
 
 function toDateInputValue(dateStr: string | null): string {
@@ -104,6 +110,13 @@ export default function LeadDetailDrawer({
   // Archive confirmation
   const [showArchiveConfirm, setShowArchiveConfirm] = useState(false);
 
+  // Notes state
+  const [notes, setNotes] = useState<LeadNote[]>([]);
+  const [notesLoading, setNotesLoading] = useState(true);
+  const [noteText, setNoteText] = useState('');
+  const [noteSaving, setNoteSaving] = useState(false);
+  const [noteError, setNoteError] = useState<string | null>(null);
+
   const drawerRef = useRef<HTMLDivElement>(null);
   const closeBtnRef = useRef<HTMLButtonElement>(null);
 
@@ -143,6 +156,44 @@ export default function LeadDetailDrawer({
   useEffect(() => {
     loadLead();
   }, [loadLead]);
+
+  const loadNotes = useCallback(async () => {
+    if (!leadId) return;
+    setNotesLoading(true);
+    const session = getStoredSession();
+    if (!session) {
+      setNotesLoading(false);
+      return;
+    }
+    const { data } = await fetchNotes(session.access_token, leadId);
+    setNotes(data ?? []);
+    setNotesLoading(false);
+  }, [leadId]);
+
+  useEffect(() => {
+    loadNotes();
+  }, [loadNotes]);
+
+  const handleAddNote = async () => {
+    if (!lead || noteSaving || !noteText.trim()) return;
+    setNoteSaving(true);
+    setNoteError(null);
+    const session = getStoredSession();
+    if (!session) {
+      setNoteError('Session expired. Please log in again.');
+      setNoteSaving(false);
+      return;
+    }
+    const { data, error: addError } = await addNote(session.access_token, lead.id, noteText.trim());
+    if (addError || !data) {
+      setNoteError(addError || 'Unable to add note.');
+      setNoteSaving(false);
+      return;
+    }
+    setNotes(prev => [data, ...prev]);
+    setNoteText('');
+    setNoteSaving(false);
+  };
 
   // Focus management and Escape key
   useEffect(() => {
@@ -489,6 +540,57 @@ export default function LeadDetailDrawer({
                     </select>
                   </div>
                 )}
+              </section>
+
+              {/* Internal Notes Section */}
+              <section className="admin-detail-section">
+                <h3 className="admin-detail-section-title">Internal Notes</h3>
+
+                {notesLoading ? (
+                  <div className="admin-notes-loading">
+                    <div className="admin-loading-spinner admin-loading-spinner-sm" />
+                    <span className="admin-loading-text">Loading notes...</span>
+                  </div>
+                ) : notes.length === 0 ? (
+                  <p className="admin-notes-empty">No notes yet.</p>
+                ) : (
+                  <div className="admin-notes-timeline">
+                    {notes.map((note) => (
+                      <div key={note.id} className="admin-note-item">
+                        <div className="admin-note-header">
+                          <span className="admin-note-author">{note.author_name || 'Admin'}</span>
+                          <span className="admin-note-date">{formatDateTime(note.created_at)}</span>
+                        </div>
+                        <p className="admin-note-body">{note.body}</p>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                <div className="admin-note-input-area">
+                  <label htmlFor="note-input" className="admin-sr-only">New note</label>
+                  <textarea
+                    id="note-input"
+                    value={noteText}
+                    onChange={(e) => setNoteText(e.target.value)}
+                    placeholder="Add an internal note..."
+                    className="admin-note-textarea"
+                    maxLength={5000}
+                    disabled={noteSaving}
+                    rows={3}
+                  />
+                  <div className="admin-note-input-footer">
+                    {noteError && <span role="alert" className="admin-note-error">{noteError}</span>}
+                    <span className="admin-note-char-count">{noteText.length}/5000</span>
+                    <button
+                      className="admin-btn-primary admin-note-add-btn"
+                      onClick={handleAddNote}
+                      disabled={noteSaving || !noteText.trim()}
+                    >
+                      {noteSaving ? 'Adding...' : 'Add Note'}
+                    </button>
+                  </div>
+                </div>
               </section>
 
               {/* Save + Archive/Restore */}

@@ -168,6 +168,43 @@ export async function updateLead(
   }
 }
 
+export interface LeadNote {
+  id: string;
+  lead_id: string;
+  body: string;
+  author_admin_id: string;
+  author_name: string | null;
+  created_at: string;
+}
+
+export interface DashboardSummary {
+  summary: {
+    new: number;
+    active: number;
+    due_today: number;
+    overdue: number;
+    won: number;
+    unassigned: number;
+  };
+  attention: Array<{
+    id: string;
+    name: string;
+    inquiry_type: string;
+    artwork_title: string | null;
+    follow_up_at: string;
+    assigned_admin_name: string | null;
+    overdue: boolean;
+  }>;
+  recent: Array<{
+    id: string;
+    name: string;
+    inquiry_type: string;
+    artwork_title: string | null;
+    status: string;
+    created_at: string;
+  }>;
+}
+
 export interface AdminOption {
   id: string;
   display_name: string;
@@ -192,5 +229,82 @@ export async function fetchAdminOptions(
     return { data, error: null };
   } catch {
     return { data: null, error: 'Network error' };
+  }
+}
+
+export async function fetchNotes(
+  token: string,
+  leadId: string,
+): Promise<{ data: LeadNote[] | null; error: string | null; status: number }> {
+  try {
+    const res = await fetch(
+      `${SUPABASE_URL}/functions/v1/list-notes?lead_id=${encodeURIComponent(leadId)}`,
+      {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          apikey: SUPABASE_ANON_KEY,
+          Authorization: `Bearer ${token}`,
+        },
+      },
+    );
+    if (res.status === 401) return { data: null, error: 'Authentication required', status: 401 };
+    if (res.status === 403) return { data: null, error: 'Access denied', status: 403 };
+    if (!res.ok) return { data: null, error: 'Failed to load notes', status: res.status };
+    const data = (await res.json()) as { notes: LeadNote[] };
+    return { data: data.notes, error: null, status: 200 };
+  } catch {
+    return { data: null, error: 'Network error', status: 0 };
+  }
+}
+
+export async function addNote(
+  token: string,
+  leadId: string,
+  body: string,
+): Promise<{ data: LeadNote | null; error: string | null; status: number }> {
+  try {
+    const res = await fetch(`${SUPABASE_URL}/functions/v1/add-note`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        apikey: SUPABASE_ANON_KEY,
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ lead_id: leadId, body }),
+    });
+    if (res.status === 401) return { data: null, error: 'Authentication required', status: 401 };
+    if (res.status === 403) return { data: null, error: 'Access denied', status: 403 };
+    if (res.status === 400) {
+      const errData = await res.json().catch(() => ({}));
+      return { data: null, error: errData.error || 'Invalid request', status: 400 };
+    }
+    if (!res.ok) return { data: null, error: 'Unable to add note', status: res.status };
+    const data = (await res.json()) as LeadNote;
+    return { data, error: null, status: 200 };
+  } catch {
+    return { data: null, error: 'Network error', status: 0 };
+  }
+}
+
+export async function fetchDashboardSummary(
+  token: string,
+): Promise<{ data: DashboardSummary | null; error: string | null; status: number }> {
+  try {
+    const res = await fetch(`${SUPABASE_URL}/functions/v1/dashboard-summary`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        apikey: SUPABASE_ANON_KEY,
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    if (res.status === 401) return { data: null, error: 'Authentication required', status: 401 };
+    if (res.status === 403) return { data: null, error: 'Access denied', status: 403 };
+    if (!res.ok) return { data: null, error: 'Unable to load dashboard information.', status: res.status };
+    const data = (await res.json()) as DashboardSummary;
+    return { data, error: null, status: 200 };
+  } catch {
+    return { data: null, error: 'Network error', status: 0 };
   }
 }

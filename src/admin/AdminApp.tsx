@@ -3,12 +3,18 @@ import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-route
 import AdminLogin from './AdminLogin';
 import AdminShell from './AdminShell';
 import LeadsPage from './LeadsPage';
+import DashboardHome from './DashboardHome';
+import LeadDetailDrawer from './LeadDetailDrawer';
 import { getStoredSession, clearSession, fetchAdminProfile } from './auth';
 import type { AdminProfile } from './auth';
+import { fetchAdminOptions } from './leadsApi';
+import type { AdminOption } from './leadsApi';
 
 export default function AdminApp() {
   const [profile, setProfile] = useState<AdminProfile | null>(null);
   const [loading, setLoading] = useState(true);
+  const [admins, setAdmins] = useState<AdminOption[]>([]);
+  const [dashboardLeadId, setDashboardLeadId] = useState<string | null>(null);
   const location = useLocation();
 
   const verifySession = useCallback(async () => {
@@ -50,6 +56,17 @@ export default function AdminApp() {
     verifySession();
   }, [verifySession]);
 
+  useEffect(() => {
+    if (profile) {
+      const session = getStoredSession();
+      if (session) {
+        fetchAdminOptions(session.access_token).then(({ data }) => {
+          if (data) setAdmins(data);
+        });
+      }
+    }
+  }, [profile]);
+
   const handleLoginSuccess = (newProfile: AdminProfile) => {
     setProfile(newProfile);
   };
@@ -89,7 +106,19 @@ export default function AdminApp() {
       <Route
         path="/admin"
         element={guard(
-          <AdminShell profile={profile!} onLogout={handleLogout} activePage="dashboard" />
+          <AdminShell profile={profile!} onLogout={handleLogout} activePage="dashboard">
+            <DashboardHome profile={profile!} onLeadClick={(id) => setDashboardLeadId(id)} />
+            {dashboardLeadId && (
+              <LeadDetailDrawer
+                leadId={dashboardLeadId}
+                admins={admins}
+                onClose={() => setDashboardLeadId(null)}
+                onLeadUpdated={() => {}}
+                onLeadArchived={() => setDashboardLeadId(null)}
+                onLeadRestored={() => {}}
+              />
+            )}
+          </AdminShell>
         )}
       />
       <Route
