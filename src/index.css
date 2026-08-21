@@ -2564,8 +2564,8 @@ select::placeholder {
 }
 
 @keyframes adminStatusMenuOpen {
-  from { opacity: 0; transform: translateY(-6px) scaleY(0.92); transform-origin: top; }
-  to { opacity: 1; transform: translateY(0) scaleY(1); transform-origin: top; }
+  from { transform: translateY(-6px) scaleY(0.92); transform-origin: top; }
+  to { transform: translateY(0) scaleY(1); transform-origin: top; }
 }
 
 @keyframes adminStatusMenuClose {
