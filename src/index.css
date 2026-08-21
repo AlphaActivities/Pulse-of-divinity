@@ -2545,33 +2545,48 @@ select::placeholder {
   overflow: hidden;
 }
 
-/* ── Luxurious open/close ── */
+/* ── Luxurious staggered open/close ── */
 .admin-status-menu-open {
   transform-origin: top center;
-  animation: adminStatusMenuOpen 0.42s cubic-bezier(0.32, 0.72, 0, 1) forwards;
+  animation: adminStatusMenuOpen 0.5s cubic-bezier(0.32, 0.72, 0, 1) forwards;
+  will-change: transform;
 }
 
 .admin-status-menu-closing {
   transform-origin: top center;
-  animation: adminStatusMenuClose 0.34s cubic-bezier(0.4, 0, 0.1, 1) forwards;
+  animation: adminStatusMenuClose 0.4s cubic-bezier(0.4, 0, 0.1, 1) forwards;
+  will-change: transform;
 }
 
 @keyframes adminStatusMenuOpen {
-  from {
-    transform: translateY(-12px) scale(0.97);
-  }
-  to {
-    transform: translateY(0) scale(1);
-  }
+  from { transform: translateY(-8px); }
+  to { transform: translateY(0); }
 }
 
 @keyframes adminStatusMenuClose {
-  from {
-    transform: translateY(0) scale(1);
-  }
-  to {
-    transform: translateY(-10px) scale(0.97);
-  }
+  from { transform: translateY(0); }
+  to { transform: translateY(-6px); }
+}
+
+/* Staggered per-row slide (translateY only, no opacity) */
+.admin-status-menu-open .admin-status-select-option {
+  animation: adminStatusOptionOpen 0.42s cubic-bezier(0.32, 0.72, 0, 1) both;
+  will-change: transform;
+}
+
+.admin-status-menu-closing .admin-status-select-option {
+  animation: adminStatusOptionClose 0.32s cubic-bezier(0.4, 0, 0.1, 1) both;
+  will-change: transform;
+}
+
+@keyframes adminStatusOptionOpen {
+  from { transform: translateY(-10px); }
+  to { transform: translateY(0); }
+}
+
+@keyframes adminStatusOptionClose {
+  from { transform: translateY(0); }
+  to { transform: translateY(-8px); }
 }
 
 /* ── Mobile: center dropdown in viewport ── */
@@ -2599,29 +2614,21 @@ select::placeholder {
   }
 
   .admin-status-menu-open {
-    animation: adminStatusMenuOpenMobile 0.42s cubic-bezier(0.32, 0.72, 0, 1) forwards;
+    animation: adminStatusMenuOpenMobile 0.5s cubic-bezier(0.32, 0.72, 0, 1) forwards;
   }
 
   .admin-status-menu-closing {
-    animation: adminStatusMenuCloseMobile 0.34s cubic-bezier(0.4, 0, 0.1, 1) forwards;
+    animation: adminStatusMenuCloseMobile 0.4s cubic-bezier(0.4, 0, 0.1, 1) forwards;
   }
 
   @keyframes adminStatusMenuOpenMobile {
-    from {
-      transform: translate(-50%, -50%) scale(0.9);
-    }
-    to {
-      transform: translate(-50%, -50%) scale(1);
-    }
+    from { transform: translate(-50%, -50%) scale(0.92); }
+    to { transform: translate(-50%, -50%) scale(1); }
   }
 
   @keyframes adminStatusMenuCloseMobile {
-    from {
-      transform: translate(-50%, -50%) scale(1);
-    }
-    to {
-      transform: translate(-50%, -50%) scale(0.9);
-    }
+    from { transform: translate(-50%, -50%) scale(1); }
+    to { transform: translate(-50%, -50%) scale(0.92); }
   }
 }
 
