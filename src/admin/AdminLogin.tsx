@@ -171,15 +171,15 @@ export default function AdminLogin({ onSuccess }: Props) {
           <img
             src="/images/admin-logo-small.webp"
             alt="Pulse of Divinity"
-            className="admin-auth-logo"
+            className="admin-auth-logo admin-reveal-logo"
             width="73"
             height="73"
           />
-          <p className="admin-auth-eyebrow">Pulse of Divinity</p>
-          <h1 className="admin-auth-title">
+          <p className="admin-auth-eyebrow admin-reveal-eyebrow">Pulse of Divinity</p>
+          <h1 className="admin-auth-title admin-reveal-title">
             {resetMode ? 'Reset Password' : 'Admin Access'}
           </h1>
-          <div className="admin-auth-divider" />
+          <div className="admin-auth-divider admin-reveal-divider" />
         </div>
 
         {!resetMode ? (
@@ -188,7 +188,7 @@ export default function AdminLogin({ onSuccess }: Props) {
             className="admin-auth-form"
             autoComplete="on"
           >
-            <div className="admin-field-group">
+            <div className="admin-field-group admin-reveal-field-1">
               <label htmlFor="admin-email" className="admin-field-label">
                 Email
               </label>
@@ -205,7 +205,7 @@ export default function AdminLogin({ onSuccess }: Props) {
               />
             </div>
 
-            <div className="admin-field-group">
+            <div className="admin-field-group admin-reveal-field-2">
               <label htmlFor="admin-password" className="admin-field-label">
                 Password
               </label>
@@ -229,7 +229,7 @@ export default function AdminLogin({ onSuccess }: Props) {
 
             <button
               type="submit"
-              className={`admin-btn-primary ${loading ? 'admin-btn-loading' : ''}`}
+              className={`admin-btn-primary admin-reveal-submit ${loading ? 'admin-btn-loading' : ''}`}
               disabled={loading}
             >
               {loading ? (
@@ -244,7 +244,7 @@ export default function AdminLogin({ onSuccess }: Props) {
 
             <button
               type="button"
-              className="admin-link-button"
+              className="admin-link-button admin-reveal-link"
               onClick={() => {
                 setError(null);
                 setResetMode(true);
@@ -259,7 +259,7 @@ export default function AdminLogin({ onSuccess }: Props) {
             onSubmit={handleReset}
             className="admin-auth-form"
           >
-            <div className="admin-field-group">
+            <div className="admin-field-group admin-reveal-field-1">
               <label htmlFor="reset-email" className="admin-field-label">
                 Email
               </label>
@@ -285,7 +285,7 @@ export default function AdminLogin({ onSuccess }: Props) {
 
             <button
               type="submit"
-              className="admin-btn-primary"
+              className="admin-btn-primary admin-reveal-submit"
               disabled={loading}
             >
               {loading ? 'Sending...' : 'Send Reset Link'}
@@ -293,7 +293,7 @@ export default function AdminLogin({ onSuccess }: Props) {
 
             <button
               type="button"
-              className="admin-link-button"
+              className="admin-link-button admin-reveal-link"
               onClick={() => {
                 setError(null);
                 setResetMode(false);
