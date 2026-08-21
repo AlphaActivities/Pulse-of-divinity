@@ -199,7 +199,6 @@ export default function StatusSelect({
                 aria-selected={isSelected}
                 data-index={i}
                 className={`admin-status-select-option ${isFocused ? 'focused' : ''} ${isSelected ? 'selected' : ''}`}
-                style={{ animationDelay: closing ? `${(options.length - 1 - i) * 35}ms` : `${i * 45}ms` }}
                 onClick={() => handleSelect(opt.value)}
                 onMouseEnter={() => setFocusedIndex(i)}
               >

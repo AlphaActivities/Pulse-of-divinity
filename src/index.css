@@ -2545,43 +2545,23 @@ select::placeholder {
   overflow: hidden;
 }
 
-/* ── Cascading open ── */
+/* ── Simple open/close (no cascading) ── */
 .admin-status-menu-open {
-  animation: adminStatusMenuOpen 0.28s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  animation: adminStatusMenuOpen 0.18s ease-out forwards;
 }
 
-.admin-status-menu-open .admin-status-select-option {
-  opacity: 1;
-  animation: adminStatusOptionOpen 0.4s cubic-bezier(0.22, 1, 0.36, 1) forwards;
-}
-
-/* ── Cascading close (reverse) ── */
 .admin-status-menu-closing {
-  animation: adminStatusMenuClose 0.3s cubic-bezier(0.4, 0, 1, 1) forwards;
-}
-
-.admin-status-menu-closing .admin-status-select-option {
-  animation: adminStatusOptionClose 0.28s cubic-bezier(0.4, 0, 1, 1) forwards;
+  animation: adminStatusMenuClose 0.18s ease-in forwards;
 }
 
 @keyframes adminStatusMenuOpen {
-  from { transform: translateY(-6px) scaleY(0.92); transform-origin: top; }
-  to { transform: translateY(0) scaleY(1); transform-origin: top; }
-}
-
-@keyframes adminStatusMenuClose {
-  from { opacity: 1; transform: translateY(0) scaleY(1); transform-origin: top; }
-  to { opacity: 0; transform: translateY(-4px) scaleY(0.9); transform-origin: top; }
-}
-
-@keyframes adminStatusOptionOpen {
-  from { transform: translateY(-8px); }
+  from { transform: translateY(-4px); }
   to { transform: translateY(0); }
 }
 
-@keyframes adminStatusOptionClose {
-  from { opacity: 1; transform: translateY(0); }
-  to { opacity: 0; transform: translateY(-6px); }
+@keyframes adminStatusMenuClose {
+  from { transform: translateY(0); }
+  to { transform: translateY(-4px); }
 }
 
 .admin-status-select-option {
