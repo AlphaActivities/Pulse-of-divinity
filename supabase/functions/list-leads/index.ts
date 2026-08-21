@@ -16,22 +16,12 @@ const VALID_STATUSES = new Set([
   "CLOSED",
 ]);
 
-const VALID_VIEWS = new Set([
-  "new",
-  "active_conversations",
-  "due_today",
-  "overdue",
-  "won",
-]);
-
-const ACTIVE_CONVERSATION_STATUSES = ["CONTACTED", "ACTIVE_CONVERSATION", "FOLLOW_UP", "QUALIFIED"];
 const PAGE_SIZE = 25;
 const MAX_SEARCH_LENGTH = 200;
 
 interface ListLeadsParams {
   scope: "active" | "archived";
   status: string;
-  view: string;
   assignmentFilter: string;
   search: string;
   page: number;
@@ -45,9 +35,6 @@ function parseParams(url: URL, adminId: string): ListLeadsParams {
   const status = url.searchParams.get("status") || "";
   const validStatus = VALID_STATUSES.has(status) ? status : "";
 
-  const viewParam = url.searchParams.get("view") || "";
-  const view = VALID_VIEWS.has(viewParam) ? viewParam : "";
-
   const assignmentFilter = url.searchParams.get("assignment") || "";
 
   let search = url.searchParams.get("search") || "";
@@ -59,7 +46,6 @@ function parseParams(url: URL, adminId: string): ListLeadsParams {
   return {
     scope,
     status: validStatus,
-    view,
     assignmentFilter,
     search,
     page,
@@ -131,21 +117,8 @@ Deno.serve(async (req: Request) => {
     // Scope: archived vs active
     query = query.eq("archived", params.scope === "archived");
 
-    // Dashboard views are explicit operational refinements of the active scope.
-    if (params.view === "active_conversations") {
-      query = query.in("status", ACTIVE_CONVERSATION_STATUSES);
-    } else if (params.view === "due_today" || params.view === "overdue") {
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      const todayStart = today.toISOString().slice(0, 10);
-      const tomorrowStart = new Date(today.getTime() + 86400000).toISOString().slice(0, 10);
-      query = query.not("follow_up_at", "is", null);
-      if (params.view === "due_today") {
-        query = query.gte("follow_up_at", todayStart).lt("follow_up_at", tomorrowStart);
-      } else {
-        query = query.lt("follow_up_at", todayStart);
-      }
-    } else if (params.status) {
+    // Single optional status filter
+    if (params.status) {
       query = query.eq("status", params.status);
     }
 

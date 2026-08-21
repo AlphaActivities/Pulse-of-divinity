@@ -2189,36 +2189,6 @@ select::placeholder {
   align-items: center;
 }
 
-.admin-leads-view-context {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.65rem;
-  width: fit-content;
-  padding: 0.35rem 0.6rem;
-  border: 1px solid rgba(201, 162, 39, 0.22);
-  border-radius: 3px;
-  color: rgba(250, 243, 217, 0.72);
-  font-family: 'Jost', system-ui, sans-serif;
-  font-size: 0.65rem;
-  font-weight: 400;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
-.admin-leads-view-context button {
-  padding: 0;
-  border: 0;
-  background: transparent;
-  color: rgba(250, 243, 217, 0.45);
-  font: inherit;
-  cursor: pointer;
-}
-
-.admin-leads-view-context button:hover,
-.admin-leads-view-context button:focus-visible {
-  color: #c9a227;
-}
-
 .admin-search-form {
   flex: 1;
   min-width: 200px;
