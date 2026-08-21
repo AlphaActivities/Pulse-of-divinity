@@ -18,9 +18,17 @@ export type PrimaryFilter = 'all_active' | 'new' | 'follow_up' | 'archived';
 
 export type LeadScope = 'active' | 'archived';
 
+export type DashboardView =
+  | 'new'
+  | 'active_conversations'
+  | 'due_today'
+  | 'overdue'
+  | 'won';
+
 export interface NormalizedFilter {
   scope: LeadScope;
   status: string;
+  view?: DashboardView | null;
 }
 
 export interface LeadListItem {
@@ -87,6 +95,7 @@ export interface ListLeadsResponse {
 export interface ListLeadsParams {
   scope: LeadScope;
   status: string;
+  view?: DashboardView | null;
   assignmentFilter: string;
   search: string;
   page: number;
@@ -102,6 +111,7 @@ export async function fetchLeads(
   });
 
   if (params.status) searchParams.set('status', params.status);
+  if (params.view) searchParams.set('view', params.view);
   if (params.assignmentFilter) searchParams.set('assignment', params.assignmentFilter);
   if (params.search) searchParams.set('search', params.search);
 

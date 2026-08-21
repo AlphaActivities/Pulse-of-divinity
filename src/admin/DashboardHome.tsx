@@ -66,12 +66,8 @@ export default function DashboardHome({ profile, onLeadClick, justLoggedIn, onRe
     }
   }, [justLoggedIn, onRevealed]);
 
-  const handleCardClick = (filter: string) => {
-    if (filter === 'new') {
-      navigate('/leads');
-    } else {
-      navigate('/leads');
-    }
+  const handleCardClick = (view: string) => {
+    navigate(`/leads?view=${view}`);
   };
 
   if (loading) {
@@ -113,7 +109,7 @@ export default function DashboardHome({ profile, onLeadClick, justLoggedIn, onRe
 
   const cards = [
     { key: 'new', label: 'New Leads', value: data.summary.new, icon: Sparkles, onClick: () => handleCardClick('new') },
-    { key: 'active', label: 'Active Conversations', value: data.summary.active, icon: Users, onClick: () => handleCardClick('active') },
+    { key: 'active', label: 'Active Conversations', value: data.summary.active, icon: Users, onClick: () => handleCardClick('active_conversations') },
     { key: 'due_today', label: 'Follow-Ups Due', value: data.summary.due_today, icon: Calendar, onClick: () => handleCardClick('due_today') },
     { key: 'overdue', label: 'Overdue', value: data.summary.overdue, icon: Clock, onClick: () => handleCardClick('overdue') },
     { key: 'won', label: 'Won', value: data.summary.won, icon: Trophy, onClick: () => handleCardClick('won') },

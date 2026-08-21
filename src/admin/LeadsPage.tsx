@@ -1,8 +1,9 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { Search, ChevronLeft, ChevronRight, AlertCircle, RotateCw } from 'lucide-react';
 import { getStoredSession } from './auth';
 import { fetchLeads } from './leadsApi';
-import type { LeadListItem, LeadDetail, LeadScope, NormalizedFilter } from './leadsApi';
+import type { LeadListItem, LeadDetail, NormalizedFilter, DashboardView } from './leadsApi';
 import { STATUS_OPTIONS, STATUS_LABELS, statusClass, statusLabel, filterClass } from './statusConfig';
 import StatusSelect from './StatusSelect';
 import LeadDetailDrawer from './LeadDetailDrawer';
@@ -14,6 +15,16 @@ const INQUIRY_LABELS: Record<string, string> = {
 };
 
 type PresetKey = 'all_active' | 'new' | 'follow_up' | 'archived';
+
+const DASHBOARD_VIEWS: Record<DashboardView, { label: string; empty: string }> = {
+  new: { label: 'New Leads', empty: 'No new leads.' },
+  active_conversations: { label: 'Active Conversations', empty: 'No active conversations.' },
+  due_today: { label: 'Follow-Ups Due Today', empty: 'No follow-ups due today.' },
+  overdue: { label: 'Overdue Follow-Ups', empty: 'No overdue follow-ups.' },
+  won: { label: 'Won Leads', empty: 'No won leads.' },
+};
+
+const VALID_DASHBOARD_VIEWS = new Set<DashboardView>(Object.keys(DASHBOARD_VIEWS) as DashboardView[]);
 
 const PRIMARY_FILTERS: { key: PresetKey; label: string }[] = [
   { key: 'all_active', label: 'All Active' },
@@ -59,6 +70,7 @@ function filterToPreset(filter: NormalizedFilter): PresetKey {
 
 function getEmptyMessage(filter: NormalizedFilter, hasSearch: boolean): string {
   if (hasSearch) return 'No leads match your search.';
+  if (filter.view) return DASHBOARD_VIEWS[filter.view].empty;
   if (filter.scope === 'archived') {
     if (filter.status) return `No archived ${STATUS_LABELS[filter.status]?.toLowerCase() || filter.status.toLowerCase()} leads.`;
     return 'No archived leads.';
@@ -72,16 +84,52 @@ function getEmptyMessage(filter: NormalizedFilter, hasSearch: boolean): string {
 function leadMatchesFilter(lead: LeadDetail, filter: NormalizedFilter): boolean {
   if (filter.scope === 'archived') return lead.archived;
   if (lead.archived) return false;
+  if (filter.view === 'active_conversations' && !['CONTACTED', 'ACTIVE_CONVERSATION', 'FOLLOW_UP', 'QUALIFIED'].includes(lead.status)) return false;
+  if (filter.view === 'due_today' || filter.view === 'overdue') {
+    if (!lead.follow_up_at) return false;
+    const todayString = new Date().toISOString().slice(0, 10);
+    const followUpDate = lead.follow_up_at.slice(0, 10);
+    if (filter.view === 'due_today' && followUpDate !== todayString) return false;
+    if (filter.view === 'overdue' && followUpDate >= todayString) return false;
+  }
   if (filter.status && lead.status !== filter.status) return false;
   return true;
 }
 
+function filterFromSearch(search: string): NormalizedFilter {
+  const params = new URLSearchParams(search);
+  const viewParam = params.get('view');
+  const view = viewParam && VALID_DASHBOARD_VIEWS.has(viewParam as DashboardView)
+    ? viewParam as DashboardView
+    : null;
+  if (view === 'new') return { scope: 'active', status: 'NEW', view };
+  if (view === 'won') return { scope: 'active', status: 'WON', view };
+  if (view === 'active_conversations' || view === 'due_today' || view === 'overdue') {
+    return { scope: 'active', status: '', view };
+  }
+  const scope = params.get('scope') === 'archived' ? 'archived' : 'active';
+  const requestedStatus = params.get('status') || '';
+  const status = STATUS_OPTIONS.some((option) => option.value === requestedStatus) ? requestedStatus : '';
+  return { scope, status, view: null };
+}
+
+function searchForFilter(filter: NormalizedFilter): string {
+  if (filter.view) return `?view=${filter.view}`;
+  const params = new URLSearchParams();
+  if (filter.scope === 'archived') params.set('scope', 'archived');
+  if (filter.status) params.set('status', filter.status);
+  const query = params.toString();
+  return query ? `?${query}` : '';
+}
+
 export default function LeadsPage() {
+  const location = useLocation();
+  const navigate = useNavigate();
   const [leads, setLeads] = useState<LeadListItem[]>([]);
   const [total, setTotal] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
   const [page, setPage] = useState(1);
-  const [filter, setFilter] = useState<NormalizedFilter>({ scope: 'active', status: '' });
+  const [filter, setFilter] = useState<NormalizedFilter>(() => filterFromSearch(location.search));
   const [searchInput, setSearchInput] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(true);
@@ -89,6 +137,12 @@ export default function LeadsPage() {
   const [selectedLeadId, setSelectedLeadId] = useState<string | null>(null);
 
   const activePreset = useMemo(() => filterToPreset(filter), [filter]);
+  const dashboardView = filter.view ? DASHBOARD_VIEWS[filter.view] : null;
+
+  useEffect(() => {
+    setFilter(filterFromSearch(location.search));
+    setPage(1);
+  }, [location.search]);
 
   const loadLeads = useCallback(async () => {
     setLoading(true);
@@ -104,6 +158,7 @@ export default function LeadsPage() {
     const { data, error: fetchError, status } = await fetchLeads(session.access_token, {
       scope: filter.scope,
       status: filter.status,
+      view: filter.view,
       assignmentFilter: '',
       search: searchQuery,
       page,
@@ -131,24 +186,17 @@ export default function LeadsPage() {
   }, [loadLeads]);
 
   const handlePresetChange = (preset: PresetKey) => {
-    setFilter(presetToFilter(preset));
+    const nextFilter = presetToFilter(preset);
+    setFilter(nextFilter);
     setPage(1);
+    navigate({ search: searchForFilter(nextFilter) });
   };
 
   const handleStatusChange = (value: string) => {
-    setFilter((prev) => {
-      // If current preset is NEW or FOLLOW-UP and user picks a different status,
-      // promote to ALL ACTIVE (scope stays active, status becomes the selection).
-      const currentPreset = filterToPreset(prev);
-      if (
-        (currentPreset === 'new' || currentPreset === 'follow_up') &&
-        value !== prev.status
-      ) {
-        return { scope: 'active' as LeadScope, status: value };
-      }
-      return { ...prev, status: value };
-    });
+    const nextFilter: NormalizedFilter = { scope: filter.scope, status: value, view: null };
+    setFilter(nextFilter);
     setPage(1);
+    navigate({ search: searchForFilter(nextFilter) });
   };
 
   const handleSearchSubmit = (e: React.FormEvent) => {
@@ -237,6 +285,15 @@ export default function LeadsPage() {
             </button>
           ))}
         </div>
+
+        {dashboardView && (
+          <div className="admin-leads-view-context" role="status">
+            <span>Viewing: {dashboardView.label}</span>
+            <button type="button" onClick={() => handlePresetChange('all_active')} aria-label="Clear dashboard view">
+              × Clear
+            </button>
+          </div>
+        )}
 
         <div className="admin-secondary-filters">
           <form onSubmit={handleSearchSubmit} className="admin-search-form" role="search">
