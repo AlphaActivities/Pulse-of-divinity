@@ -3,7 +3,8 @@ import { X, Mail, Phone, Archive, RotateCcw, AlertCircle, Check } from 'lucide-r
 import { getStoredSession } from './auth';
 import { fetchLeadDetail, updateLead, fetchNotes, addNote } from './leadsApi';
 import type { LeadDetail, UpdateLeadBody, LeadNote } from './leadsApi';
-import { STATUS_SELECT_OPTIONS, statusClass } from './statusConfig';
+import { STATUS_SELECT_OPTIONS } from './statusConfig';
+import StatusSelect from './StatusSelect';
 
 interface Props {
   leadId: string;
@@ -421,17 +422,15 @@ export default function LeadDetailDrawer({
 
                 <div className="admin-detail-field">
                   <label htmlFor="detail-status" className="admin-detail-label">Status</label>
-                  <select
+                  <StatusSelect
                     id="detail-status"
+                    options={STATUS_SELECT_OPTIONS}
                     value={status}
-                    onChange={(e) => setStatus(e.target.value)}
-                    className={`admin-filter-select admin-detail-select admin-status-select ${statusClass(status)}`}
+                    onChange={setStatus}
                     disabled={saving}
-                  >
-                    {STATUS_SELECT_OPTIONS.map((o) => (
-                      <option key={o.value} value={o.value}>{o.label}</option>
-                    ))}
-                  </select>
+                    ariaLabel="Lead status"
+                    className="admin-detail-select-wrapper"
+                  />
                 </div>
 
                 <div className="admin-detail-field">

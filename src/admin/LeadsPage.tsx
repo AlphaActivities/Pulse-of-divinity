@@ -4,6 +4,7 @@ import { getStoredSession } from './auth';
 import { fetchLeads } from './leadsApi';
 import type { LeadListItem, LeadDetail, PrimaryFilter } from './leadsApi';
 import { STATUS_OPTIONS, statusClass, statusLabel, filterClass } from './statusConfig';
+import StatusSelect from './StatusSelect';
 import LeadDetailDrawer from './LeadDetailDrawer';
 
 const INQUIRY_LABELS: Record<string, string> = {
@@ -224,17 +225,13 @@ export default function LeadsPage() {
           </form>
 
           <div className="admin-select-group">
-            <label htmlFor="status-filter" className="admin-sr-only">Filter by status</label>
-            <select
+            <StatusSelect
               id="status-filter"
+              options={STATUS_OPTIONS}
               value={statusFilter}
-              onChange={(e) => handleStatusFilterChange(e.target.value)}
-              className={`admin-filter-select admin-status-select ${statusClass(statusFilter)}`}
-            >
-              {STATUS_OPTIONS.map((o) => (
-                <option key={o.value} value={o.value}>{o.label}</option>
-              ))}
-            </select>
+              onChange={handleStatusFilterChange}
+              ariaLabel="Filter by status"
+            />
           </div>
         </div>
       </div>
