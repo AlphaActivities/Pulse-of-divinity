@@ -17,7 +17,7 @@ interface Props {
   className?: string;
 }
 
-const CLOSE_DURATION = 320;
+const CLOSE_DURATION = 280;
 
 export default function StatusSelect({
   id,

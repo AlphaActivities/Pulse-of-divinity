@@ -2545,23 +2545,33 @@ select::placeholder {
   overflow: hidden;
 }
 
-/* ── Simple open/close (no cascading) ── */
+/* ── Smooth open/close ── */
 .admin-status-menu-open {
-  animation: adminStatusMenuOpen 0.18s ease-out forwards;
+  transform-origin: top center;
+  animation: adminStatusMenuOpen 0.32s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 .admin-status-menu-closing {
-  animation: adminStatusMenuClose 0.18s ease-in forwards;
+  transform-origin: top center;
+  animation: adminStatusMenuClose 0.26s cubic-bezier(0.4, 0, 0.2, 1) forwards;
 }
 
 @keyframes adminStatusMenuOpen {
-  from { transform: translateY(-4px); }
-  to { transform: translateY(0); }
+  from {
+    transform: translateY(-8px) scaleY(0.94);
+  }
+  to {
+    transform: translateY(0) scaleY(1);
+  }
 }
 
 @keyframes adminStatusMenuClose {
-  from { transform: translateY(0); }
-  to { transform: translateY(-4px); }
+  from {
+    transform: translateY(0) scaleY(1);
+  }
+  to {
+    transform: translateY(-6px) scaleY(0.94);
+  }
 }
 
 .admin-status-select-option {
