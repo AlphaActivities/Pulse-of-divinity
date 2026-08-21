@@ -8,10 +8,9 @@ const corsHeaders = {
 
 const MAX_NOTE_LENGTH = 5000;
 const EMAIL_TIMEOUT_MS = 10000;
-
 const RESEND_API_URL = "https://api.resend.com/emails";
-
 const SENDER_BRANDED = "Pulse of Divinity CRM <notifications@pulseofdivinity.com>";
+const DASHBOARD_URL = "https://pulseofdivinity.com/admin/leads";
 
 const NOTE_RECIPIENTS = [
   "darcy.pulseofdivinity@gmail.com",
@@ -29,11 +28,56 @@ const STATUS_LABELS: Record<string, string> = {
   CLOSED: "Closed",
 };
 
+const STATUS_COLORS: Record<string, string> = {
+  NEW: "#63C98B",
+  CONTACTED: "#62C7C0",
+  ACTIVE_CONVERSATION: "#B28ADB",
+  FOLLOW_UP: "#DDAE52",
+  QUALIFIED: "#7DA7E8",
+  WON: "#F0D784",
+  CLOSED: "#B98291",
+};
+
 const INQUIRY_LABELS: Record<string, string> = {
   available_work: "Artwork Inquiry",
   commission: "Commission Inquiry",
   general: "General Inquiry",
 };
+
+const CONTACT_METHOD_LABELS: Record<string, string> = {
+  email: "Email",
+  phone: "Phone",
+  text: "Text Message",
+};
+
+interface PreviousNote {
+  body: string;
+  author_name: string | null;
+  created_at: string;
+}
+
+interface LeadContext {
+  name: string;
+  email: string;
+  phone: string | null;
+  contact_method: string;
+  inquiry_type: string;
+  interest: string;
+  artwork_title: string | null;
+  status: string;
+  follow_up_at: string | null;
+  created_at: string;
+}
+
+interface EmailParams {
+  lead: LeadContext;
+  authorName: string;
+  noteBody: string;
+  noteCreatedAt: string;
+  noteId: string;
+  leadId: string;
+  previousNotes: PreviousNote[];
+}
 
 function escapeHtml(text: string): string {
   return text
@@ -55,31 +99,120 @@ function formatDateTime(dateStr: string): string {
   });
 }
 
-function buildHtmlEmail(params: {
-  leadName: string;
-  inquiryType: string;
-  artworkTitle: string | null;
-  status: string;
-  authorName: string;
-  createdAt: string;
-  noteBody: string;
-}): string {
-  const collectorName = escapeHtml(params.leadName);
-  const inquiryLabel = INQUIRY_LABELS[params.inquiryType] || params.inquiryType;
-  const statusLabel = STATUS_LABELS[params.status] || params.status;
-  const author = escapeHtml(params.authorName);
-  const timestamp = formatDateTime(params.createdAt);
-  const noteHtml = escapeHtml(params.noteBody).replace(/\n/g, "<br />");
-  const artworkRow = params.artworkTitle
-    ? `<tr><td class="label">ARTWORK</td><td class="value">${escapeHtml(params.artworkTitle)}</td></tr>`
-    : "";
+function formatDate(dateStr: string): string {
+  const d = new Date(dateStr);
+  return d.toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+}
+
+function isOverdue(followUpAt: string): boolean {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const followUp = new Date(followUpAt);
+  followUp.setHours(0, 0, 0, 0);
+  return followUp < today;
+}
+
+function getInterestDisplay(lead: LeadContext): string | null {
+  if (lead.inquiry_type === "available_work" && lead.artwork_title) {
+    return lead.artwork_title;
+  }
+  if (lead.inquiry_type === "commission") {
+    return "Commission Inquiry";
+  }
+  if (lead.interest) {
+    return lead.interest;
+  }
+  if (lead.artwork_title) {
+    return lead.artwork_title;
+  }
+  return null;
+}
+
+function buildSubject(lead: LeadContext): string {
+  const statusLabel = STATUS_LABELS[lead.status] || null;
+  if (lead.name && statusLabel) {
+    return `New CRM Note — ${lead.name} · ${statusLabel} | Pulse of Divinity`;
+  }
+  if (lead.name) {
+    return `New CRM Note — ${lead.name} | Pulse of Divinity`;
+  }
+  return "New CRM Note | Pulse of Divinity";
+}
+
+function snapshotRow(label: string, valueHtml: string): string {
+  return `<tr><td style="font-family:'Jost',Helvetica,Arial,sans-serif;font-size:10px;font-weight:400;letter-spacing:0.12em;color:rgba(201,162,39,0.6);text-transform:uppercase;padding:7px 0 5px;width:150px;vertical-align:top;">${label}</td><td style="font-family:Georgia,serif;font-size:14px;color:rgba(250,243,217,0.85);padding:7px 0 5px;vertical-align:top;">${valueHtml}</td></tr>`;
+}
+
+function buildHtmlEmail(params: EmailParams): string {
+  const { lead, authorName, noteBody, noteCreatedAt, previousNotes } = params;
+  const statusLabel = STATUS_LABELS[lead.status] || lead.status;
+  const statusColor = STATUS_COLORS[lead.status] || "#faf3d9";
+  const inquiryLabel = INQUIRY_LABELS[lead.inquiry_type] || lead.inquiry_type;
+  const contactLabel = CONTACT_METHOD_LABELS[lead.contact_method] || lead.contact_method;
+  const interestDisplay = getInterestDisplay(lead);
+  const noteHtml = escapeHtml(noteBody).replace(/\n/g, "<br />");
+  const noteTimestamp = formatDateTime(noteCreatedAt);
+  const leadReceived = formatDate(lead.created_at);
+
+  const emailLink = lead.email
+    ? `<a href="mailto:${escapeHtml(lead.email)}" style="color:#faf3d9;text-decoration:none;border-bottom:1px solid rgba(201,162,39,0.25);">${escapeHtml(lead.email)}</a>`
+    : null;
+
+  const phoneLink = lead.phone
+    ? `<a href="tel:${escapeHtml(lead.phone.replace(/[^0-9+]/g, ""))}" style="color:#faf3d9;text-decoration:none;border-bottom:1px solid rgba(201,162,39,0.25);">${escapeHtml(lead.phone)}</a>`
+    : null;
+
+  let followUpHtml: string | null = null;
+  if (lead.follow_up_at) {
+    const followUpDate = formatDate(lead.follow_up_at);
+    const overdue = isOverdue(lead.follow_up_at);
+    followUpHtml = overdue
+      ? `${escapeHtml(followUpDate)} <span style="display:inline-block;margin-left:8px;font-family:'Jost',Helvetica,Arial,sans-serif;font-size:9px;font-weight:400;letter-spacing:0.1em;text-transform:uppercase;color:#C87872;border:1px solid rgba(200,120,114,0.3);border-radius:2px;padding:2px 7px;">Overdue</span>`
+      : escapeHtml(followUpDate);
+  }
+
+  const snapshotRows: string[] = [];
+  snapshotRows.push(snapshotRow("Collector", escapeHtml(lead.name)));
+  if (emailLink) snapshotRows.push(snapshotRow("Email", emailLink));
+  if (phoneLink) snapshotRows.push(snapshotRow("Phone", phoneLink));
+  snapshotRows.push(snapshotRow("Preferred Contact", escapeHtml(contactLabel)));
+  snapshotRows.push(snapshotRow("Inquiry Type", escapeHtml(inquiryLabel)));
+  if (interestDisplay) snapshotRows.push(snapshotRow("Interest / Artwork", escapeHtml(interestDisplay)));
+  snapshotRows.push(
+    snapshotRow(
+      "Current Status",
+      `<span style="display:inline-block;font-family:'Jost',Helvetica,Arial,sans-serif;font-size:11px;font-weight:400;letter-spacing:0.08em;text-transform:uppercase;color:${statusColor};border:1px solid ${statusColor}40;border-radius:2px;padding:3px 10px;background-color:${statusColor}12;">${escapeHtml(statusLabel)}</span>`,
+    ),
+  );
+  if (followUpHtml) snapshotRows.push(snapshotRow("Follow-Up", followUpHtml));
+  snapshotRows.push(snapshotRow("Lead Received", escapeHtml(leadReceived)));
+
+  const recentContextHtml =
+    previousNotes.length > 0
+      ? `<tr><td style="padding:8px 32px 4px;">
+<div style="font-family:'Jost',Helvetica,Arial,sans-serif;font-size:10px;font-weight:400;letter-spacing:0.12em;color:rgba(201,162,39,0.6);text-transform:uppercase;margin-bottom:10px;">Recent CRM Context</div>
+${previousNotes
+  .map(
+    (n) =>
+      `<div style="padding:10px 0;border-bottom:1px solid rgba(201,162,39,0.06);">
+<div style="font-family:'Jost',Helvetica,Arial,sans-serif;font-size:10px;font-weight:400;letter-spacing:0.06em;color:rgba(250,243,217,0.4);text-transform:uppercase;margin-bottom:4px;">${escapeHtml(formatDate(n.created_at))}${n.author_name ? " — " + escapeHtml(n.author_name) : ""}</div>
+<p style="font-family:Georgia,serif;font-size:13px;color:rgba(250,243,217,0.7);margin:0;line-height:1.6;">${escapeHtml(n.body).replace(/\n/g, "<br />")}</p>
+</div>`,
+  )
+  .join("")}
+</td></tr>`
+      : "";
 
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>New Internal Note — ${collectorName} | Pulse of Divinity</title>
+<title>${escapeHtml(buildSubject(lead))}</title>
 </head>
 <body style="margin:0;padding:0;background-color:#1a0f1a;font-family:Georgia,'Times New Roman',serif;">
 <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="background-color:#1a0f1a;">
@@ -92,30 +225,29 @@ function buildHtmlEmail(params: {
 <div style="font-family:'Jost',Helvetica,Arial,sans-serif;font-size:10px;font-weight:300;letter-spacing:0.15em;color:rgba(250,243,217,0.4);text-transform:uppercase;margin-top:4px;">Collector Intelligence</div>
 </td></tr>
 
-<tr><td style="padding:24px 32px 8px;">
-<p style="font-family:Georgia,serif;font-size:15px;font-weight:400;color:#faf3d9;margin:0;line-height:1.6;">A new internal note has been added.</p>
-</td></tr>
-
-<tr><td style="padding:16px 32px 24px;">
-<table width="100%" cellpadding="0" cellspacing="0" role="presentation">
-<tr><td class="label" style="font-family:'Jost',Helvetica,Arial,sans-serif;font-size:10px;font-weight:400;letter-spacing:0.12em;color:rgba(201,162,39,0.6);text-transform:uppercase;padding:8px 0 4px;width:140px;">COLLECTOR</td><td class="value" style="font-family:Georgia,serif;font-size:14px;color:#faf3d9;padding:8px 0 4px;">${collectorName}</td></tr>
-<tr><td class="label" style="font-family:'Jost',Helvetica,Arial,sans-serif;font-size:10px;font-weight:400;letter-spacing:0.12em;color:rgba(201,162,39,0.6);text-transform:uppercase;padding:8px 0 4px;width:140px;">INQUIRY</td><td class="value" style="font-family:Georgia,serif;font-size:14px;color:rgba(250,243,217,0.8);padding:8px 0 4px;">${escapeHtml(inquiryLabel)}</td></tr>
-${artworkRow}
-<tr><td class="label" style="font-family:'Jost',Helvetica,Arial,sans-serif;font-size:10px;font-weight:400;letter-spacing:0.12em;color:rgba(201,162,39,0.6);text-transform:uppercase;padding:8px 0 4px;width:140px;">CURRENT STATUS</td><td class="value" style="font-family:Georgia,serif;font-size:14px;color:rgba(250,243,217,0.8);padding:8px 0 4px;">${escapeHtml(statusLabel)}</td></tr>
-<tr><td class="label" style="font-family:'Jost',Helvetica,Arial,sans-serif;font-size:10px;font-weight:400;letter-spacing:0.12em;color:rgba(201,162,39,0.6);text-transform:uppercase;padding:8px 0 4px;width:140px;">NOTE ADDED BY</td><td class="value" style="font-family:Georgia,serif;font-size:14px;color:rgba(250,243,217,0.8);padding:8px 0 4px;">${author}</td></tr>
-<tr><td class="label" style="font-family:'Jost',Helvetica,Arial,sans-serif;font-size:10px;font-weight:400;letter-spacing:0.12em;color:rgba(201,162,39,0.6);text-transform:uppercase;padding:8px 0 4px;width:140px;">DATE / TIME</td><td class="value" style="font-family:Georgia,serif;font-size:14px;color:rgba(250,243,217,0.8);padding:8px 0 4px;">${escapeHtml(timestamp)}</td></tr>
-</table>
-</td></tr>
-
-<tr><td style="padding:0 32px 8px;">
-<div style="font-family:'Jost',Helvetica,Arial,sans-serif;font-size:10px;font-weight:400;letter-spacing:0.12em;color:rgba(201,162,39,0.6);text-transform:uppercase;margin-bottom:8px;">Internal Note</div>
+<tr><td style="padding:24px 32px 4px;">
+<div style="font-family:'Jost',Helvetica,Arial,sans-serif;font-size:10px;font-weight:400;letter-spacing:0.12em;color:rgba(201,162,39,0.6);text-transform:uppercase;margin-bottom:10px;">New Internal Note</div>
+<div style="font-family:'Jost',Helvetica,Arial,sans-serif;font-size:11px;font-weight:300;color:rgba(250,243,217,0.45);margin-bottom:10px;">Added by ${escapeHtml(authorName)}</div>
 <div style="background-color:rgba(26,15,26,0.5);border:1px solid rgba(201,162,39,0.10);border-radius:3px;padding:16px 18px;">
 <p style="font-family:Georgia,serif;font-size:14px;color:#faf3d9;margin:0;line-height:1.7;">${noteHtml}</p>
 </div>
+<div style="font-family:'Jost',Helvetica,Arial,sans-serif;font-size:10px;font-weight:300;color:rgba(250,243,217,0.3);margin-top:8px;">${escapeHtml(noteTimestamp)}</div>
 </td></tr>
 
+<tr><td style="padding:20px 32px 4px;">
+<div style="font-family:'Jost',Helvetica,Arial,sans-serif;font-size:10px;font-weight:400;letter-spacing:0.12em;color:rgba(201,162,39,0.6);text-transform:uppercase;margin-bottom:6px;">Collector Snapshot</div>
+</td></tr>
+
+<tr><td style="padding:4px 32px 20px;">
+<table width="100%" cellpadding="0" cellspacing="0" role="presentation">
+${snapshotRows.join("\n")}
+</table>
+</td></tr>
+
+${recentContextHtml}
+
 <tr><td align="center" style="padding:28px 32px 8px;">
-<a href="https://pulseofdivinity.com/admin/leads" style="display:inline-block;font-family:'Jost',Helvetica,Arial,sans-serif;font-size:11px;font-weight:400;letter-spacing:0.15em;text-transform:uppercase;color:#c9a227;text-decoration:none;border:1px solid rgba(201,162,39,0.35);border-radius:3px;padding:12px 32px;">Open Collector Intelligence</a>
+<a href="${DASHBOARD_URL}" style="display:inline-block;font-family:'Jost',Helvetica,Arial,sans-serif;font-size:11px;font-weight:400;letter-spacing:0.15em;text-transform:uppercase;color:#c9a227;text-decoration:none;border:1px solid rgba(201,162,39,0.35);border-radius:3px;padding:12px 32px;">Open Collector Intelligence</a>
 </td></tr>
 
 <tr><td style="padding:20px 32px 28px;border-top:1px solid rgba(201,162,39,0.08);">
@@ -129,51 +261,53 @@ ${artworkRow}
 </html>`;
 }
 
-function buildTextEmail(params: {
-  leadName: string;
-  inquiryType: string;
-  artworkTitle: string | null;
-  status: string;
-  authorName: string;
-  createdAt: string;
-  noteBody: string;
-}): string {
-  const inquiryLabel = INQUIRY_LABELS[params.inquiryType] || params.inquiryType;
-  const statusLabel = STATUS_LABELS[params.status] || params.status;
-  const timestamp = formatDateTime(params.createdAt);
-  const artworkLine = params.artworkTitle ? `Artwork: ${params.artworkTitle}\n` : "";
+function buildTextEmail(params: EmailParams): string {
+  const { lead, authorName, noteBody, noteCreatedAt, previousNotes } = params;
+  const statusLabel = STATUS_LABELS[lead.status] || lead.status;
+  const inquiryLabel = INQUIRY_LABELS[lead.inquiry_type] || lead.inquiry_type;
+  const contactLabel = CONTACT_METHOD_LABELS[lead.contact_method] || lead.contact_method;
+  const interestDisplay = getInterestDisplay(lead);
+  const noteTimestamp = formatDateTime(noteCreatedAt);
+  const leadReceived = formatDate(lead.created_at);
 
-  return `PULSE OF DIVINITY
-Collector Intelligence
+  const lines: string[] = [
+    "PULSE OF DIVINITY",
+    "Collector Intelligence",
+    "",
+    "NEW INTERNAL NOTE",
+    `Added by: ${authorName}`,
+    noteTimestamp,
+    "",
+    noteBody,
+    "",
+    "COLLECTOR SNAPSHOT",
+    `Collector: ${lead.name}`,
+  ];
+  if (lead.email) lines.push(`Email: ${lead.email}`);
+  if (lead.phone) lines.push(`Phone: ${lead.phone}`);
+  lines.push(`Preferred Contact: ${contactLabel}`);
+  lines.push(`Inquiry Type: ${inquiryLabel}`);
+  if (interestDisplay) lines.push(`Interest / Artwork: ${interestDisplay}`);
+  lines.push(`Current Status: ${statusLabel}`);
+  if (lead.follow_up_at) {
+    const overdue = isOverdue(lead.follow_up_at);
+    lines.push(`Follow-Up: ${formatDate(lead.follow_up_at)}${overdue ? " [OVERDUE]" : ""}`);
+  }
+  lines.push(`Lead Received: ${leadReceived}`);
 
-A new internal note has been added.
+  if (previousNotes.length > 0) {
+    lines.push("", "RECENT CRM CONTEXT");
+    for (const n of previousNotes) {
+      lines.push(`${formatDate(n.created_at)}${n.author_name ? " — " + n.author_name : ""}`);
+      lines.push(n.body, "");
+    }
+  }
 
-Collector: ${params.leadName}
-Inquiry: ${inquiryLabel}
-${artworkLine}Current Status: ${statusLabel}
-Note Added By: ${params.authorName}
-Date / Time: ${timestamp}
-
-Internal Note:
-${params.noteBody}
-
-Open Collector Intelligence:
-https://pulseofdivinity.com/admin/leads
-
-Internal notification for authorized Pulse of Divinity administrators.`;
+  lines.push("", "Open Collector Intelligence:", DASHBOARD_URL, "", "Internal notification for authorized Pulse of Divinity administrators.");
+  return lines.join("\n");
 }
 
-async function sendNoteNotification(params: {
-  leadName: string;
-  inquiryType: string;
-  artworkTitle: string | null;
-  status: string;
-  authorName: string;
-  createdAt: string;
-  noteBody: string;
-  noteId: string;
-  leadId: string;
-}): Promise<void> {
+async function sendNoteNotification(params: EmailParams): Promise<void> {
   const apiKey = Deno.env.get("RESEND_API_KEY");
   if (!apiKey) {
     console.error("note-email: RESEND_API_KEY not configured", {
@@ -183,8 +317,7 @@ async function sendNoteNotification(params: {
     return;
   }
 
-  const subject = `New Internal Note — ${params.leadName} | Pulse of Divinity`;
-  const sender = SENDER_BRANDED;
+  const subject = buildSubject(params.lead);
   const html = buildHtmlEmail(params);
   const text = buildTextEmail(params);
 
@@ -199,7 +332,7 @@ async function sendNoteNotification(params: {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        from: sender,
+        from: SENDER_BRANDED,
         to: NOTE_RECIPIENTS[0],
         bcc: NOTE_RECIPIENTS.slice(1),
         subject,
@@ -284,10 +417,10 @@ Deno.serve(async (req: Request) => {
       });
     }
 
-    // Confirm lead exists and fetch safe fields for notification
+    // Fetch full safe lead context server-side — never trust frontend data
     const { data: lead } = await supabase
       .from("leads")
-      .select("id, name, inquiry_type, artwork_title, status")
+      .select("id, name, email, phone, contact_method, inquiry_type, interest, artwork_title, status, follow_up_at, created_at")
       .eq("id", leadId)
       .single();
     if (!lead) {
@@ -329,7 +462,7 @@ Deno.serve(async (req: Request) => {
       });
     }
 
-    // Fetch author display name
+    // Fetch author display name from authenticated admin record
     const { data: admin } = await supabase
       .from("admins")
       .select("display_name")
@@ -338,21 +471,67 @@ Deno.serve(async (req: Request) => {
 
     const authorName = admin?.display_name ?? "Admin";
 
+    // Fetch up to 2 previous notes for this lead (excluding the one just created)
+    const { data: priorNotes } = await supabase
+      .from("lead_notes")
+      .select("body, created_at, author_admin_id")
+      .eq("lead_id", leadId)
+      .neq("id", note.id)
+      .order("created_at", { ascending: false })
+      .limit(2);
+
+    // Resolve author names for previous notes
+    let previousNotes: PreviousNote[] = [];
+    if (priorNotes && priorNotes.length > 0) {
+      const authorIds = [...new Set(priorNotes.map((n) => n.author_admin_id).filter((id): id is string => id !== null))];
+      const adminMap: Record<string, string> = {};
+      if (authorIds.length > 0) {
+        const { data: priorAdmins } = await supabase
+          .from("admins")
+          .select("id, display_name")
+          .in("id", authorIds);
+        if (priorAdmins) {
+          for (const a of priorAdmins) {
+            adminMap[a.id] = a.display_name;
+          }
+        }
+      }
+      // Reverse to chronological order for display
+      previousNotes = priorNotes
+        .map((n) => ({
+          body: n.body,
+          created_at: n.created_at,
+          author_name: n.author_admin_id ? (adminMap[n.author_admin_id] ?? null) : null,
+        }))
+        .reverse();
+    }
+
+    const leadContext: LeadContext = {
+      name: lead.name,
+      email: lead.email,
+      phone: lead.phone,
+      contact_method: lead.contact_method,
+      inquiry_type: lead.inquiry_type,
+      interest: lead.interest,
+      artwork_title: lead.artwork_title,
+      status: lead.status,
+      follow_up_at: lead.follow_up_at,
+      created_at: lead.created_at,
+    };
+
     // Fire-and-forget email notification — never blocks or fails the note response
     sendNoteNotification({
-      leadName: lead.name,
-      inquiryType: lead.inquiry_type,
-      artworkTitle: lead.artwork_title,
-      status: lead.status,
+      lead: leadContext,
       authorName,
-      createdAt: note.created_at,
       noteBody: noteText,
+      noteCreatedAt: note.created_at,
       noteId: note.id,
-      leadId: leadId,
+      leadId,
+      previousNotes,
     }).catch((err) => {
       console.error("note-email: uncaught notification error", {
         noteId: note.id,
-        leadId: leadId,
+        leadId,
         error: err instanceof Error ? err.message : "unknown",
       });
     });
