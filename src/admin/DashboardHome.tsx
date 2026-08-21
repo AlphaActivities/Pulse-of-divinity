@@ -66,8 +66,12 @@ export default function DashboardHome({ profile, onLeadClick, justLoggedIn, onRe
     }
   }, [justLoggedIn, onRevealed]);
 
-  const handleCardClick = (view: string) => {
-    navigate(`/leads?view=${view}`);
+  const handleCardClick = (scope: string, status: string) => {
+    const params = new URLSearchParams();
+    if (scope === 'archived') params.set('scope', 'archived');
+    if (status) params.set('status', status);
+    const query = params.toString();
+    navigate(query ? `/leads?${query}` : '/leads');
   };
 
   if (loading) {
@@ -108,11 +112,11 @@ export default function DashboardHome({ profile, onLeadClick, justLoggedIn, onRe
   }
 
   const cards = [
-    { key: 'new', label: 'New Leads', value: data.summary.new, icon: Sparkles, onClick: () => handleCardClick('new') },
-    { key: 'active', label: 'Active Conversations', value: data.summary.active, icon: Users, onClick: () => handleCardClick('active_conversations') },
-    { key: 'due_today', label: 'Follow-Ups Due', value: data.summary.due_today, icon: Calendar, onClick: () => handleCardClick('due_today') },
-    { key: 'overdue', label: 'Overdue', value: data.summary.overdue, icon: Clock, onClick: () => handleCardClick('overdue') },
-    { key: 'won', label: 'Won', value: data.summary.won, icon: Trophy, onClick: () => handleCardClick('won') },
+    { key: 'new', label: 'New Leads', value: data.summary.new, icon: Sparkles, onClick: () => handleCardClick('active', 'NEW') },
+    { key: 'active', label: 'Active Conversations', value: data.summary.active, icon: Users, onClick: () => handleCardClick('active', 'ACTIVE_CONVERSATION') },
+    { key: 'due_today', label: 'Follow-Ups Due', value: data.summary.due_today, icon: Calendar, onClick: () => handleCardClick('active', 'FOLLOW_UP') },
+    { key: 'overdue', label: 'Overdue', value: data.summary.overdue, icon: Clock, onClick: () => handleCardClick('active', 'FOLLOW_UP') },
+    { key: 'won', label: 'Won', value: data.summary.won, icon: Trophy, onClick: () => handleCardClick('active', 'WON') },
   ];
   return (
     <div className={`admin-dashboard-page${justLoggedIn ? ' admin-dashboard-reveal' : ''}`}>
