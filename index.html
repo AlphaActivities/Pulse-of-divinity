@@ -49,6 +49,17 @@
 
     <!-- Mobile browser chrome color -->
     <meta name="theme-color" content="#2a1629" />
+
+    <!-- Pre-paint: apply dark admin background before React mounts to eliminate cream flash -->
+    <script>
+      (function () {
+        var p = window.location.pathname;
+        if (p === '/admin' || p.indexOf('/admin/') === 0) {
+          var el = document.documentElement;
+          el.classList.add('admin-prepaint');
+        }
+      })();
+    </script>
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 

@@ -21,6 +21,12 @@
     overflow-x: hidden;
   }
 
+  /* Pre-paint dark background for /admin routes — applied before React mounts */
+  .admin-prepaint body,
+  .admin-prepaint #root {
+    background: #1a0f1a;
+  }
+
   *, *::before, *::after {
     box-sizing: border-box;
   }
@@ -1247,11 +1253,13 @@ select::placeholder {
 .admin-loading-screen {
   min-height: 100vh;
   min-height: 100dvh;
+  min-height: 100svh;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   background: #1a0f1a;
+  padding: 2rem 1.25rem;
   gap: 1.5rem;
 }
 
@@ -1318,6 +1326,7 @@ select::placeholder {
 .admin-auth-container {
   min-height: 100vh;
   min-height: 100dvh;
+  min-height: 100svh;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1583,42 +1592,42 @@ select::placeholder {
 
 .admin-entrance-active .admin-entrance-card {
   opacity: 0;
-  transform: translateY(12px) scale(0.98);
-  animation: adminEntranceCard 0.8s cubic-bezier(0.22, 1, 0.36, 1) forwards;
-  animation-delay: 0.9s;
+  transform: translateY(6px) scale(0.99);
+  animation: adminEntranceCard 0.6s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  animation-delay: 0.3s;
 }
 
 .admin-entrance-active .admin-auth-logo {
   opacity: 0;
-  animation: adminEntranceLogo 0.6s ease forwards;
-  animation-delay: 0.5s;
-  transform: translateX(-22px) translateY(8px);
+  animation: adminEntranceLogo 0.5s ease forwards;
+  animation-delay: 0.15s;
+  transform: translateX(-22px) translateY(4px);
 }
 
 .admin-entrance-active .admin-auth-eyebrow {
   opacity: 0;
-  animation: adminEntranceText 0.5s ease forwards;
-  animation-delay: 0.7s;
+  animation: adminEntranceText 0.45s ease forwards;
+  animation-delay: 0.25s;
 }
 
 .admin-entrance-active .admin-auth-title {
   opacity: 0;
-  animation: adminEntranceText 0.5s ease forwards;
-  animation-delay: 0.8s;
+  animation: adminEntranceText 0.45s ease forwards;
+  animation-delay: 0.3s;
 }
 
 .admin-entrance-active .admin-entrance-divider {
   opacity: 0;
   transform: scaleX(0);
   transform-origin: center;
-  animation: adminEntranceDivider 0.6s ease forwards;
-  animation-delay: 1.0s;
+  animation: adminEntranceDivider 0.5s ease forwards;
+  animation-delay: 0.35s;
 }
 
 .admin-entrance-active .admin-entrance-form {
   opacity: 0;
   animation: adminEntranceForm 0.5s ease forwards;
-  animation-delay: 1.5s;
+  animation-delay: 0.45s;
 }
 
 /* Completed entrance state — everything visible */
@@ -1668,7 +1677,7 @@ select::placeholder {
 }
 
 @keyframes adminEntranceLogo {
-  from { opacity: 0; transform: translateX(-22px) translateY(8px); }
+  from { opacity: 0; transform: translateX(-22px) translateY(4px); }
   to { opacity: 0.85; transform: translateX(-22px) translateY(0); }
 }
 
@@ -1683,7 +1692,7 @@ select::placeholder {
 }
 
 @keyframes adminEntranceCard {
-  from { opacity: 0; transform: translateY(12px) scale(0.98); }
+  from { opacity: 0; transform: translateY(6px) scale(0.99); }
   to { opacity: 1; transform: translateY(0) scale(1); }
 }
 

@@ -8,7 +8,7 @@ interface Props {
   skipEntrance: boolean;
 }
 
-const ENTRANCE_DURATION = 2000;
+const ENTRANCE_DURATION = 1000;
 const SUCCESS_TRANSITION_DURATION = 1100;
 const PROFILE_TIMEOUT_MS = 12000;
 
