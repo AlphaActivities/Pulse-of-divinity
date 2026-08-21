@@ -1192,6 +1192,32 @@ select::placeholder {
     transform: none !important;
     animation: none !important;
   }
+
+  /* ── Metric tiles — show complete static icon system ── */
+  .admin-summary-card,
+  .metric-icon-system {
+    opacity: 1 !important;
+    transform: none !important;
+    animation: none !important;
+  }
+  .metric-icon-orbit-outer,
+  .metric-icon-orbit-inner {
+    animation: none !important;
+  }
+  .metric-icon-orbit-outer circle,
+  .metric-icon-orbit-inner circle {
+    stroke-dashoffset: 0 !important;
+    animation: none !important;
+  }
+  .metric-icon-halo {
+    opacity: 0.7 !important;
+    transform: translate(-50%, -50%) scale(1) !important;
+    animation: none !important;
+  }
+  .metric-icon-dot {
+    opacity: 0.6 !important;
+    animation: none !important;
+  }
 }
 
 /* ─────────────────────────────────────────
@@ -3053,14 +3079,21 @@ select::placeholder {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.4rem;
-  padding: 1.5rem 1rem;
+  gap: 0.3rem;
+  padding: 1.35rem 1rem;
   background: rgba(42, 22, 41, 0.3);
   border: 1px solid rgba(201, 162, 39, 0.08);
   border-radius: 4px;
   cursor: pointer;
   transition: border-color 0.25s ease, background 0.25s ease;
   text-align: center;
+  opacity: 0;
+  animation: metric-card-reveal 0.6s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+@keyframes metric-card-reveal {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 .admin-summary-card:hover {
@@ -3074,24 +3107,132 @@ select::placeholder {
   box-shadow: 0 0 0 2px rgba(201, 162, 39, 0.1);
 }
 
-.admin-summary-card-icon {
+/* ── Animated metric icon orbit system ── */
+.metric-icon-system {
+  position: relative;
+  width: 56px;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 0.35rem;
+  opacity: 0;
+  animation: metric-icon-reveal 0.7s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.metric-icon-center {
+  position: relative;
+  z-index: 3;
   display: flex;
   align-items: center;
   justify-content: center;
   width: 36px;
   height: 36px;
-  border: 1px solid rgba(201, 162, 39, 0.15);
+  border: 1px solid rgba(201, 162, 39, 0.22);
   border-radius: 50%;
-  color: rgba(201, 162, 39, 0.6);
-  margin-bottom: 0.25rem;
+  color: rgba(201, 162, 39, 0.72);
+  background: rgba(42, 22, 41, 0.35);
+}
+
+.metric-icon-orbit-outer,
+.metric-icon-orbit-inner {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 56px;
+  height: 56px;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.metric-icon-orbit-outer {
+  animation: metric-orbit-cw 22s linear infinite;
+}
+
+.metric-icon-orbit-inner {
+  animation: metric-orbit-ccw 16s linear infinite;
+}
+
+.metric-icon-orbit-outer circle,
+.metric-icon-orbit-inner circle {
+  stroke-dashoffset: 100;
+  animation: metric-ring-draw 1.1s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.metric-icon-halo {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 44px;
+  height: 44px;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    rgba(201, 162, 39, 0.14) 0%,
+    rgba(201, 162, 39, 0.04) 55%,
+    transparent 75%
+  );
+  z-index: 0;
+  animation: metric-halo-pulse 3.5s ease-in-out infinite;
+}
+
+.metric-icon-dot {
+  position: absolute;
+  width: 2.5px;
+  height: 2.5px;
+  border-radius: 50%;
+  background: rgba(201, 162, 39, 0.7);
+  z-index: 2;
+}
+
+.metric-icon-dot-a {
+  top: 3px;
+  right: 9px;
+  animation: metric-dot-pulse 2.8s ease-in-out infinite;
+}
+
+.metric-icon-dot-b {
+  bottom: 5px;
+  left: 10px;
+  animation: metric-dot-pulse 3.6s ease-in-out infinite 0.6s;
+}
+
+@keyframes metric-orbit-cw {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes metric-orbit-ccw {
+  to { transform: rotate(-360deg); }
+}
+
+@keyframes metric-ring-draw {
+  to { stroke-dashoffset: 0; }
+}
+
+@keyframes metric-halo-pulse {
+  0%, 100% { opacity: 0.55; transform: translate(-50%, -50%) scale(0.92); }
+  50% { opacity: 0.9; transform: translate(-50%, -50%) scale(1.06); }
+}
+
+@keyframes metric-dot-pulse {
+  0%, 100% { opacity: 0.25; }
+  50% { opacity: 0.85; }
+}
+
+@keyframes metric-icon-reveal {
+  from { opacity: 0; transform: scale(0.88); }
+  to { opacity: 1; transform: scale(1); }
 }
 
 .admin-summary-card-value {
-  font-family: 'Cormorant Garamond', Georgia, serif;
-  font-weight: 300;
-  font-size: 2rem;
-  color: #faf3d9;
+  font-family: 'Jost', system-ui, sans-serif;
+  font-weight: 500;
+  font-size: 1.75rem;
+  font-variant-numeric: tabular-nums;
   line-height: 1;
+  letter-spacing: -0.01em;
+  color: #faf3d9;
 }
 
 .admin-summary-card-label {
@@ -3100,7 +3241,7 @@ select::placeholder {
   font-weight: 400;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: rgba(250, 243, 217, 0.4);
+  color: rgba(250, 243, 217, 0.5);
 }
 
 /* ── Dashboard sections ── */
@@ -3332,7 +3473,7 @@ select::placeholder {
   }
 
   .admin-summary-card-value {
-    font-size: 1.5rem;
+    font-size: 1.4rem;
   }
 
   .admin-attention-meta,

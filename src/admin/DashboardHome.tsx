@@ -5,6 +5,7 @@ import { getStoredSession } from './auth';
 import type { AdminProfile } from './auth';
 import { fetchDashboardSummary } from './leadsApi';
 import type { DashboardSummary } from './leadsApi';
+import MetricIcon from './MetricIcon';
 
 interface Props {
   profile: AdminProfile;
@@ -138,7 +139,7 @@ export default function DashboardHome({ profile, onLeadClick, justLoggedIn, onRe
 
       {/* Summary Cards */}
       <div className="admin-summary-cards">
-        {cards.map((card) => {
+        {cards.map((card, index) => {
           const Icon = card.icon;
           return (
             <button
@@ -146,10 +147,9 @@ export default function DashboardHome({ profile, onLeadClick, justLoggedIn, onRe
               className="admin-summary-card"
               onClick={card.onClick}
               aria-label={`${card.label}: ${card.value}`}
+              style={{ animationDelay: `${index * 80}ms` }}
             >
-              <div className="admin-summary-card-icon">
-                <Icon size={18} strokeWidth={1.3} />
-              </div>
+              <MetricIcon icon={Icon} index={index} />
               <span className="admin-summary-card-value">{card.value}</span>
               <span className="admin-summary-card-label">{card.label}</span>
             </button>
