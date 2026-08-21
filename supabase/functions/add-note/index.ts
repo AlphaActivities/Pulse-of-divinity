@@ -88,6 +88,8 @@ function escapeHtml(text: string): string {
     .replace(/'/g, "&#039;");
 }
 
+const TZ = "America/Los_Angeles";
+
 function formatDateTime(dateStr: string): string {
   const d = new Date(dateStr);
   return d.toLocaleString("en-US", {
@@ -96,6 +98,7 @@ function formatDateTime(dateStr: string): string {
     year: "numeric",
     hour: "numeric",
     minute: "2-digit",
+    timeZone: TZ,
   });
 }
 
@@ -105,6 +108,7 @@ function formatDate(dateStr: string): string {
     month: "short",
     day: "numeric",
     year: "numeric",
+    timeZone: TZ,
   });
 }
 
@@ -123,8 +127,9 @@ function getInterestDisplay(lead: LeadContext): string | null {
   if (lead.inquiry_type === "commission") {
     return "Commission Inquiry";
   }
-  if (lead.interest) {
-    return lead.interest;
+  const interest = (lead.interest || "").trim();
+  if (interest && interest.toLowerCase() !== "general" && interest !== lead.inquiry_type) {
+    return interest;
   }
   if (lead.artwork_title) {
     return lead.artwork_title;
