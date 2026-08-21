@@ -2250,6 +2250,7 @@ select::placeholder {
 .admin-select-group {
   display: flex;
   gap: 0.5rem;
+  flex-shrink: 0;
 }
 
 .admin-filter-select {
@@ -2532,6 +2533,7 @@ select::placeholder {
 .admin-status-select-wrapper {
   position: relative;
   display: inline-block;
+  min-width: 165px;
   width: 100%;
 }
 
@@ -2570,7 +2572,6 @@ select::placeholder {
   gap: 0.4rem;
   white-space: nowrap;
   overflow: hidden;
-  text-overflow: ellipsis;
 }
 
 .admin-status-select-dot {
@@ -2604,8 +2605,7 @@ select::placeholder {
   border: 1px solid rgba(201, 162, 39, 0.18);
   border-radius: 3px;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
-  max-height: 280px;
-  overflow-y: auto;
+  overflow: hidden;
 }
 
 .admin-status-select-option {
