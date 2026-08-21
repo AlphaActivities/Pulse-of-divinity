@@ -13,16 +13,6 @@ interface Props {
   onLeadRestored: (lead: LeadDetail) => void;
 }
 
-const OUTCOME_OPTIONS = [
-  { value: '', label: '—' },
-  { value: 'Artwork Sale', label: 'Artwork Sale' },
-  { value: 'Commission Secured', label: 'Commission Secured' },
-  { value: 'Not Ready', label: 'Not Ready' },
-  { value: 'No Response', label: 'No Response' },
-  { value: 'Not a Fit', label: 'Not a Fit' },
-  { value: 'Other', label: 'Other' },
-];
-
 const INQUIRY_LABELS: Record<string, string> = {
   available_work: 'Artwork Inquiry',
   commission: 'Commission Inquiry',
@@ -88,7 +78,6 @@ export default function LeadDetailDrawer({
   // Editable form state
   const [status, setStatus] = useState('');
   const [followUpAt, setFollowUpAt] = useState<string>('');
-  const [outcome, setOutcome] = useState<string>('');
 
   // Save state
   const [saving, setSaving] = useState(false);
@@ -136,7 +125,6 @@ export default function LeadDetailDrawer({
     setLead(data);
     setStatus(data.status);
     setFollowUpAt(toDateInputValue(data.follow_up_at));
-    setOutcome(data.outcome || '');
     setLoading(false);
   }, [leadId]);
 
@@ -195,13 +183,10 @@ export default function LeadDetailDrawer({
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [onClose, saving, showArchiveConfirm]);
 
-  const showOutcome = lead?.status === 'WON' || lead?.status === 'CLOSED';
-
   const hasChanges = (): boolean => {
     if (!lead) return false;
     if (status !== lead.status) return true;
     if (toDateInputValue(followUpAt || null) !== toDateInputValue(lead.follow_up_at)) return true;
-    if ((outcome || '') !== (lead.outcome || '')) return true;
     return false;
   };
 
@@ -228,10 +213,6 @@ export default function LeadDetailDrawer({
       body.follow_up_at = followUpAt ? followUpAt : null;
     }
 
-    if ((outcome || '') !== (lead.outcome || '')) {
-      body.outcome = outcome || null;
-    }
-
     const { data, error: updateError } = await updateLead(session.access_token, body);
 
     if (updateError || !data) {
@@ -243,7 +224,6 @@ export default function LeadDetailDrawer({
     setLead(data);
     setStatus(data.status);
     setFollowUpAt(toDateInputValue(data.follow_up_at));
-    setOutcome(data.outcome || '');
     setSaving(false);
     setSavedFlash(true);
     setTimeout(() => setSavedFlash(false), 2000);
@@ -483,23 +463,6 @@ export default function LeadDetailDrawer({
                     </span>
                   )}
                 </div>
-
-                {showOutcome && (
-                  <div className="admin-detail-field">
-                    <label htmlFor="detail-outcome" className="admin-detail-label">Outcome</label>
-                    <select
-                      id="detail-outcome"
-                      value={outcome}
-                      onChange={(e) => setOutcome(e.target.value)}
-                      className="admin-filter-select admin-detail-select"
-                      disabled={saving}
-                    >
-                      {OUTCOME_OPTIONS.map((o) => (
-                        <option key={o.value} value={o.value}>{o.label}</option>
-                      ))}
-                    </select>
-                  </div>
-                )}
               </section>
 
               {/* Internal Notes Section */}

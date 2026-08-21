@@ -3,7 +3,7 @@ import { Search, ChevronLeft, ChevronRight, AlertCircle, RotateCw } from 'lucide
 import { getStoredSession } from './auth';
 import { fetchLeads } from './leadsApi';
 import type { LeadListItem, LeadDetail, PrimaryFilter } from './leadsApi';
-import { STATUS_OPTIONS, statusClass, statusLabel } from './statusConfig';
+import { STATUS_OPTIONS, statusClass, statusLabel, filterClass } from './statusConfig';
 import LeadDetailDrawer from './LeadDetailDrawer';
 
 const INQUIRY_LABELS: Record<string, string> = {
@@ -188,7 +188,7 @@ export default function LeadsPage() {
               key={f.key}
               role="tab"
               aria-selected={primaryFilter === f.key}
-              className={`admin-filter-chip ${primaryFilter === f.key ? 'active' : ''}`}
+              className={`admin-filter-chip ${filterClass(f.key)} ${primaryFilter === f.key ? 'active' : ''}`}
               onClick={() => handlePrimaryFilterChange(f.key)}
             >
               {f.label}
@@ -229,7 +229,7 @@ export default function LeadsPage() {
               id="status-filter"
               value={statusFilter}
               onChange={(e) => handleStatusFilterChange(e.target.value)}
-              className="admin-filter-select"
+              className={`admin-filter-select admin-status-select ${statusClass(statusFilter)}`}
             >
               {STATUS_OPTIONS.map((o) => (
                 <option key={o.value} value={o.value}>{o.label}</option>

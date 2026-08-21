@@ -6,7 +6,7 @@ import type { AdminProfile } from './auth';
 import { fetchDashboardSummary } from './leadsApi';
 import type { DashboardSummary } from './leadsApi';
 import MetricIcon from './MetricIcon';
-import { statusClass, statusLabel } from './statusConfig';
+import { statusClass, statusLabel, METRIC_COLORS } from './statusConfig';
 
 interface Props {
   profile: AdminProfile;
@@ -118,7 +118,6 @@ export default function DashboardHome({ profile, onLeadClick, justLoggedIn, onRe
     { key: 'overdue', label: 'Overdue', value: data.summary.overdue, icon: Clock, onClick: () => handleCardClick('overdue') },
     { key: 'won', label: 'Won', value: data.summary.won, icon: Trophy, onClick: () => handleCardClick('won') },
   ];
-
   return (
     <div className={`admin-dashboard-page${justLoggedIn ? ' admin-dashboard-reveal' : ''}`}>
       <div className="admin-dashboard-header">
@@ -132,15 +131,16 @@ export default function DashboardHome({ profile, onLeadClick, justLoggedIn, onRe
       <div className="admin-summary-cards">
         {cards.map((card, index) => {
           const Icon = card.icon;
+          const metricColor = METRIC_COLORS[card.key];
           return (
             <button
               key={card.key}
-              className="admin-summary-card"
+              className={`admin-summary-card admin-metric-${card.key}`}
               onClick={card.onClick}
               aria-label={`${card.label}: ${card.value}`}
               style={{ animationDelay: `${index * 80}ms` }}
             >
-              <MetricIcon icon={Icon} index={index} />
+              <MetricIcon icon={Icon} index={index} color={metricColor} />
               <span className="admin-summary-card-value">{card.value}</span>
               <span className="admin-summary-card-label">{card.label}</span>
             </button>

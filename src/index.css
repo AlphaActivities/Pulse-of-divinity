@@ -2153,6 +2153,34 @@ select::placeholder {
   background: rgba(201, 162, 39, 0.08);
 }
 
+/* ── Semantic filter chip tints (when active) ── */
+.admin-filter-chip.admin-status-new.active {
+  border-color: rgba(99, 201, 139, 0.45);
+  color: #63C98B;
+  background: rgba(99, 201, 139, 0.10);
+}
+.admin-filter-chip.admin-status-follow_up.active {
+  border-color: rgba(221, 174, 82, 0.45);
+  color: #DDAE52;
+  background: rgba(221, 174, 82, 0.10);
+}
+.admin-filter-chip.admin-status-archived.active {
+  border-color: rgba(153, 144, 159, 0.40);
+  color: #99909F;
+  background: rgba(153, 144, 159, 0.08);
+}
+
+/* ── Unselected semantic chips: subtle hint ── */
+.admin-filter-chip.admin-status-new:not(.active) {
+  border-color: rgba(99, 201, 139, 0.12);
+}
+.admin-filter-chip.admin-status-follow_up:not(.active) {
+  border-color: rgba(221, 174, 82, 0.12);
+}
+.admin-filter-chip.admin-status-archived:not(.active) {
+  border-color: rgba(153, 144, 159, 0.12);
+}
+
 /* ── Secondary filters ── */
 .admin-secondary-filters {
   display: flex;
@@ -2446,44 +2474,58 @@ select::placeholder {
   border: 1px solid rgba(153, 144, 159, 0.22);
 }
 
-/* ── Status-tinted select control (Lead Detail drawer) ── */
+/* ── Status-tinted select control (Lead Detail drawer + secondary filter) ── */
+.admin-filter-select.admin-status-select,
 .admin-detail-select.admin-status-select {
   transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
 }
+.admin-filter-select.admin-status-new,
 .admin-detail-select.admin-status-new {
   background: rgba(99, 201, 139, 0.08);
   border-color: rgba(99, 201, 139, 0.35);
   color: #63C98B;
 }
+.admin-filter-select.admin-status-contacted,
 .admin-detail-select.admin-status-contacted {
   background: rgba(98, 199, 192, 0.08);
   border-color: rgba(98, 199, 192, 0.35);
   color: #62C7C0;
 }
+.admin-filter-select.admin-status-active_conversation,
 .admin-detail-select.admin-status-active_conversation {
   background: rgba(178, 138, 219, 0.08);
   border-color: rgba(178, 138, 219, 0.35);
   color: #B28ADB;
 }
+.admin-filter-select.admin-status-follow_up,
 .admin-detail-select.admin-status-follow_up {
   background: rgba(221, 174, 82, 0.08);
   border-color: rgba(221, 174, 82, 0.35);
   color: #DDAE52;
 }
+.admin-filter-select.admin-status-qualified,
 .admin-detail-select.admin-status-qualified {
   background: rgba(125, 167, 232, 0.08);
   border-color: rgba(125, 167, 232, 0.35);
   color: #7DA7E8;
 }
+.admin-filter-select.admin-status-won,
 .admin-detail-select.admin-status-won {
   background: rgba(224, 188, 90, 0.10);
   border-color: rgba(224, 188, 90, 0.40);
   color: #F0D784;
 }
+.admin-filter-select.admin-status-closed,
 .admin-detail-select.admin-status-closed {
   background: rgba(185, 130, 145, 0.08);
   border-color: rgba(185, 130, 145, 0.30);
   color: #B98291;
+}
+.admin-filter-select.admin-status-archived,
+.admin-detail-select.admin-status-archived {
+  background: rgba(153, 144, 159, 0.08);
+  border-color: rgba(153, 144, 159, 0.30);
+  color: #99909F;
 }
 
 /* ── Overdue follow-up ── */
@@ -3156,6 +3198,23 @@ select::placeholder {
   animation: metric-card-reveal 0.6s cubic-bezier(0.22, 1, 0.36, 1) forwards;
 }
 
+/* ── Metric tile ambient category glow ── */
+.admin-metric-new {
+  box-shadow: inset 0 0 40px rgba(99, 201, 139, 0.04);
+}
+.admin-metric-active {
+  box-shadow: inset 0 0 40px rgba(178, 138, 219, 0.04);
+}
+.admin-metric-due_today {
+  box-shadow: inset 0 0 40px rgba(221, 174, 82, 0.04);
+}
+.admin-metric-overdue {
+  box-shadow: inset 0 0 40px rgba(200, 120, 114, 0.05);
+}
+.admin-metric-won {
+  box-shadow: inset 0 0 40px rgba(224, 188, 90, 0.05);
+}
+
 @keyframes metric-card-reveal {
   from { opacity: 0; transform: translateY(6px); }
   to { opacity: 1; transform: translateY(0); }
@@ -3193,9 +3252,7 @@ select::placeholder {
   justify-content: center;
   width: 36px;
   height: 36px;
-  border: 1px solid rgba(201, 162, 39, 0.22);
   border-radius: 50%;
-  color: rgba(201, 162, 39, 0.72);
   background: rgba(42, 22, 41, 0.35);
 }
 
@@ -3232,12 +3289,6 @@ select::placeholder {
   height: 44px;
   transform: translate(-50%, -50%);
   border-radius: 50%;
-  background: radial-gradient(
-    circle,
-    rgba(201, 162, 39, 0.14) 0%,
-    rgba(201, 162, 39, 0.04) 55%,
-    transparent 75%
-  );
   z-index: 0;
   animation: metric-halo-pulse 3.5s ease-in-out infinite;
 }
@@ -3247,7 +3298,6 @@ select::placeholder {
   width: 2.5px;
   height: 2.5px;
   border-radius: 50%;
-  background: rgba(201, 162, 39, 0.7);
   z-index: 2;
 }
 
