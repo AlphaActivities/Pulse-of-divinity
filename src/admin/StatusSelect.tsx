@@ -17,7 +17,7 @@ interface Props {
   className?: string;
 }
 
-const CLOSE_DURATION = 280;
+const CLOSE_DURATION = 360;
 
 export default function StatusSelect({
   id,
@@ -32,10 +32,18 @@ export default function StatusSelect({
   const [menuMounted, setMenuMounted] = useState(false);
   const [closing, setClosing] = useState(false);
   const [focusedIndex, setFocusedIndex] = useState(0);
+  const [isMobile, setIsMobile] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
   const listRef = useRef<HTMLUListElement>(null);
   const closeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    const check = () => setIsMobile(window.matchMedia('(max-width: 768px)').matches);
+    check();
+    window.addEventListener('resize', check);
+    return () => window.removeEventListener('resize', check);
+  }, []);
 
   const selectedOption = options.find((o) => o.value === value);
   const selectedColor = value ? STATUS_COLORS[value] : null;
@@ -181,6 +189,13 @@ export default function StatusSelect({
         />
       </button>
 
+      {menuMounted && isMobile && (
+        <div
+          className="admin-status-select-mobile-backdrop"
+          onClick={() => closeMenu()}
+          aria-hidden="true"
+        />
+      )}
       {menuMounted && (
         <ul
           ref={listRef}
