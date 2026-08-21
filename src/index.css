@@ -1200,6 +1200,24 @@ select::placeholder {
     transform: none !important;
     animation: none !important;
   }
+
+  /* ── Unified mobile entrance system — resolve to final state ── */
+  .admin-entrance-heading,
+  .admin-entrance-subtext,
+  .admin-entrance-section,
+  .admin-entrance-controls,
+  .admin-entrance-card,
+  .admin-drawer-section-enter,
+  .admin-modal-card-enter {
+    opacity: 1 !important;
+    transform: none !important;
+    animation: none !important;
+  }
+
+  .admin-drawer-exiting,
+  .admin-overlay-exiting {
+    animation: none !important;
+  }
   .metric-icon-orbit-outer,
   .metric-icon-orbit-inner {
     animation: none !important;
@@ -2803,9 +2821,12 @@ select::placeholder {
   .admin-filter-select,
   .admin-status-select-trigger,
   .admin-status-select-option,
-  .admin-detail-select,
-  .admin-note-textarea {
+  .admin-detail-select {
     font-size: 16px;
+  }
+
+  .admin-note-textarea {
+    font-size: 16px !important;
   }
 }
 
@@ -2862,7 +2883,7 @@ select::placeholder {
   z-index: 101;
   display: flex;
   flex-direction: column;
-  animation: adminSlideIn 0.25s ease;
+  animation: adminSlideIn 0.3s cubic-bezier(0.22, 1, 0.36, 1);
   overflow: hidden;
 }
 
@@ -3336,8 +3357,96 @@ select::placeholder {
 }
 
 @keyframes metric-card-reveal {
+  from { opacity: 0; transform: translateY(10px) scale(0.985); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* ─────────────────────────────────────────
+   UNIFIED MOBILE ENTRANCE SYSTEM
+   Luxury reveal family — mobile only (≤768px)
+───────────────────────────────────────── */
+
+/* LUXURY REVEAL — heading + tiles */
+@keyframes admin-luxury-reveal {
+  from { opacity: 0; transform: translateY(10px) scale(0.985); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* SOFT REVEAL — sections, controls, cards */
+@keyframes admin-soft-reveal {
   from { opacity: 0; transform: translateY(6px); }
   to { opacity: 1; transform: translateY(0); }
+}
+
+/* DRAWER SECTION REVEAL — inside drawer */
+@keyframes admin-drawer-section-reveal {
+  from { opacity: 0; transform: translateX(8px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+/* DRAWER EXIT — slide right + fade */
+@keyframes admin-drawer-exit {
+  from { transform: translateX(0); }
+  to { transform: translateX(100%); }
+}
+
+/* OVERLAY EXIT — fade out */
+@keyframes admin-overlay-exit {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+/* MODAL CARD REVEAL */
+@keyframes admin-modal-card-reveal {
+  from { opacity: 0; transform: translateY(6px) scale(0.985); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* ── Mobile-only entrance classes (≤768px) ── */
+@media (max-width: 768px) {
+  .admin-entrance-heading {
+    opacity: 0;
+    animation: admin-luxury-reveal 0.5s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  }
+
+  .admin-entrance-subtext {
+    opacity: 0;
+    animation: admin-soft-reveal 0.5s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    animation-delay: 100ms;
+  }
+
+  .admin-entrance-section {
+    opacity: 0;
+    animation: admin-soft-reveal 0.55s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  }
+
+  .admin-entrance-controls {
+    opacity: 0;
+    animation: admin-soft-reveal 0.5s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  }
+
+  .admin-entrance-card {
+    opacity: 0;
+    animation: admin-soft-reveal 0.45s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  }
+
+  .admin-drawer-section-enter {
+    opacity: 0;
+    animation: admin-drawer-section-reveal 0.45s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  }
+
+  .admin-drawer-exiting {
+    animation: admin-drawer-exit 0.25s cubic-bezier(0.4, 0, 0.6, 1) forwards !important;
+  }
+
+  .admin-overlay-exiting {
+    animation: admin-overlay-exit 0.25s ease forwards !important;
+  }
+
+  .admin-modal-card-enter {
+    opacity: 0;
+    animation: admin-modal-card-reveal 0.4s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  }
 }
 
 .admin-summary-card:hover {

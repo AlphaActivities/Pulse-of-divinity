@@ -121,8 +121,8 @@ export default function DashboardHome({ profile, onLeadClick, justLoggedIn, onRe
   return (
     <div className={`admin-dashboard-page${justLoggedIn ? ' admin-dashboard-reveal' : ''}`}>
       <div className="admin-dashboard-header">
-        <h1 className="admin-page-heading">Collector Intelligence</h1>
-        <p className="admin-dashboard-subtext">
+        <h1 className="admin-page-heading admin-entrance-heading">Collector Intelligence</h1>
+        <p className="admin-dashboard-subtext admin-entrance-subtext">
           Welcome, {profile.display_name}. Here's what requires your attention.
         </p>
       </div>
@@ -149,7 +149,7 @@ export default function DashboardHome({ profile, onLeadClick, justLoggedIn, onRe
       </div>
 
       {/* Follow-Up Attention */}
-      <section className="admin-dashboard-section">
+      <section className="admin-dashboard-section admin-entrance-section" style={{ animationDelay: '480ms' }}>
         <div className="admin-dashboard-section-header">
           <h2 className="admin-dashboard-section-title">Follow-Up Attention</h2>
         </div>
@@ -186,7 +186,7 @@ export default function DashboardHome({ profile, onLeadClick, justLoggedIn, onRe
       </section>
 
       {/* Recent Collector Inquiries */}
-      <section className="admin-dashboard-section">
+      <section className="admin-dashboard-section admin-entrance-section" style={{ animationDelay: '620ms' }}>
         <div className="admin-dashboard-section-header">
           <h2 className="admin-dashboard-section-title">Recent Collector Inquiries</h2>
           <button className="admin-view-all-btn" onClick={() => navigate('/leads')}>

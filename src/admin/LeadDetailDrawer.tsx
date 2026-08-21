@@ -95,6 +95,8 @@ export default function LeadDetailDrawer({
   const [noteSaving, setNoteSaving] = useState(false);
   const [noteError, setNoteError] = useState<string | null>(null);
 
+  const [closing, setClosing] = useState(false);
+
   const drawerRef = useRef<HTMLDivElement>(null);
   const closeBtnRef = useRef<HTMLButtonElement>(null);
 
@@ -171,18 +173,23 @@ export default function LeadDetailDrawer({
     setNoteSaving(false);
   };
 
+  const handleClose = useCallback(() => {
+    if (closing) return;
+    setClosing(true);
+    setTimeout(() => onClose(), 250);
+  }, [closing, onClose]);
+
   // Focus management and Escape key
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape' && !saving && !showArchiveConfirm) {
-        onClose();
+        handleClose();
       }
     };
     document.addEventListener('keydown', handleKeyDown);
-    // Focus the close button on open
     setTimeout(() => closeBtnRef.current?.focus(), 100);
     return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [onClose, saving, showArchiveConfirm]);
+  }, [handleClose, saving, showArchiveConfirm]);
 
   const hasChanges = (): boolean => {
     if (!lead) return false;
@@ -295,21 +302,21 @@ export default function LeadDetailDrawer({
 
   return (
     <>
-      <div className="admin-drawer-overlay" onClick={() => !saving && onClose()} aria-hidden="true" />
+      <div className={`admin-drawer-overlay${closing ? ' admin-overlay-exiting' : ''}`} onClick={() => !saving && handleClose()} aria-hidden="true" />
       <div
         ref={drawerRef}
-        className="admin-lead-drawer"
+        className={`admin-lead-drawer${closing ? ' admin-drawer-exiting' : ''}`}
         role="dialog"
         aria-modal="true"
         aria-label="Lead detail"
       >
-        <div className="admin-drawer-header">
+        <div className="admin-drawer-header admin-drawer-section-enter" style={{ animationDelay: '0ms' }}>
           <h2 className="admin-drawer-title">Lead Details</h2>
           <button
             ref={closeBtnRef}
             className="admin-drawer-close"
-            onClick={onClose}
-            disabled={saving}
+            onClick={handleClose}
+            disabled={saving || closing}
             aria-label="Close lead detail"
           >
             <X size={18} strokeWidth={1.5} />
@@ -330,7 +337,7 @@ export default function LeadDetailDrawer({
           ) : lead ? (
             <>
               {/* Collector Section */}
-              <section className="admin-detail-section">
+              <section className="admin-detail-section admin-drawer-section-enter" style={{ animationDelay: '50ms' }}>
                 <h3 className="admin-detail-section-title">Collector</h3>
                 <div className="admin-detail-field">
                   <span className="admin-detail-label">Name</span>
@@ -365,7 +372,7 @@ export default function LeadDetailDrawer({
               </section>
 
               {/* Inquiry Section */}
-              <section className="admin-detail-section">
+              <section className="admin-detail-section admin-drawer-section-enter" style={{ animationDelay: '100ms' }}>
                 <h3 className="admin-detail-section-title">Inquiry</h3>
                 <div className="admin-detail-field">
                   <span className="admin-detail-label">Type</span>
@@ -389,7 +396,7 @@ export default function LeadDetailDrawer({
 
               {/* Artwork Section */}
               {lead.artwork_title && (
-                <section className="admin-detail-section">
+                <section className="admin-detail-section admin-drawer-section-enter" style={{ animationDelay: '150ms' }}>
                   <h3 className="admin-detail-section-title">Artwork</h3>
                   <div className="admin-detail-field">
                     <span className="admin-detail-label">Title</span>
@@ -417,7 +424,7 @@ export default function LeadDetailDrawer({
               )}
 
               {/* CRM Management Section */}
-              <section className="admin-detail-section">
+              <section className="admin-detail-section admin-drawer-section-enter" style={{ animationDelay: '200ms' }}>
                 <h3 className="admin-detail-section-title">CRM Management</h3>
 
                 <div className="admin-detail-field">
@@ -465,7 +472,7 @@ export default function LeadDetailDrawer({
               </section>
 
               {/* Internal Notes Section */}
-              <section className="admin-detail-section">
+              <section className="admin-detail-section admin-drawer-section-enter" style={{ animationDelay: '250ms' }}>
                 <h3 className="admin-detail-section-title">Internal Notes</h3>
 
                 {notesLoading ? (
@@ -516,7 +523,7 @@ export default function LeadDetailDrawer({
               </section>
 
               {/* Save + Archive/Restore */}
-              <div className="admin-detail-actions">
+              <div className="admin-detail-actions admin-drawer-section-enter" style={{ animationDelay: '300ms' }}>
                 {saveError && (
                   <div role="alert" className="admin-auth-error admin-detail-save-error">
                     {saveError}
@@ -565,7 +572,7 @@ export default function LeadDetailDrawer({
       {/* Archive Confirmation Modal */}
       {showArchiveConfirm && lead && (
         <div className="admin-modal-overlay" role="dialog" aria-modal="true" aria-label="Archive confirmation">
-          <div className="admin-modal-card">
+          <div className="admin-modal-card admin-modal-card-enter">
             <h3 className="admin-modal-title">Archive this lead?</h3>
             <p className="admin-modal-text">
               Archived leads are removed from active views but remain stored and can be restored.

@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Search, ChevronLeft, ChevronRight, AlertCircle, RotateCw } from 'lucide-react';
 import { getStoredSession } from './auth';
@@ -106,6 +106,7 @@ export default function LeadsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedLeadId, setSelectedLeadId] = useState<string | null>(null);
+  const hasMounted = useRef(false);
 
   const activePreset = useMemo(() => filterToPreset(filter), [filter]);
 
@@ -153,6 +154,10 @@ export default function LeadsPage() {
   useEffect(() => {
     loadLeads();
   }, [loadLeads]);
+
+  useEffect(() => {
+    requestAnimationFrame(() => { hasMounted.current = true; });
+  }, []);
 
   const handlePresetChange = (preset: PresetKey) => {
     const nextFilter = presetToFilter(preset);
@@ -235,12 +240,12 @@ export default function LeadsPage() {
     <div className="admin-leads-page">
       <div className="admin-leads-header">
         <div className="admin-leads-title-row">
-          <h1 className="admin-page-heading">Leads</h1>
-          <span className="admin-leads-count">{total} total</span>
+          <h1 className="admin-page-heading admin-entrance-heading">Leads</h1>
+          <span className="admin-leads-count admin-entrance-heading" style={{ animationDelay: '60ms' }}>{total} total</span>
         </div>
       </div>
 
-      <div className="admin-leads-filters">
+      <div className="admin-leads-filters admin-entrance-controls" style={{ animationDelay: '120ms' }}>
         <div className="admin-primary-filters" role="tablist" aria-label="Primary filters">
           {PRIMARY_FILTERS.map((f) => (
             <button
@@ -372,10 +377,14 @@ export default function LeadsPage() {
             </div>
 
             <div className="admin-leads-cards admin-mobile-only">
-              {leads.map((lead) => (
+              {leads.map((lead, index) => {
+                const showEntrance = !hasMounted.current;
+                const cardDelay = showEntrance ? Math.min(index, 7) * 50 : 0;
+                return (
                 <div
                   key={lead.id}
-                  className="admin-lead-card admin-lead-card-clickable"
+                  className={`admin-lead-card admin-lead-card-clickable${showEntrance ? ' admin-entrance-card' : ''}`}
+                  style={showEntrance ? { animationDelay: `${200 + cardDelay}ms` } : undefined}
                   onClick={() => handleLeadClick(lead.id)}
                   tabIndex={0}
                   onKeyDown={(e) => { if (e.key === 'Enter') handleLeadClick(lead.id); }}
@@ -409,7 +418,8 @@ export default function LeadsPage() {
                     <span className="admin-lead-card-value">{formatDate(lead.created_at)}</span>
                   </div>
                 </div>
-              ))}
+                );
+              })}
             </div>
 
             {totalPages > 1 && (
