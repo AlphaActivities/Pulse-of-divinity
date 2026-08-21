@@ -17,6 +17,8 @@ interface Props {
   className?: string;
 }
 
+const CLOSE_DURATION = 320;
+
 export default function StatusSelect({
   id,
   options,
@@ -27,31 +29,55 @@ export default function StatusSelect({
   className = '',
 }: Props) {
   const [open, setOpen] = useState(false);
+  const [menuMounted, setMenuMounted] = useState(false);
+  const [closing, setClosing] = useState(false);
   const [focusedIndex, setFocusedIndex] = useState(0);
   const containerRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
   const listRef = useRef<HTMLUListElement>(null);
+  const closeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const selectedOption = options.find((o) => o.value === value);
   const selectedColor = value ? STATUS_COLORS[value] : null;
   const activeClass = value ? statusClass(value) : '';
 
+  const openMenu = useCallback(() => {
+    if (closeTimerRef.current) {
+      clearTimeout(closeTimerRef.current);
+      closeTimerRef.current = null;
+    }
+    setClosing(false);
+    setMenuMounted(true);
+    setOpen(true);
+  }, []);
+
+  const closeMenu = useCallback(() => {
+    setClosing(true);
+    setOpen(false);
+    closeTimerRef.current = setTimeout(() => {
+      setMenuMounted(false);
+      setClosing(false);
+    }, CLOSE_DURATION);
+  }, []);
+
   const handleSelect = useCallback(
     (val: string) => {
       onChange(val);
-      setOpen(false);
+      closeMenu();
       buttonRef.current?.focus();
     },
-    [onChange]
+    [onChange, closeMenu]
   );
 
   const handleToggle = () => {
     if (disabled) return;
-    if (!open) {
+    if (open || closing) {
+      closeMenu();
+    } else {
       const idx = options.findIndex((o) => o.value === value);
       setFocusedIndex(idx >= 0 ? idx : 0);
+      openMenu();
     }
-    setOpen((prev) => !prev);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -62,7 +88,7 @@ export default function StatusSelect({
         e.preventDefault();
         const idx = options.findIndex((o) => o.value === value);
         setFocusedIndex(idx >= 0 ? idx : 0);
-        setOpen(true);
+        openMenu();
       }
       return;
     }
@@ -70,7 +96,7 @@ export default function StatusSelect({
     switch (e.key) {
       case 'Escape':
         e.preventDefault();
-        setOpen(false);
+        closeMenu();
         buttonRef.current?.focus();
         break;
       case 'ArrowDown':
@@ -87,7 +113,7 @@ export default function StatusSelect({
         handleSelect(options[focusedIndex].value);
         break;
       case 'Tab':
-        setOpen(false);
+        closeMenu();
         break;
     }
   };
@@ -96,12 +122,12 @@ export default function StatusSelect({
     if (!open) return;
     const handleClickOutside = (e: MouseEvent) => {
       if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
-        setOpen(false);
+        closeMenu();
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [open]);
+  }, [open, closeMenu]);
 
   useEffect(() => {
     if (open && listRef.current) {
@@ -109,6 +135,18 @@ export default function StatusSelect({
       el?.scrollIntoView({ block: 'nearest' });
     }
   }, [open, focusedIndex]);
+
+  useEffect(() => {
+    return () => {
+      if (closeTimerRef.current) {
+        clearTimeout(closeTimerRef.current);
+      }
+    };
+  }, []);
+
+  const menuClass = closing
+    ? 'admin-status-select-menu admin-status-menu-closing'
+    : 'admin-status-select-menu admin-status-menu-open';
 
   return (
     <div
@@ -143,12 +181,12 @@ export default function StatusSelect({
         />
       </button>
 
-      {open && (
+      {menuMounted && (
         <ul
           ref={listRef}
           role="listbox"
           aria-label={ariaLabel || 'Status options'}
-          className="admin-status-select-menu"
+          className={menuClass}
         >
           {options.map((opt, i) => {
             const color = opt.value ? STATUS_COLORS[opt.value] : null;
@@ -161,6 +199,7 @@ export default function StatusSelect({
                 aria-selected={isSelected}
                 data-index={i}
                 className={`admin-status-select-option ${isFocused ? 'focused' : ''} ${isSelected ? 'selected' : ''}`}
+                style={{ animationDelay: closing ? `${(options.length - 1 - i) * 35}ms` : `${i * 45}ms` }}
                 onClick={() => handleSelect(opt.value)}
                 onMouseEnter={() => setFocusedIndex(i)}
               >
