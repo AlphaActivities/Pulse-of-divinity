@@ -6,6 +6,7 @@ import type { AdminProfile } from './auth';
 import { fetchDashboardSummary } from './leadsApi';
 import type { DashboardSummary } from './leadsApi';
 import MetricIcon from './MetricIcon';
+import { statusClass, statusLabel } from './statusConfig';
 
 interface Props {
   profile: AdminProfile;
@@ -18,16 +19,6 @@ const INQUIRY_LABELS: Record<string, string> = {
   available_work: 'Artwork Inquiry',
   commission: 'Commission Inquiry',
   general: 'General Inquiry',
-};
-
-const STATUS_LABELS: Record<string, string> = {
-  NEW: 'New',
-  CONTACTED: 'Contacted',
-  ACTIVE_CONVERSATION: 'Active Conversation',
-  FOLLOW_UP: 'Follow-Up',
-  QUALIFIED: 'Qualified',
-  WON: 'Won',
-  CLOSED: 'Closed',
 };
 
 function formatDate(dateStr: string | null): string {
@@ -221,8 +212,8 @@ export default function DashboardHome({ profile, onLeadClick, justLoggedIn, onRe
                   </span>
                 </div>
                 <div className="admin-recent-meta">
-                  <span className={`admin-status-badge admin-status-${lead.status.toLowerCase()}`}>
-                    {STATUS_LABELS[lead.status] || lead.status}
+                  <span className={`admin-status-badge ${statusClass(lead.status)}`}>
+                    {statusLabel(lead.status)}
                   </span>
                   <span className="admin-recent-date">{formatDate(lead.created_at)}</span>
                 </div>

@@ -3,17 +3,8 @@ import { Search, ChevronLeft, ChevronRight, AlertCircle, RotateCw } from 'lucide
 import { getStoredSession } from './auth';
 import { fetchLeads } from './leadsApi';
 import type { LeadListItem, LeadDetail, PrimaryFilter } from './leadsApi';
+import { STATUS_OPTIONS, statusClass, statusLabel } from './statusConfig';
 import LeadDetailDrawer from './LeadDetailDrawer';
-
-const STATUS_LABELS: Record<string, string> = {
-  NEW: 'New',
-  CONTACTED: 'Contacted',
-  ACTIVE_CONVERSATION: 'Active Conversation',
-  FOLLOW_UP: 'Follow-Up',
-  QUALIFIED: 'Qualified',
-  WON: 'Won',
-  CLOSED: 'Closed',
-};
 
 const INQUIRY_LABELS: Record<string, string> = {
   available_work: 'Artwork Inquiry',
@@ -26,17 +17,6 @@ const PRIMARY_FILTERS: { key: PrimaryFilter; label: string }[] = [
   { key: 'new', label: 'New' },
   { key: 'follow_up', label: 'Follow-Up' },
   { key: 'archived', label: 'Archived' },
-];
-
-const STATUS_OPTIONS = [
-  { value: '', label: 'All Statuses' },
-  { value: 'NEW', label: 'New' },
-  { value: 'CONTACTED', label: 'Contacted' },
-  { value: 'ACTIVE_CONVERSATION', label: 'Active Conversation' },
-  { value: 'FOLLOW_UP', label: 'Follow-Up' },
-  { value: 'QUALIFIED', label: 'Qualified' },
-  { value: 'WON', label: 'Won' },
-  { value: 'CLOSED', label: 'Closed' },
 ];
 
 function formatDate(dateStr: string | null): string {
@@ -318,8 +298,8 @@ export default function LeadsPage() {
                         </span>
                       </td>
                       <td>
-                        <span className={`admin-status-badge admin-status-${lead.status.toLowerCase()}`}>
-                          {STATUS_LABELS[lead.status] || lead.status}
+                        <span className={`admin-status-badge ${statusClass(lead.status)}`}>
+                          {statusLabel(lead.status)}
                         </span>
                       </td>
                       <td>
@@ -347,8 +327,8 @@ export default function LeadsPage() {
                 >
                   <div className="admin-lead-card-top">
                     <span className="admin-lead-card-name">{lead.name}</span>
-                    <span className={`admin-status-badge admin-status-${lead.status.toLowerCase()}`}>
-                      {STATUS_LABELS[lead.status] || lead.status}
+                    <span className={`admin-status-badge ${statusClass(lead.status)}`}>
+                      {statusLabel(lead.status)}
                     </span>
                   </div>
                   <div className="admin-lead-card-row">

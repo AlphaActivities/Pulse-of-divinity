@@ -3,6 +3,7 @@ import { X, Mail, Phone, Archive, RotateCcw, AlertCircle, Check } from 'lucide-r
 import { getStoredSession } from './auth';
 import { fetchLeadDetail, updateLead, fetchNotes, addNote } from './leadsApi';
 import type { LeadDetail, UpdateLeadBody, LeadNote } from './leadsApi';
+import { STATUS_SELECT_OPTIONS, statusClass } from './statusConfig';
 
 interface Props {
   leadId: string;
@@ -11,16 +12,6 @@ interface Props {
   onLeadArchived: (lead: LeadDetail) => void;
   onLeadRestored: (lead: LeadDetail) => void;
 }
-
-const STATUS_OPTIONS = [
-  { value: 'NEW', label: 'New' },
-  { value: 'CONTACTED', label: 'Contacted' },
-  { value: 'ACTIVE_CONVERSATION', label: 'Active Conversation' },
-  { value: 'FOLLOW_UP', label: 'Follow-Up' },
-  { value: 'QUALIFIED', label: 'Qualified' },
-  { value: 'WON', label: 'Won' },
-  { value: 'CLOSED', label: 'Closed' },
-];
 
 const OUTCOME_OPTIONS = [
   { value: '', label: '—' },
@@ -454,10 +445,10 @@ export default function LeadDetailDrawer({
                     id="detail-status"
                     value={status}
                     onChange={(e) => setStatus(e.target.value)}
-                    className="admin-filter-select admin-detail-select"
+                    className={`admin-filter-select admin-detail-select admin-status-select ${statusClass(status)}`}
                     disabled={saving}
                   >
-                    {STATUS_OPTIONS.map((o) => (
+                    {STATUS_SELECT_OPTIONS.map((o) => (
                       <option key={o.value} value={o.value}>{o.label}</option>
                     ))}
                   </select>
