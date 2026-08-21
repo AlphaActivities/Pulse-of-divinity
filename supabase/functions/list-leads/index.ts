@@ -20,8 +20,8 @@ const PAGE_SIZE = 25;
 const MAX_SEARCH_LENGTH = 200;
 
 interface ListLeadsParams {
-  primaryFilter: "all_active" | "new" | "follow_up" | "archived";
-  statusFilter: string;
+  scope: "active" | "archived";
+  status: string;
   assignmentFilter: string;
   search: string;
   page: number;
@@ -29,14 +29,11 @@ interface ListLeadsParams {
 }
 
 function parseParams(url: URL, adminId: string): ListLeadsParams {
-  const primary = url.searchParams.get("primary") || "all_active";
-  const validPrimaries = new Set(["all_active", "new", "follow_up", "archived"]);
-  const primaryFilter = validPrimaries.has(primary)
-    ? (primary as ListLeadsParams["primaryFilter"])
-    : "all_active";
+  const scopeParam = url.searchParams.get("scope") || "active";
+  const scope = scopeParam === "archived" ? "archived" : "active";
 
-  const statusFilter = url.searchParams.get("status") || "";
-  const validStatus = VALID_STATUSES.has(statusFilter) ? statusFilter : "";
+  const status = url.searchParams.get("status") || "";
+  const validStatus = VALID_STATUSES.has(status) ? status : "";
 
   const assignmentFilter = url.searchParams.get("assignment") || "";
 
@@ -47,8 +44,8 @@ function parseParams(url: URL, adminId: string): ListLeadsParams {
   if (isNaN(page) || page < 1) page = 1;
 
   return {
-    primaryFilter,
-    statusFilter: validStatus,
+    scope,
+    status: validStatus,
     assignmentFilter,
     search,
     page,
@@ -112,30 +109,20 @@ Deno.serve(async (req: Request) => {
     const url = new URL(req.url);
     const params = parseParams(url, adminId);
 
-    // Build query
     let query = supabase.from("leads").select(
       "id, name, email, phone, contact_method, inquiry_type, interest, artwork_id, artwork_title, status, assigned_admin_id, follow_up_at, archived, archived_at, created_at",
       { count: "exact" },
     );
 
-    // Primary filter
-    if (params.primaryFilter === "archived") {
-      query = query.eq("archived", true);
-    } else {
-      query = query.eq("archived", false);
-      if (params.primaryFilter === "new") {
-        query = query.eq("status", "NEW");
-      } else if (params.primaryFilter === "follow_up") {
-        query = query.eq("status", "FOLLOW_UP");
-      }
+    // Scope: archived vs active
+    query = query.eq("archived", params.scope === "archived");
+
+    // Single optional status filter
+    if (params.status) {
+      query = query.eq("status", params.status);
     }
 
-    // Secondary status filter
-    if (params.statusFilter) {
-      query = query.eq("status", params.statusFilter);
-    }
-
-    // Secondary assignment filter
+    // Assignment filter
     if (params.assignmentFilter === "me") {
       query = query.eq("assigned_admin_id", params.adminId);
     } else if (params.assignmentFilter === "unassigned") {

@@ -1,9 +1,9 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { Search, ChevronLeft, ChevronRight, AlertCircle, RotateCw } from 'lucide-react';
 import { getStoredSession } from './auth';
 import { fetchLeads } from './leadsApi';
-import type { LeadListItem, LeadDetail, PrimaryFilter } from './leadsApi';
-import { STATUS_OPTIONS, statusClass, statusLabel, filterClass } from './statusConfig';
+import type { LeadListItem, LeadDetail, LeadScope, NormalizedFilter } from './leadsApi';
+import { STATUS_OPTIONS, STATUS_LABELS, statusClass, statusLabel, filterClass } from './statusConfig';
 import StatusSelect from './StatusSelect';
 import LeadDetailDrawer from './LeadDetailDrawer';
 
@@ -13,7 +13,9 @@ const INQUIRY_LABELS: Record<string, string> = {
   general: 'General Inquiry',
 };
 
-const PRIMARY_FILTERS: { key: PrimaryFilter; label: string }[] = [
+type PresetKey = 'all_active' | 'new' | 'follow_up' | 'archived';
+
+const PRIMARY_FILTERS: { key: PresetKey; label: string }[] = [
   { key: 'all_active', label: 'All Active' },
   { key: 'new', label: 'New' },
   { key: 'follow_up', label: 'Follow-Up' },
@@ -35,12 +37,43 @@ function isOverdue(followUpAt: string | null, archived: boolean): boolean {
   return followUp < today;
 }
 
-function getEmptyMessage(primary: PrimaryFilter, hasSearch: boolean): string {
+function presetToFilter(preset: PresetKey): NormalizedFilter {
+  switch (preset) {
+    case 'all_active':
+      return { scope: 'active', status: '' };
+    case 'new':
+      return { scope: 'active', status: 'NEW' };
+    case 'follow_up':
+      return { scope: 'active', status: 'FOLLOW_UP' };
+    case 'archived':
+      return { scope: 'archived', status: '' };
+  }
+}
+
+function filterToPreset(filter: NormalizedFilter): PresetKey {
+  if (filter.scope === 'archived') return 'archived';
+  if (filter.status === 'NEW') return 'new';
+  if (filter.status === 'FOLLOW_UP') return 'follow_up';
+  return 'all_active';
+}
+
+function getEmptyMessage(filter: NormalizedFilter, hasSearch: boolean): string {
   if (hasSearch) return 'No leads match your search.';
-  if (primary === 'archived') return 'No archived leads.';
-  if (primary === 'new') return 'No new leads.';
-  if (primary === 'follow_up') return 'No leads currently require follow-up.';
-  return 'No collector inquiries yet.';
+  if (filter.scope === 'archived') {
+    if (filter.status) return `No archived ${STATUS_LABELS[filter.status]?.toLowerCase() || filter.status.toLowerCase()} leads.`;
+    return 'No archived leads.';
+  }
+  if (filter.status === 'NEW') return 'No new leads.';
+  if (filter.status === 'FOLLOW_UP') return 'No leads currently require follow-up.';
+  if (filter.status) return `No ${STATUS_LABELS[filter.status]?.toLowerCase() || filter.status.toLowerCase()} leads.`;
+  return 'No active leads.';
+}
+
+function leadMatchesFilter(lead: LeadDetail, filter: NormalizedFilter): boolean {
+  if (filter.scope === 'archived') return lead.archived;
+  if (lead.archived) return false;
+  if (filter.status && lead.status !== filter.status) return false;
+  return true;
 }
 
 export default function LeadsPage() {
@@ -48,13 +81,14 @@ export default function LeadsPage() {
   const [total, setTotal] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
   const [page, setPage] = useState(1);
-  const [primaryFilter, setPrimaryFilter] = useState<PrimaryFilter>('all_active');
-  const [statusFilter, setStatusFilter] = useState('');
+  const [filter, setFilter] = useState<NormalizedFilter>({ scope: 'active', status: '' });
   const [searchInput, setSearchInput] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedLeadId, setSelectedLeadId] = useState<string | null>(null);
+
+  const activePreset = useMemo(() => filterToPreset(filter), [filter]);
 
   const loadLeads = useCallback(async () => {
     setLoading(true);
@@ -68,8 +102,9 @@ export default function LeadsPage() {
     }
 
     const { data, error: fetchError, status } = await fetchLeads(session.access_token, {
-      primaryFilter,
-      statusFilter,
+      scope: filter.scope,
+      status: filter.status,
+      assignmentFilter: '',
       search: searchQuery,
       page,
     });
@@ -89,19 +124,30 @@ export default function LeadsPage() {
       setTotalPages(data.total_pages);
     }
     setLoading(false);
-  }, [primaryFilter, statusFilter, searchQuery, page]);
+  }, [filter, searchQuery, page]);
 
   useEffect(() => {
     loadLeads();
   }, [loadLeads]);
 
-  const handlePrimaryFilterChange = (filter: PrimaryFilter) => {
-    setPrimaryFilter(filter);
+  const handlePresetChange = (preset: PresetKey) => {
+    setFilter(presetToFilter(preset));
     setPage(1);
   };
 
-  const handleStatusFilterChange = (value: string) => {
-    setStatusFilter(value);
+  const handleStatusChange = (value: string) => {
+    setFilter((prev) => {
+      // If current preset is NEW or FOLLOW-UP and user picks a different status,
+      // promote to ALL ACTIVE (scope stays active, status becomes the selection).
+      const currentPreset = filterToPreset(prev);
+      if (
+        (currentPreset === 'new' || currentPreset === 'follow_up') &&
+        value !== prev.status
+      ) {
+        return { scope: 'active' as LeadScope, status: value };
+      }
+      return { ...prev, status: value };
+    });
     setPage(1);
   };
 
@@ -126,7 +172,6 @@ export default function LeadsPage() {
   };
 
   const handleLeadUpdated = (updatedLead: LeadDetail) => {
-    // Update the lead in the list with new CRM fields
     setLeads(prev => prev.map(l => {
       if (l.id !== updatedLead.id) return l;
       return {
@@ -136,19 +181,16 @@ export default function LeadsPage() {
       };
     }));
 
-    // If the updated lead no longer matches the current filter, reload
-    if (!leadMatchesFilter(updatedLead, primaryFilter)) {
+    if (!leadMatchesFilter(updatedLead, filter)) {
       loadLeads();
     }
   };
 
   const handleLeadArchived = (archivedLead: LeadDetail) => {
-    // Archived lead should leave active views
-    if (primaryFilter !== 'archived') {
+    if (filter.scope !== 'archived') {
       setLeads(prev => prev.filter(l => l.id !== archivedLead.id));
       setTotal(prev => prev - 1);
     } else {
-      // Already in archived view, just update the list item
       setLeads(prev => prev.map(l => l.id === archivedLead.id ? {
         ...l,
         archived: true,
@@ -159,8 +201,7 @@ export default function LeadsPage() {
   };
 
   const handleLeadRestored = (restoredLead: LeadDetail) => {
-    // Restored lead should leave archived view
-    if (primaryFilter === 'archived') {
+    if (filter.scope === 'archived') {
       setLeads(prev => prev.filter(l => l.id !== restoredLead.id));
       setTotal(prev => prev - 1);
     } else {
@@ -188,9 +229,9 @@ export default function LeadsPage() {
             <button
               key={f.key}
               role="tab"
-              aria-selected={primaryFilter === f.key}
-              className={`admin-filter-chip ${filterClass(f.key)} ${primaryFilter === f.key ? 'active' : ''}`}
-              onClick={() => handlePrimaryFilterChange(f.key)}
+              aria-selected={activePreset === f.key}
+              className={`admin-filter-chip ${filterClass(f.key)} ${activePreset === f.key ? 'active' : ''}`}
+              onClick={() => handlePresetChange(f.key)}
             >
               {f.label}
             </button>
@@ -228,8 +269,8 @@ export default function LeadsPage() {
             <StatusSelect
               id="status-filter"
               options={STATUS_OPTIONS}
-              value={statusFilter}
-              onChange={handleStatusFilterChange}
+              value={filter.status}
+              onChange={handleStatusChange}
               ariaLabel="Filter by status"
             />
           </div>
@@ -253,7 +294,7 @@ export default function LeadsPage() {
           </div>
         ) : leads.length === 0 ? (
           <div className="admin-leads-empty">
-            <p className="admin-empty-text">{getEmptyMessage(primaryFilter, !!searchQuery)}</p>
+            <p className="admin-empty-text">{getEmptyMessage(filter, !!searchQuery)}</p>
           </div>
         ) : (
           <>
@@ -394,19 +435,4 @@ export default function LeadsPage() {
       )}
     </div>
   );
-}
-
-function leadMatchesFilter(lead: LeadDetail, filter: PrimaryFilter): boolean {
-  switch (filter) {
-    case 'all_active':
-      return !lead.archived;
-    case 'new':
-      return !lead.archived && lead.status === 'NEW';
-    case 'follow_up':
-      return !lead.archived && lead.status === 'FOLLOW_UP';
-    case 'archived':
-      return lead.archived;
-    default:
-      return true;
-  }
 }

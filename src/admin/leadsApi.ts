@@ -16,6 +16,13 @@ function fetchWithTimeout(
 
 export type PrimaryFilter = 'all_active' | 'new' | 'follow_up' | 'archived';
 
+export type LeadScope = 'active' | 'archived';
+
+export interface NormalizedFilter {
+  scope: LeadScope;
+  status: string;
+}
+
 export interface LeadListItem {
   id: string;
   name: string;
@@ -78,8 +85,8 @@ export interface ListLeadsResponse {
 }
 
 export interface ListLeadsParams {
-  primaryFilter: PrimaryFilter;
-  statusFilter: string;
+  scope: LeadScope;
+  status: string;
   assignmentFilter: string;
   search: string;
   page: number;
@@ -90,11 +97,11 @@ export async function fetchLeads(
   params: ListLeadsParams,
 ): Promise<{ data: ListLeadsResponse | null; error: string | null; status: number }> {
   const searchParams = new URLSearchParams({
-    primary: params.primaryFilter,
+    scope: params.scope,
     page: String(params.page),
   });
 
-  if (params.statusFilter) searchParams.set('status', params.statusFilter);
+  if (params.status) searchParams.set('status', params.status);
   if (params.assignmentFilter) searchParams.set('assignment', params.assignmentFilter);
   if (params.search) searchParams.set('search', params.search);
 
