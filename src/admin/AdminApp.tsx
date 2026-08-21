@@ -93,7 +93,7 @@ export default function AdminApp() {
   if (!profile) {
     return (
       <Routes>
-        <Route path="login" element={<AdminLogin onSuccess={handleLoginSuccess} skipEntrance={false} />} />
+        <Route path="login" element={<AdminLogin onSuccess={handleLoginSuccess} skipEntrance={true} />} />
         <Route path="*" element={<Navigate to="login" replace state={{ from: location.pathname }} />} />
       </Routes>
     );

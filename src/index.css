@@ -1151,34 +1151,6 @@ select::placeholder {
     animation: none !important;
   }
 
-  .admin-entrance-overlay {
-    opacity: 0 !important;
-    animation: none !important;
-  }
-
-  .admin-entrance-container::before {
-    opacity: 0.5 !important;
-    transform: translate(-50%, -50%) scale(1) !important;
-    animation: none !important;
-  }
-
-  .admin-entrance-active .admin-entrance-card,
-  .admin-entrance-active .admin-auth-eyebrow,
-  .admin-entrance-active .admin-auth-title,
-  .admin-entrance-active .admin-entrance-divider,
-  .admin-entrance-active .admin-entrance-form {
-    opacity: 1 !important;
-    transform: none !important;
-    animation: none !important;
-  }
-
-  .admin-entrance-active .admin-auth-logo,
-  .admin-auth-logo {
-    opacity: 0.85 !important;
-    transform: translateX(-22px) !important;
-    animation: none !important;
-  }
-
   .admin-auth-card-dissolving {
     opacity: 0 !important;
     transform: none !important;
@@ -1212,7 +1184,6 @@ select::placeholder {
   .admin-entrance-subtext,
   .admin-entrance-section,
   .admin-entrance-controls,
-  .admin-entrance-card,
   .admin-drawer-section-enter,
   .admin-modal-card-enter {
     opacity: 1 !important;
@@ -1389,12 +1360,6 @@ select::placeholder {
   margin: 1.25rem auto 0;
 }
 
-.admin-entrance-divider {
-  opacity: 0;
-  transform: scaleX(0);
-  transform-origin: center;
-}
-
 /* ── Auth form ── */
 .admin-auth-form {
   display: flex;
@@ -1546,159 +1511,6 @@ select::placeholder {
   color: rgba(250, 243, 217, 0.7);
   text-align: center;
   margin-bottom: 1.5rem;
-}
-
-/* ─────────────────────────────────────────
-   ADMIN ENTRANCE ANIMATION — Luxury login reveal
-   ~2 second sequence: field → gold light → logo → card → form
-───────────────────────────────────────── */
-
-/* Entrance overlay — covers the container with a dark field that fades */
-.admin-entrance-overlay {
-  position: absolute;
-  inset: 0;
-  background: #1a0f1a;
-  z-index: 2;
-  pointer-events: none;
-}
-
-/* Atmospheric gold glow — pseudo-element on the container */
-.admin-entrance-container::before {
-  content: '';
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 600px;
-  height: 600px;
-  max-width: 120vw;
-  max-height: 120vh;
-  border-radius: 50%;
-  background: radial-gradient(circle, rgba(201, 162, 39, 0.06) 0%, transparent 60%);
-  transform: translate(-50%, -50%) scale(0.8);
-  opacity: 0;
-  pointer-events: none;
-  z-index: 0;
-}
-
-/* Active entrance state — elements start hidden, animate in */
-.admin-entrance-active .admin-entrance-overlay {
-  animation: adminEntranceOverlay 0.6s ease forwards;
-}
-
-.admin-entrance-active::before {
-  animation: adminEntranceGlow 1.2s ease forwards;
-  animation-delay: 0.2s;
-}
-
-.admin-entrance-active .admin-entrance-card {
-  opacity: 0;
-  transform: translateY(6px) scale(0.99);
-  animation: adminEntranceCard 0.6s cubic-bezier(0.22, 1, 0.36, 1) forwards;
-  animation-delay: 0.3s;
-}
-
-.admin-entrance-active .admin-auth-logo {
-  opacity: 0;
-  animation: adminEntranceLogo 0.5s ease forwards;
-  animation-delay: 0.15s;
-  transform: translateX(-22px) translateY(4px);
-}
-
-.admin-entrance-active .admin-auth-eyebrow {
-  opacity: 0;
-  animation: adminEntranceText 0.45s ease forwards;
-  animation-delay: 0.25s;
-}
-
-.admin-entrance-active .admin-auth-title {
-  opacity: 0;
-  animation: adminEntranceText 0.45s ease forwards;
-  animation-delay: 0.3s;
-}
-
-.admin-entrance-active .admin-entrance-divider {
-  opacity: 0;
-  transform: scaleX(0);
-  transform-origin: center;
-  animation: adminEntranceDivider 0.5s ease forwards;
-  animation-delay: 0.35s;
-}
-
-.admin-entrance-active .admin-entrance-form {
-  opacity: 0;
-  animation: adminEntranceForm 0.5s ease forwards;
-  animation-delay: 0.45s;
-}
-
-/* Completed entrance state — everything visible */
-.admin-entrance-done .admin-entrance-overlay {
-  opacity: 0;
-}
-
-.admin-entrance-done::before {
-  opacity: 0.5;
-}
-
-.admin-entrance-done .admin-entrance-card {
-  opacity: 1;
-  transform: none;
-}
-
-.admin-entrance-done .admin-auth-logo {
-  opacity: 0.85;
-  transform: translateX(-22px);
-}
-
-.admin-entrance-done .admin-auth-eyebrow,
-.admin-entrance-done .admin-auth-title {
-  opacity: 1;
-}
-
-.admin-entrance-done .admin-entrance-divider {
-  opacity: 1;
-  transform: scaleX(1);
-  transform-origin: center;
-  animation: none;
-}
-
-.admin-entrance-done .admin-entrance-form {
-  opacity: 1;
-}
-
-/* Keyframes */
-@keyframes adminEntranceOverlay {
-  from { opacity: 1; }
-  to { opacity: 0; }
-}
-
-@keyframes adminEntranceGlow {
-  from { opacity: 0; transform: translate(-50%, -50%) scale(0.8); }
-  to { opacity: 0.5; transform: translate(-50%, -50%) scale(1); }
-}
-
-@keyframes adminEntranceLogo {
-  from { opacity: 0; transform: translateX(-22px) translateY(4px); }
-  to { opacity: 0.85; transform: translateX(-22px) translateY(0); }
-}
-
-@keyframes adminEntranceText {
-  from { opacity: 0; transform: translateY(6px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-@keyframes adminEntranceDivider {
-  from { opacity: 0; transform: scaleX(0); }
-  to { opacity: 1; transform: scaleX(1); }
-}
-
-@keyframes adminEntranceCard {
-  from { opacity: 0; transform: translateY(6px) scale(0.99); }
-  to { opacity: 1; transform: translateY(0) scale(1); }
-}
-
-@keyframes adminEntranceForm {
-  from { opacity: 0; }
-  to { opacity: 1; }
 }
 
 /* ─────────────────────────────────────────

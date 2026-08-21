@@ -8,15 +8,13 @@ interface Props {
   skipEntrance: boolean;
 }
 
-const ENTRANCE_DURATION = 1000;
 const SUCCESS_TRANSITION_DURATION = 1100;
 const PROFILE_TIMEOUT_MS = 12000;
 
-export default function AdminLogin({ onSuccess, skipEntrance }: Props) {
+export default function AdminLogin({ onSuccess }: Props) {
   const navigate = useNavigate();
   const emailRef = useRef<HTMLInputElement>(null);
   const successTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const entranceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const mountedRef = useRef(true);
 
   const [email, setEmail] = useState('');
@@ -25,23 +23,11 @@ export default function AdminLogin({ onSuccess, skipEntrance }: Props) {
   const [loading, setLoading] = useState(false);
   const [resetMode, setResetMode] = useState(false);
   const [resetSent, setResetSent] = useState(false);
-
-  const [entranceComplete, setEntranceComplete] = useState(skipEntrance);
   const [authTransitioning, setAuthTransitioning] = useState(false);
 
   useEffect(() => {
     mountedRef.current = true;
-
-    if (!skipEntrance) {
-      entranceTimerRef.current = setTimeout(() => {
-        if (mountedRef.current) {
-          setEntranceComplete(true);
-          emailRef.current?.focus();
-        }
-      }, ENTRANCE_DURATION);
-    } else {
-      emailRef.current?.focus();
-    }
+    emailRef.current?.focus();
 
     return () => {
       mountedRef.current = false;
@@ -49,12 +35,8 @@ export default function AdminLogin({ onSuccess, skipEntrance }: Props) {
         clearTimeout(successTimerRef.current);
         successTimerRef.current = null;
       }
-      if (entranceTimerRef.current) {
-        clearTimeout(entranceTimerRef.current);
-        entranceTimerRef.current = null;
-      }
     };
-  }, [skipEntrance]);
+  }, []);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -182,19 +164,9 @@ export default function AdminLogin({ onSuccess, skipEntrance }: Props) {
     );
   }
 
-  const entranceClass = skipEntrance
-    ? ''
-    : entranceComplete
-      ? 'admin-entrance-done'
-      : 'admin-entrance-active';
-
-  const formLocked = !skipEntrance && !entranceComplete;
-
   return (
-    <div className={`admin-auth-container admin-entrance-container ${entranceClass}`}>
-      <div className="admin-entrance-overlay" aria-hidden="true" />
-
-      <div className="admin-auth-card admin-entrance-card">
+    <div className="admin-auth-container">
+      <div className="admin-auth-card">
         <div className="admin-auth-header">
           <img
             src="/images/admin-logo-small.webp"
@@ -207,16 +179,14 @@ export default function AdminLogin({ onSuccess, skipEntrance }: Props) {
           <h1 className="admin-auth-title">
             {resetMode ? 'Reset Password' : 'Admin Access'}
           </h1>
-          <div className="admin-auth-divider admin-entrance-divider" />
+          <div className="admin-auth-divider" />
         </div>
 
         {!resetMode ? (
           <form
             onSubmit={handleLogin}
-            className="admin-auth-form admin-entrance-form"
+            className="admin-auth-form"
             autoComplete="on"
-            style={formLocked ? { pointerEvents: 'none' } : undefined}
-            aria-hidden={formLocked ? true : undefined}
           >
             <div className="admin-field-group">
               <label htmlFor="admin-email" className="admin-field-label">
@@ -231,8 +201,7 @@ export default function AdminLogin({ onSuccess, skipEntrance }: Props) {
                 required
                 autoComplete="email"
                 className="admin-field-input"
-                disabled={loading || formLocked}
-                tabIndex={formLocked ? -1 : 0}
+                disabled={loading}
               />
             </div>
 
@@ -248,8 +217,7 @@ export default function AdminLogin({ onSuccess, skipEntrance }: Props) {
                 required
                 autoComplete="current-password"
                 className="admin-field-input"
-                disabled={loading || formLocked}
-                tabIndex={formLocked ? -1 : 0}
+                disabled={loading}
               />
             </div>
 
@@ -262,7 +230,7 @@ export default function AdminLogin({ onSuccess, skipEntrance }: Props) {
             <button
               type="submit"
               className={`admin-btn-primary ${loading ? 'admin-btn-loading' : ''}`}
-              disabled={loading || formLocked}
+              disabled={loading}
             >
               {loading ? (
                 <span className="admin-btn-shimmer" aria-label="Signing in">
@@ -281,8 +249,7 @@ export default function AdminLogin({ onSuccess, skipEntrance }: Props) {
                 setError(null);
                 setResetMode(true);
               }}
-              disabled={loading || formLocked}
-              tabIndex={formLocked ? -1 : 0}
+              disabled={loading}
             >
               Forgot Password?
             </button>
