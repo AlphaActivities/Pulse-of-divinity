@@ -2797,6 +2797,16 @@ select::placeholder {
   .admin-nav-item {
     padding: 0.4rem 0.5rem;
   }
+
+  .admin-field-input,
+  .admin-search-input,
+  .admin-filter-select,
+  .admin-status-select-trigger,
+  .admin-status-select-option,
+  .admin-detail-select,
+  .admin-note-textarea {
+    font-size: 16px;
+  }
 }
 
 @media (max-width: 480px) {
