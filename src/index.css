@@ -3006,6 +3006,16 @@ select::placeholder {
   min-height: 40px;
 }
 
+/* Full-opacity backgrounds for selects inside the lead detail drawer */
+.admin-detail-select-wrapper .admin-status-select-trigger,
+.admin-detail-select {
+  background: #1a0f1a;
+}
+
+.admin-detail-select-wrapper .admin-status-select-menu {
+  background: #2a1629;
+}
+
 /* ── Follow-up row ── */
 .admin-followup-row {
   display: flex;
