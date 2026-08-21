@@ -2537,7 +2537,8 @@ select::placeholder {
   list-style: none;
   margin: 0;
   padding: 0.25rem 0;
-  background: #2a1629;
+  background-color: #2a1629;
+  opacity: 1;
   border: 1px solid rgba(201, 162, 39, 0.18);
   border-radius: 3px;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
@@ -2550,7 +2551,7 @@ select::placeholder {
 }
 
 .admin-status-menu-open .admin-status-select-option {
-  opacity: 0;
+  opacity: 1;
   animation: adminStatusOptionOpen 0.4s cubic-bezier(0.22, 1, 0.36, 1) forwards;
 }
 
@@ -2574,8 +2575,8 @@ select::placeholder {
 }
 
 @keyframes adminStatusOptionOpen {
-  from { opacity: 0; transform: translateY(-8px); }
-  to { opacity: 1; transform: translateY(0); }
+  from { transform: translateY(-8px); }
+  to { transform: translateY(0); }
 }
 
 @keyframes adminStatusOptionClose {
