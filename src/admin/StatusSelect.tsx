@@ -31,10 +31,14 @@ export default function StatusSelect({
   scrollContainerRef,
 }: Props) {
   const [open, setOpen] = useState(false);
+  const [closing, setClosing] = useState(false);
   const [focusedIndex, setFocusedIndex] = useState(0);
   const containerRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
   const listRef = useRef<HTMLUListElement>(null);
+  const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const CLOSE_DURATION = 110;
 
   const selectedOption = options.find((o) => o.value === value);
   const selectedColor = value ? STATUS_COLORS[value] : null;
@@ -47,12 +51,23 @@ export default function StatusSelect({
   }, [options, value]);
 
   const closeMenu = useCallback(() => {
-    setOpen(false);
+    if (!open || closing) return;
+    setClosing(true);
+    if (closeTimer.current) clearTimeout(closeTimer.current);
+    closeTimer.current = setTimeout(() => {
+      setOpen(false);
+      setClosing(false);
+      closeTimer.current = null;
+    }, CLOSE_DURATION);
+  }, [open, closing]);
+
+  useEffect(() => () => {
+    if (closeTimer.current) clearTimeout(closeTimer.current);
   }, []);
 
   useEffect(() => {
-    onOpenChange?.(open);
-  }, [open, onOpenChange]);
+    onOpenChange?.(open || closing);
+  }, [open, closing, onOpenChange]);
 
   useEffect(() => {
     if (!open) return;
@@ -86,7 +101,9 @@ export default function StatusSelect({
   const handleSelect = useCallback(
     (val: string) => {
       onChange(val);
+      if (closeTimer.current) clearTimeout(closeTimer.current);
       setOpen(false);
+      setClosing(false);
       buttonRef.current?.focus();
     },
     [onChange]
@@ -138,15 +155,24 @@ export default function StatusSelect({
   };
 
   useEffect(() => {
-    if (!open) return;
+    if (!open || closing) return;
     const handleClickOutside = (e: MouseEvent) => {
       if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
         closeMenu();
       }
     };
+    const handleUserScroll = () => {
+      closeMenu();
+    };
     document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [open, closeMenu]);
+    document.addEventListener('wheel', handleUserScroll, { passive: true });
+    document.addEventListener('touchmove', handleUserScroll, { passive: true });
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('wheel', handleUserScroll);
+      document.removeEventListener('touchmove', handleUserScroll);
+    };
+  }, [open, closing, closeMenu]);
 
   return (
     <div
@@ -181,12 +207,12 @@ export default function StatusSelect({
         />
       </button>
 
-      {open && (
+      {(open || closing) && (
         <ul
           ref={listRef}
           role="listbox"
           aria-label={ariaLabel || 'Status options'}
-          className="admin-status-select-menu admin-status-menu-open"
+          className={`admin-status-select-menu ${closing ? 'admin-status-menu-closing' : 'admin-status-menu-open'}`}
         >
           {options.map((opt, i) => {
             const color = opt.value ? STATUS_COLORS[opt.value] : null;
