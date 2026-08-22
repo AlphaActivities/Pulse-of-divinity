@@ -2739,8 +2739,8 @@ select::placeholder {
 
   .admin-filter-chip {
     flex-shrink: 0;
-    padding-left: 0.82rem;
-    padding-right: 0.82rem;
+    padding-left: 0.79rem;
+    padding-right: 0.79rem;
   }
 
   .admin-nav {
