@@ -1185,6 +1185,8 @@ select::placeholder {
   .admin-entrance-section,
   .admin-entrance-controls,
   .admin-drawer-section-enter,
+  .admin-drawer-header-enter,
+  .admin-drawer-crm-enter,
   .admin-modal-card-enter,
   .admin-reveal-logo,
   .admin-reveal-eyebrow,
@@ -2817,8 +2819,8 @@ select::placeholder {
 }
 
 @keyframes adminSlideIn {
-  from { transform: translateX(100%); }
-  to { transform: translateX(0); }
+  from { transform: translateX(40px); }
+  to { transform: none; }
 }
 
 /* ── Drawer header ── */
@@ -3312,16 +3314,51 @@ select::placeholder {
   to { opacity: 1; transform: translateY(0); }
 }
 
-/* DRAWER SECTION REVEAL — inside drawer */
+/* DRAWER SECTION REVEAL — vertical/depth cascade */
 @keyframes admin-drawer-section-reveal {
-  from { transform: translateX(8px); }
+  from { opacity: 0; transform: translateY(10px) scale(0.99); }
+  to { opacity: 1; transform: none; }
+}
+
+/* DRAWER HEADER REVEAL — soft materialization */
+@keyframes admin-drawer-header-reveal {
+  from { opacity: 0; transform: translateY(5px); }
+  to { opacity: 1; transform: none; }
+}
+
+/* DRAWER CRM REVEAL — no opacity for StatusSelect protection */
+@keyframes admin-drawer-crm-reveal {
+  from { transform: translateY(10px) scale(0.99); }
   to { transform: none; }
 }
 
-/* DRAWER EXIT — slide right + fade */
+/* DRAWER EXIT — subtle slide right + fade */
 @keyframes admin-drawer-exit {
-  from { transform: translateX(0); }
-  to { transform: translateX(100%); }
+  from { transform: translateX(0); opacity: 1; }
+  to { transform: translateX(40px); opacity: 0; }
+}
+
+/* ── Drawer entrance/exit classes (all breakpoints) ── */
+.admin-drawer-header-enter {
+  opacity: 0;
+  animation: admin-drawer-header-reveal 0.4s cubic-bezier(0.22, 1, 0.36, 1) backwards;
+}
+
+.admin-drawer-section-enter {
+  opacity: 0;
+  animation: admin-drawer-section-reveal 0.4s cubic-bezier(0.22, 1, 0.36, 1) backwards;
+}
+
+.admin-drawer-crm-enter {
+  animation: admin-drawer-crm-reveal 0.4s cubic-bezier(0.22, 1, 0.36, 1) backwards;
+}
+
+.admin-drawer-exiting {
+  animation: admin-drawer-exit 0.24s cubic-bezier(0.4, 0, 0.6, 1) forwards !important;
+}
+
+.admin-overlay-exiting {
+  animation: admin-overlay-exit 0.24s ease forwards !important;
 }
 
 /* OVERLAY EXIT — fade out */
@@ -3362,18 +3399,6 @@ select::placeholder {
   .admin-entrance-card {
     opacity: 0;
     animation: admin-soft-reveal 0.45s cubic-bezier(0.22, 1, 0.36, 1) forwards;
-  }
-
-  .admin-drawer-section-enter {
-    animation: admin-drawer-section-reveal 0.45s cubic-bezier(0.22, 1, 0.36, 1) backwards;
-  }
-
-  .admin-drawer-exiting {
-    animation: admin-drawer-exit 0.25s cubic-bezier(0.4, 0, 0.6, 1) forwards !important;
-  }
-
-  .admin-overlay-exiting {
-    animation: admin-overlay-exit 0.25s ease forwards !important;
   }
 
   .admin-modal-card-enter {
