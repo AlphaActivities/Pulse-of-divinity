@@ -78,7 +78,7 @@ Deno.serve(async (req: Request) => {
       .from("lead_notes")
       .select("id, lead_id, body, author_admin_id, created_at")
       .eq("lead_id", leadId)
-      .order("created_at", { ascending: false });
+      .order("created_at", { ascending: true });
 
     if (error) {
       return new Response(JSON.stringify({ error: "Failed to retrieve notes" }), {

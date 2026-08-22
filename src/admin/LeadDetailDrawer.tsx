@@ -170,7 +170,7 @@ export default function LeadDetailDrawer({
       setNoteSaving(false);
       return;
     }
-    setNotes(prev => [data, ...prev]);
+    setNotes(prev => [...prev, data]);
     setNoteText('');
     setNoteSaving(false);
   };
