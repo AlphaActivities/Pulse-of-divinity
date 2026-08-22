@@ -2537,6 +2537,7 @@ select::placeholder {
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
   overflow: hidden;
   transform-origin: top center;
+  isolation: isolate;
 }
 
 /* ── Container-level luxury entrance (rows stay fully opaque) ── */
@@ -3318,8 +3319,8 @@ select::placeholder {
 
 /* DRAWER SECTION REVEAL — inside drawer */
 @keyframes admin-drawer-section-reveal {
-  from { opacity: 0; transform: translateX(8px); }
-  to { opacity: 1; transform: translateX(0); }
+  from { transform: translateX(8px); }
+  to { transform: translateX(0); }
 }
 
 /* DRAWER EXIT — slide right + fade */
@@ -3369,7 +3370,6 @@ select::placeholder {
   }
 
   .admin-drawer-section-enter {
-    opacity: 0;
     animation: admin-drawer-section-reveal 0.45s cubic-bezier(0.22, 1, 0.36, 1) forwards;
   }
 
