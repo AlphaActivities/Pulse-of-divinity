@@ -3320,7 +3320,7 @@ select::placeholder {
 /* DRAWER SECTION REVEAL — inside drawer */
 @keyframes admin-drawer-section-reveal {
   from { transform: translateX(8px); }
-  to { transform: translateX(0); }
+  to { transform: none; }
 }
 
 /* DRAWER EXIT — slide right + fade */
