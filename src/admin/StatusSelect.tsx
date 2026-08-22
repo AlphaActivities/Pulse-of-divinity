@@ -32,18 +32,10 @@ export default function StatusSelect({
   const [menuMounted, setMenuMounted] = useState(false);
   const [closing, setClosing] = useState(false);
   const [focusedIndex, setFocusedIndex] = useState(0);
-  const [isMobile, setIsMobile] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
   const listRef = useRef<HTMLUListElement>(null);
   const closeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  useEffect(() => {
-    const check = () => setIsMobile(window.matchMedia('(max-width: 768px)').matches);
-    check();
-    window.addEventListener('resize', check);
-    return () => window.removeEventListener('resize', check);
-  }, []);
 
   const selectedOption = options.find((o) => o.value === value);
   const selectedColor = value ? STATUS_COLORS[value] : null;
@@ -189,13 +181,6 @@ export default function StatusSelect({
         />
       </button>
 
-      {menuMounted && isMobile && (
-        <div
-          className="admin-status-select-mobile-backdrop"
-          onClick={() => closeMenu()}
-          aria-hidden="true"
-        />
-      )}
       {menuMounted && (
         <ul
           ref={listRef}
@@ -214,7 +199,6 @@ export default function StatusSelect({
                 aria-selected={isSelected}
                 data-index={i}
                 className={`admin-status-select-option ${isFocused ? 'focused' : ''} ${isSelected ? 'selected' : ''}`}
-                style={{ animationDelay: closing ? `${(options.length - 1 - i) * 25}ms` : `${i * 35}ms` }}
                 onClick={() => handleSelect(opt.value)}
                 onMouseEnter={() => setFocusedIndex(i)}
               >

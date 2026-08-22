@@ -1210,13 +1210,6 @@ select::placeholder {
     transform: none !important;
     animation: none !important;
   }
-
-  .admin-status-menu-open .admin-status-select-option,
-  .admin-status-menu-closing .admin-status-select-option {
-    opacity: 1 !important;
-    transform: none !important;
-    animation: none !important;
-  }
   .metric-icon-orbit-outer,
   .metric-icon-orbit-inner {
     animation: none !important;
@@ -2545,52 +2538,30 @@ select::placeholder {
   overflow: hidden;
 }
 
-/* ── Staggered row cascade (clean, no layout shift) ── */
-.admin-status-menu-open .admin-status-select-option {
-  animation: adminOptionIn 0.28s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
+/* ── Container-level luxury entrance (rows stay fully opaque) ── */
+.admin-status-menu-open {
+  animation: adminMenuIn 0.18s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
-.admin-status-menu-closing .admin-status-select-option {
-  animation: adminOptionOut 0.22s cubic-bezier(0.4, 0, 1, 1) both;
+.admin-status-menu-closing {
+  animation: adminMenuOut 0.14s cubic-bezier(0.4, 0, 1, 1) both;
 }
 
-@keyframes adminOptionIn {
-  from { opacity: 0; transform: translateY(4px); }
+@keyframes adminMenuIn {
+  from { opacity: 0; transform: translateY(-4px); }
   to { opacity: 1; transform: translateY(0); }
 }
 
-@keyframes adminOptionOut {
+@keyframes adminMenuOut {
   from { opacity: 1; transform: translateY(0); }
   to { opacity: 0; transform: translateY(-4px); }
 }
 
-/* ── Mobile: center dropdown in viewport ── */
+/* ── Mobile: anchored dropdown with internal scroll ── */
 @media (max-width: 768px) {
-  .admin-status-select-mobile-backdrop {
-    position: fixed;
-    inset: 0;
-    background: rgba(10, 6, 10, 0.6);
-    backdrop-filter: blur(2px);
-    -webkit-backdrop-filter: blur(2px);
-    z-index: 199;
-    animation: adminFadeIn 0.2s ease;
-  }
-
   .admin-status-select-menu {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    right: auto;
-    transform: translate(-50%, -50%);
-    width: calc(100vw - 2rem);
-    max-width: 360px;
-    z-index: 200;
-    box-shadow: 0 12px 48px rgba(0, 0, 0, 0.6);
-  }
-
-  .admin-status-menu-open,
-  .admin-status-menu-closing {
-    animation: none;
+    max-height: 280px;
+    overflow-y: auto;
   }
 }
 
