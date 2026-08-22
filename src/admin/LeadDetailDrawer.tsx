@@ -312,7 +312,7 @@ export default function LeadDetailDrawer({
         aria-modal="true"
         aria-label="Lead detail"
       >
-        <div className="admin-drawer-header admin-drawer-header-enter" style={{ animationDelay: '80ms' }}>
+        <div className="admin-drawer-header admin-drawer-section-enter" style={{ animationDelay: '0ms' }}>
           <h2 className="admin-drawer-title">Lead Details</h2>
           <button
             ref={closeBtnRef}
@@ -339,7 +339,7 @@ export default function LeadDetailDrawer({
           ) : lead ? (
             <>
               {/* Collector Section */}
-              <section className="admin-detail-section admin-drawer-section-enter" style={{ animationDelay: '140ms' }}>
+              <section className="admin-detail-section admin-drawer-section-enter" style={{ animationDelay: '50ms' }}>
                 <h3 className="admin-detail-section-title">Collector</h3>
                 <div className="admin-detail-field">
                   <span className="admin-detail-label">Name</span>
@@ -374,7 +374,7 @@ export default function LeadDetailDrawer({
               </section>
 
               {/* Inquiry Section */}
-              <section className="admin-detail-section admin-drawer-section-enter" style={{ animationDelay: '200ms' }}>
+              <section className="admin-detail-section admin-drawer-section-enter" style={{ animationDelay: '100ms' }}>
                 <h3 className="admin-detail-section-title">Inquiry</h3>
                 <div className="admin-detail-field">
                   <span className="admin-detail-label">Type</span>
@@ -398,7 +398,7 @@ export default function LeadDetailDrawer({
 
               {/* Artwork Section */}
               {lead.artwork_title && (
-                <section className="admin-detail-section admin-drawer-section-enter" style={{ animationDelay: '260ms' }}>
+                <section className="admin-detail-section admin-drawer-section-enter" style={{ animationDelay: '150ms' }}>
                   <h3 className="admin-detail-section-title">Artwork</h3>
                   <div className="admin-detail-field">
                     <span className="admin-detail-label">Title</span>
@@ -426,7 +426,7 @@ export default function LeadDetailDrawer({
               )}
 
               {/* CRM Management Section */}
-              <section className={`admin-detail-section admin-drawer-crm-enter${statusMenuOpen ? ' admin-detail-section-status-open' : ''}`} style={{ animationDelay: '320ms' }}>
+              <section className={`admin-detail-section admin-drawer-section-enter${statusMenuOpen ? ' admin-detail-section-status-open' : ''}`} style={{ animationDelay: '200ms' }}>
                 <h3 className="admin-detail-section-title">CRM Management</h3>
 
                 <div className="admin-detail-field">
@@ -476,7 +476,7 @@ export default function LeadDetailDrawer({
               </section>
 
               {/* Internal Notes Section */}
-              <section className="admin-detail-section admin-drawer-section-enter" style={{ animationDelay: '380ms' }}>
+              <section className="admin-detail-section admin-drawer-section-enter" style={{ animationDelay: '250ms' }}>
                 <h3 className="admin-detail-section-title">Internal Notes</h3>
 
                 {notesLoading ? (
@@ -527,7 +527,7 @@ export default function LeadDetailDrawer({
               </section>
 
               {/* Save + Archive/Restore */}
-              <div className="admin-detail-actions admin-drawer-section-enter" style={{ animationDelay: '440ms' }}>
+              <div className="admin-detail-actions admin-drawer-section-enter" style={{ animationDelay: '300ms' }}>
                 {saveError && (
                   <div role="alert" className="admin-auth-error admin-detail-save-error">
                     {saveError}
