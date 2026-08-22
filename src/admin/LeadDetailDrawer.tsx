@@ -99,6 +99,7 @@ export default function LeadDetailDrawer({
   const [statusMenuOpen, setStatusMenuOpen] = useState(false);
 
   const drawerRef = useRef<HTMLDivElement>(null);
+  const drawerBodyRef = useRef<HTMLDivElement>(null);
   const closeBtnRef = useRef<HTMLButtonElement>(null);
 
   const loadLead = useCallback(async () => {
@@ -324,7 +325,7 @@ export default function LeadDetailDrawer({
           </button>
         </div>
 
-        <div className="admin-drawer-body">
+        <div ref={drawerBodyRef} className="admin-drawer-body">
           {loading ? (
             <div className="admin-leads-loading">
               <div className="admin-loading-spinner" />
@@ -439,6 +440,7 @@ export default function LeadDetailDrawer({
                     ariaLabel="Lead status"
                     className="admin-detail-select-wrapper"
                     onOpenChange={setStatusMenuOpen}
+                    scrollContainerRef={drawerBodyRef}
                   />
                 </div>
 

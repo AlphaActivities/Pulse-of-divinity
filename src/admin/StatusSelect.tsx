@@ -16,6 +16,7 @@ interface Props {
   ariaLabel?: string;
   className?: string;
   onOpenChange?: (open: boolean) => void;
+  scrollContainerRef?: React.RefObject<HTMLElement | null>;
 }
 
 export default function StatusSelect({
@@ -27,6 +28,7 @@ export default function StatusSelect({
   ariaLabel,
   className = '',
   onOpenChange,
+  scrollContainerRef,
 }: Props) {
   const [open, setOpen] = useState(false);
   const [focusedIndex, setFocusedIndex] = useState(0);
@@ -53,17 +55,25 @@ export default function StatusSelect({
   }, [open, onOpenChange]);
 
   useEffect(() => {
-    if (open && listRef.current) {
-      const mq = window.matchMedia('(max-width: 768px)');
-      if (mq.matches) {
-        listRef.current.scrollIntoView({
-          behavior: 'smooth',
-          block: 'center',
-          inline: 'nearest',
-        });
-      }
+    if (!open || !listRef.current) return;
+    const mq = window.matchMedia('(max-width: 768px)');
+    if (!mq.matches) return;
+
+    const container = scrollContainerRef?.current ?? null;
+    if (container) {
+      const target = listRef.current;
+      const targetCenter = target.offsetTop + target.offsetHeight / 2;
+      const desired = targetCenter - container.clientHeight / 2;
+      const clamped = Math.max(0, Math.min(desired, container.scrollHeight - container.clientHeight));
+      container.scrollTo({ top: clamped, behavior: 'smooth' });
+    } else {
+      listRef.current.scrollIntoView({
+        behavior: 'smooth',
+        block: 'center',
+        inline: 'nearest',
+      });
     }
-  }, [open]);
+  }, [open, scrollContainerRef]);
 
   const handleSelect = useCallback(
     (val: string) => {
