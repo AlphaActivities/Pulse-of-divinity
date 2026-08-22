@@ -55,19 +55,27 @@ export default function StatusSelect({
   }, [open, onOpenChange]);
 
   useEffect(() => {
-    if (!open || !listRef.current) return;
+    if (!open) return;
     const mq = window.matchMedia('(max-width: 768px)');
     if (!mq.matches) return;
 
     const container = scrollContainerRef?.current ?? null;
     if (container) {
-      const target = listRef.current;
-      const targetCenter = target.offsetTop + target.offsetHeight / 2;
-      const desired = targetCenter - container.clientHeight / 2;
-      const clamped = Math.max(0, Math.min(desired, container.scrollHeight - container.clientHeight));
-      container.scrollTo({ top: clamped, behavior: 'smooth' });
+      const raf = requestAnimationFrame(() => {
+        const target = listRef.current;
+        if (!target) return;
+        const containerRect = container.getBoundingClientRect();
+        const menuRect = target.getBoundingClientRect();
+        const menuCenterInContainer =
+          menuRect.top - containerRect.top + container.scrollTop + menuRect.height / 2;
+        const desiredScrollTop = menuCenterInContainer - container.clientHeight / 2;
+        const maxScrollTop = Math.max(0, container.scrollHeight - container.clientHeight);
+        const clampedScrollTop = Math.max(0, Math.min(desiredScrollTop, maxScrollTop));
+        container.scrollTo({ top: clampedScrollTop, behavior: 'smooth' });
+      });
+      return () => cancelAnimationFrame(raf);
     } else {
-      listRef.current.scrollIntoView({
+      listRef.current?.scrollIntoView({
         behavior: 'smooth',
         block: 'center',
         inline: 'nearest',
