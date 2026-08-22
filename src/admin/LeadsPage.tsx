@@ -60,10 +60,7 @@ function filterToPreset(filter: NormalizedFilter): PresetKey {
 
 function getEmptyMessage(filter: NormalizedFilter, hasSearch: boolean): string {
   if (hasSearch) return 'No leads match your search.';
-  if (filter.scope === 'archived') {
-    if (filter.status) return `No archived ${STATUS_LABELS[filter.status]?.toLowerCase() || filter.status.toLowerCase()} leads.`;
-    return 'No archived leads.';
-  }
+  if (filter.scope === 'archived') return 'No archived leads.';
   if (filter.status === 'NEW') return 'No new leads.';
   if (filter.status === 'FOLLOW_UP') return 'No leads currently require follow-up.';
   if (filter.status) return `No ${STATUS_LABELS[filter.status]?.toLowerCase() || filter.status.toLowerCase()} leads.`;
@@ -80,6 +77,7 @@ function leadMatchesFilter(lead: LeadDetail, filter: NormalizedFilter): boolean 
 function filterFromSearch(search: string): NormalizedFilter {
   const params = new URLSearchParams(search);
   const scope = params.get('scope') === 'archived' ? 'archived' : 'active';
+  if (scope === 'archived') return { scope, status: '' };
   const requestedStatus = params.get('status') || '';
   const status = STATUS_OPTIONS.some((option) => option.value === requestedStatus) ? requestedStatus : '';
   return { scope, status };
@@ -87,7 +85,11 @@ function filterFromSearch(search: string): NormalizedFilter {
 
 function searchForFilter(filter: NormalizedFilter): string {
   const params = new URLSearchParams();
-  if (filter.scope === 'archived') params.set('scope', 'archived');
+  if (filter.scope === 'archived') {
+    params.set('scope', 'archived');
+    const query = params.toString();
+    return query ? `?${query}` : '';
+  }
   if (filter.status) params.set('status', filter.status);
   const query = params.toString();
   return query ? `?${query}` : '';
@@ -287,15 +289,17 @@ export default function LeadsPage() {
             </div>
           </form>
 
-          <div className="admin-select-group">
-            <StatusSelect
-              id="status-filter"
-              options={STATUS_OPTIONS}
-              value={filter.status}
-              onChange={handleStatusChange}
-              ariaLabel="Filter by status"
-            />
-          </div>
+          {filter.scope !== 'archived' && (
+            <div className="admin-select-group">
+              <StatusSelect
+                id="status-filter"
+                options={STATUS_OPTIONS}
+                value={filter.status}
+                onChange={handleStatusChange}
+                ariaLabel="Filter by status"
+              />
+            </div>
+          )}
         </div>
       </div>
 
