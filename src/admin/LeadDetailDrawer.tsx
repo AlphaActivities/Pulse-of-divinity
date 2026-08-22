@@ -96,6 +96,7 @@ export default function LeadDetailDrawer({
   const [noteError, setNoteError] = useState<string | null>(null);
 
   const [closing, setClosing] = useState(false);
+  const [statusMenuOpen, setStatusMenuOpen] = useState(false);
 
   const drawerRef = useRef<HTMLDivElement>(null);
   const closeBtnRef = useRef<HTMLButtonElement>(null);
@@ -424,7 +425,7 @@ export default function LeadDetailDrawer({
               )}
 
               {/* CRM Management Section */}
-              <section className="admin-detail-section admin-drawer-section-enter" style={{ animationDelay: '200ms' }}>
+              <section className={`admin-detail-section admin-drawer-section-enter${statusMenuOpen ? ' admin-detail-section-status-open' : ''}`} style={{ animationDelay: '200ms' }}>
                 <h3 className="admin-detail-section-title">CRM Management</h3>
 
                 <div className="admin-detail-field">
@@ -437,6 +438,7 @@ export default function LeadDetailDrawer({
                     disabled={saving}
                     ariaLabel="Lead status"
                     className="admin-detail-select-wrapper"
+                    onOpenChange={setStatusMenuOpen}
                   />
                 </div>
 

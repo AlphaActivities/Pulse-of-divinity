@@ -15,9 +15,8 @@ interface Props {
   disabled?: boolean;
   ariaLabel?: string;
   className?: string;
+  onOpenChange?: (open: boolean) => void;
 }
-
-const CLOSE_DURATION = 380;
 
 export default function StatusSelect({
   id,
@@ -27,55 +26,59 @@ export default function StatusSelect({
   disabled = false,
   ariaLabel,
   className = '',
+  onOpenChange,
 }: Props) {
   const [open, setOpen] = useState(false);
-  const [menuMounted, setMenuMounted] = useState(false);
-  const [closing, setClosing] = useState(false);
   const [focusedIndex, setFocusedIndex] = useState(0);
   const containerRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
   const listRef = useRef<HTMLUListElement>(null);
-  const closeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const selectedOption = options.find((o) => o.value === value);
   const selectedColor = value ? STATUS_COLORS[value] : null;
   const activeClass = value ? statusClass(value) : '';
 
   const openMenu = useCallback(() => {
-    if (closeTimerRef.current) {
-      clearTimeout(closeTimerRef.current);
-      closeTimerRef.current = null;
-    }
-    setClosing(false);
-    setMenuMounted(true);
+    const idx = options.findIndex((o) => o.value === value);
+    setFocusedIndex(idx >= 0 ? idx : 0);
     setOpen(true);
-  }, []);
+  }, [options, value]);
 
   const closeMenu = useCallback(() => {
-    setClosing(true);
     setOpen(false);
-    closeTimerRef.current = setTimeout(() => {
-      setMenuMounted(false);
-      setClosing(false);
-    }, CLOSE_DURATION);
   }, []);
+
+  useEffect(() => {
+    onOpenChange?.(open);
+  }, [open, onOpenChange]);
+
+  useEffect(() => {
+    if (open && listRef.current) {
+      const mq = window.matchMedia('(max-width: 768px)');
+      if (mq.matches) {
+        listRef.current.scrollIntoView({
+          behavior: 'smooth',
+          block: 'center',
+          inline: 'nearest',
+        });
+      }
+    }
+  }, [open]);
 
   const handleSelect = useCallback(
     (val: string) => {
       onChange(val);
-      closeMenu();
+      setOpen(false);
       buttonRef.current?.focus();
     },
-    [onChange, closeMenu]
+    [onChange]
   );
 
   const handleToggle = () => {
     if (disabled) return;
-    if (open || closing) {
+    if (open) {
       closeMenu();
     } else {
-      const idx = options.findIndex((o) => o.value === value);
-      setFocusedIndex(idx >= 0 ? idx : 0);
       openMenu();
     }
   };
@@ -86,8 +89,6 @@ export default function StatusSelect({
     if (!open) {
       if (e.key === 'Enter' || e.key === ' ' || e.key === 'ArrowDown') {
         e.preventDefault();
-        const idx = options.findIndex((o) => o.value === value);
-        setFocusedIndex(idx >= 0 ? idx : 0);
         openMenu();
       }
       return;
@@ -129,25 +130,6 @@ export default function StatusSelect({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [open, closeMenu]);
 
-  useEffect(() => {
-    if (open && listRef.current) {
-      const el = listRef.current.querySelector<HTMLLIElement>(`[data-index="${focusedIndex}"]`);
-      el?.scrollIntoView({ block: 'nearest' });
-    }
-  }, [open, focusedIndex]);
-
-  useEffect(() => {
-    return () => {
-      if (closeTimerRef.current) {
-        clearTimeout(closeTimerRef.current);
-      }
-    };
-  }, []);
-
-  const menuClass = closing
-    ? 'admin-status-select-menu admin-status-menu-closing'
-    : 'admin-status-select-menu admin-status-menu-open';
-
   return (
     <div
       ref={containerRef}
@@ -181,12 +163,12 @@ export default function StatusSelect({
         />
       </button>
 
-      {menuMounted && (
+      {open && (
         <ul
           ref={listRef}
           role="listbox"
           aria-label={ariaLabel || 'Status options'}
-          className={menuClass}
+          className="admin-status-select-menu admin-status-menu-open"
         >
           {options.map((opt, i) => {
             const color = opt.value ? STATUS_COLORS[opt.value] : null;
