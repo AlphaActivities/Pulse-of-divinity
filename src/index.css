@@ -1184,7 +1184,9 @@ select::placeholder {
   .admin-entrance-subtext,
   .admin-entrance-section,
   .admin-entrance-controls,
+  .admin-drawer-header-enter,
   .admin-drawer-section-enter,
+  .admin-drawer-crm-enter,
   .admin-modal-card-enter,
   .admin-reveal-logo,
   .admin-reveal-eyebrow,
@@ -3313,9 +3315,35 @@ select::placeholder {
 }
 
 /* DRAWER SECTION REVEAL — inside drawer */
+@keyframes admin-drawer-header-reveal {
+  from {
+    opacity: 0;
+    transform: translateY(5px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
 @keyframes admin-drawer-section-reveal {
-  from { transform: translateX(8px); }
-  to { transform: none; }
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.99);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes admin-drawer-crm-reveal {
+  from {
+    transform: translateY(10px) scale(0.99);
+  }
+  to {
+    transform: none;
+  }
 }
 
 /* DRAWER EXIT — slide right + fade */
@@ -3364,8 +3392,16 @@ select::placeholder {
     animation: admin-soft-reveal 0.45s cubic-bezier(0.22, 1, 0.36, 1) forwards;
   }
 
+  .admin-drawer-header-enter {
+    animation: admin-drawer-header-reveal 0.42s cubic-bezier(0.22, 1, 0.36, 1) backwards;
+  }
+
   .admin-drawer-section-enter {
-    animation: admin-drawer-section-reveal 0.45s cubic-bezier(0.22, 1, 0.36, 1) backwards;
+    animation: admin-drawer-section-reveal 0.42s cubic-bezier(0.22, 1, 0.36, 1) backwards;
+  }
+
+  .admin-drawer-crm-enter {
+    animation: admin-drawer-crm-reveal 0.42s cubic-bezier(0.22, 1, 0.36, 1) backwards;
   }
 
   .admin-drawer-exiting {
