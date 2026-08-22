@@ -2557,14 +2557,6 @@ select::placeholder {
   to { opacity: 0; transform: translateY(-4px); }
 }
 
-/* ── Mobile: anchored dropdown with internal scroll ── */
-@media (max-width: 768px) {
-  .admin-status-select-menu {
-    max-height: 280px;
-    overflow-y: auto;
-  }
-}
-
 .admin-status-select-option {
   display: flex;
   align-items: center;
