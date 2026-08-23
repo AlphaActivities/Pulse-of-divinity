@@ -28,6 +28,8 @@ export default function AdminLogin({ onSuccess }: Props) {
   const resetModeRef = useRef(false);
   const autofillIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const autofillTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const lastEmailLenRef = useRef(-1);
+  const lastPwLenRef = useRef(-1);
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -47,7 +49,10 @@ export default function AdminLogin({ onSuccess }: Props) {
 
   // ── Autofill watcher ──────────────────────────────────────────
 
-  const stopAutofillWatcher = useCallback(() => {
+  const stopAutofillWatcher = useCallback((reason: string) => {
+    if (autofillIntervalRef.current || autofillTimeoutRef.current) {
+      console.log(`[POD AUTOLOGIN] WATCHER STOP: ${reason}`);
+    }
     if (autofillIntervalRef.current) {
       clearInterval(autofillIntervalRef.current);
       autofillIntervalRef.current = null;
@@ -69,20 +74,47 @@ export default function AdminLogin({ onSuccess }: Props) {
 
     const emailValue = emailRef.current?.value.trim() ?? '';
     const passwordValue = passwordRef.current?.value ?? '';
+    const emailLen = emailValue.length;
+    const pwLen = passwordValue.length;
+
+    // Log only when observed lengths change
+    if (emailLen !== lastEmailLenRef.current || pwLen !== lastPwLenRef.current) {
+      console.log('[POD AUTOLOGIN] DOM VALUES CHANGED', { emailLength: emailLen, passwordLength: pwLen });
+      lastEmailLenRef.current = emailLen;
+      lastPwLenRef.current = pwLen;
+    }
 
     if (!emailValue || !passwordValue) return;
 
-    console.log('[AUTOFILL] BOTH VALUES DETECTED', { emailLen: emailValue.length, pwLen: passwordValue.length });
+    console.log('[POD AUTOLOGIN] BOTH VALUES PRESENT', {
+      mounted: mountedRef.current,
+      manualEntry: manualEntryRef.current,
+      attempted: autoLoginAttemptedRef.current,
+      loading: loadingRef.current,
+      resetMode: resetModeRef.current,
+    });
+
     setEmail(emailValue);
     setPassword(passwordValue);
 
-    stopAutofillWatcher();
+    stopAutofillWatcher('SUBMIT');
 
     requestAnimationFrame(() => {
       requestAnimationFrame(() => {
-        if (!mountedRef.current || loadingRef.current || autoLoginAttemptedRef.current) return;
+        if (!mountedRef.current) {
+          console.log('[POD AUTOLOGIN] BLOCKED: UNMOUNTED (rAF)');
+          return;
+        }
+        if (loadingRef.current) {
+          console.log('[POD AUTOLOGIN] BLOCKED: LOADING (rAF)');
+          return;
+        }
+        if (autoLoginAttemptedRef.current) {
+          console.log('[POD AUTOLOGIN] BLOCKED: ATTEMPTED (rAF)');
+          return;
+        }
         autoLoginAttemptedRef.current = true;
-        console.log('[AUTOFILL] REQUESTSUBMIT CALLED');
+        console.log('[POD AUTOLOGIN] REQUESTSUBMIT CALLED', { formRefPresent: !!formRef.current });
         formRef.current?.requestSubmit();
       });
     });
@@ -91,14 +123,13 @@ export default function AdminLogin({ onSuccess }: Props) {
   const startAutofillWatcher = useCallback(() => {
     if (!mountedRef.current) return;
     if (manualEntryRef.current || autoLoginAttemptedRef.current) return;
-    stopAutofillWatcher();
-    console.log('[AUTOFILL] WATCHER STARTED');
+    stopAutofillWatcher('RESTART');
+    console.log('[POD AUTOLOGIN] WATCHER START', { duration: AUTOFILL_POLL_DURATION_MS, interval: AUTOFILL_POLL_INTERVAL_MS });
     autofillIntervalRef.current = setInterval(() => {
       maybeAutoLogin();
     }, AUTOFILL_POLL_INTERVAL_MS);
     autofillTimeoutRef.current = setTimeout(() => {
-      console.log('[AUTOFILL] WATCHER STOPPED (timeout)');
-      stopAutofillWatcher();
+      stopAutofillWatcher('TIMEOUT');
     }, AUTOFILL_POLL_DURATION_MS);
   }, [stopAutofillWatcher, maybeAutoLogin]);
 
@@ -136,7 +167,7 @@ export default function AdminLogin({ onSuccess }: Props) {
         clearTimeout(successTimerRef.current);
         successTimerRef.current = null;
       }
-      stopAutofillWatcher();
+      stopAutofillWatcher('UNMOUNT');
       window.removeEventListener('focus', handleWindowFocus);
       document.removeEventListener('visibilitychange', handleVisibilityChange);
       window.removeEventListener('pageshow', handlePageshow);
@@ -147,17 +178,16 @@ export default function AdminLogin({ onSuccess }: Props) {
 
   const handleManualKeyDown = () => {
     manualEntryRef.current = true;
-    console.log('[AUTOFILL] WATCHER STOPPED (manual keydown)');
-    stopAutofillWatcher();
+    stopAutofillWatcher('MANUAL ENTRY');
   };
 
   const handleManualPaste = () => {
     manualEntryRef.current = true;
-    console.log('[AUTOFILL] WATCHER STOPPED (manual paste)');
-    stopAutofillWatcher();
+    stopAutofillWatcher('MANUAL ENTRY');
   };
 
-  const handleInputFocus = () => {
+  const handleInputFocus = (field: 'email' | 'password') => {
+    console.log(`[POD AUTOLOGIN] ${field === 'email' ? 'EMAIL' : 'PASSWORD'} FOCUS`);
     if (manualEntryRef.current || autoLoginAttemptedRef.current || loadingRef.current) return;
     startAutofillWatcher();
   };
@@ -166,7 +196,7 @@ export default function AdminLogin({ onSuccess }: Props) {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('[AUTOFILL] HANDLELOGIN ENTERED');
+    console.log('[POD AUTOLOGIN] HANDLELOGIN ENTERED');
     if (loading) return;
     setError(null);
     setLoading(true);
@@ -332,7 +362,7 @@ export default function AdminLogin({ onSuccess }: Props) {
                   maybeAutoLogin();
                   if (!autoLoginAttemptedRef.current) startAutofillWatcher();
                 }}
-                onFocus={handleInputFocus}
+                onFocus={() => handleInputFocus('email')}
                 onKeyDown={handleManualKeyDown}
                 onPaste={handleManualPaste}
                 onAnimationStart={(e) => {
@@ -361,7 +391,7 @@ export default function AdminLogin({ onSuccess }: Props) {
                   maybeAutoLogin();
                   if (!autoLoginAttemptedRef.current) startAutofillWatcher();
                 }}
-                onFocus={handleInputFocus}
+                onFocus={() => handleInputFocus('password')}
                 onKeyDown={handleManualKeyDown}
                 onPaste={handleManualPaste}
                 onAnimationStart={(e) => {
