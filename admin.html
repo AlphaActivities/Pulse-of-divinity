@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+
+    <!-- Primary Meta -->
+    <title>Pulse of Divinity | Secure Admin Access</title>
+    <meta name="description" content="Secure administrative workspace for managing Pulse of Divinity inquiries and collector relationships." />
+    <meta name="robots" content="noindex, nofollow" />
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Pulse of Divinity | Secure Admin Access" />
+    <meta property="og:description" content="Secure administrative workspace for managing Pulse of Divinity inquiries and collector relationships." />
+    <meta property="og:image" content="https://pulseofdivinity.com/images/Admin-Access_OG_Photo.png" />
+    <meta property="og:image:width" content="1731" />
+    <meta property="og:image:height" content="909" />
+    <meta property="og:image:alt" content="Pulse of Divinity secure admin access" />
+    <meta property="og:url" content="https://pulseofdivinity.com/admin" />
+    <meta property="og:site_name" content="Pulse of Divinity" />
+    <meta property="og:locale" content="en_US" />
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Pulse of Divinity | Secure Admin Access" />
+    <meta name="twitter:description" content="Secure administrative workspace for managing Pulse of Divinity inquiries and collector relationships." />
+    <meta name="twitter:image" content="https://pulseofdivinity.com/images/Admin-Access_OG_Photo.png" />
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="/favicons/favicon-96x96.png" sizes="96x96" />
+    <link rel="icon" type="image/svg+xml" href="/favicons/favicon.svg" />
+    <link rel="shortcut icon" href="/favicons/favicon.ico" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/favicons/apple-touch-icon.png" />
+    <meta name="apple-mobile-web-app-title" content="Pulse of Divinity" />
+    <link rel="manifest" href="/favicons/site.webmanifest" />
+
+    <!-- Font preconnect -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+
+    <!-- Admin logo preload (lightweight, used on /admin/login) -->
+    <link rel="preload" as="image" href="/images/admin-logo-small.webp" type="image/webp" />
+
+    <!-- Canonical -->
+    <link rel="canonical" href="https://pulseofdivinity.com/admin" />
+
+    <!-- Mobile browser chrome color -->
+    <meta name="theme-color" content="#2a1629" />
+
+    <!-- Pre-paint: apply dark admin background before React mounts to eliminate cream flash -->
+    <script>
+      (function () {
+        var el = document.documentElement;
+        el.classList.add('admin-prepaint');
+      })();
+    </script>
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+
+    <!-- Google Analytics 4 -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-KY71SE4J8Y"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-KY71SE4J8Y', { send_page_view: false });
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
