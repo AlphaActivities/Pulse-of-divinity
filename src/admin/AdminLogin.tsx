@@ -200,12 +200,6 @@ export default function AdminLogin({ onSuccess }: Props) {
 
   // ── Manual entry detection ────────────────────────────────────
 
-  const handleManualKeyDown = () => {
-    manualEntryRef.current = true;
-    lastEventRef.current = 'MANUAL KEYDOWN';
-    stopAutofillWatcher('MANUAL ENTRY');
-  };
-
   const handleManualPaste = () => {
     manualEntryRef.current = true;
     lastEventRef.current = 'MANUAL PASTE';
@@ -402,14 +396,25 @@ export default function AdminLogin({ onSuccess }: Props) {
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                onInput={() => {
+                onInput={(e) => {
                   if (manualEntryRef.current) return;
+                  const inputType = (e.nativeEvent as InputEvent).inputType ?? '';
+                  if (
+                    inputType === 'insertText' ||
+                    inputType === 'deleteContentBackward' ||
+                    inputType === 'deleteContentForward' ||
+                    inputType === 'insertFromPaste'
+                  ) {
+                    manualEntryRef.current = true;
+                    lastEventRef.current = `MANUAL INPUT (${inputType})`;
+                    stopAutofillWatcher('MANUAL ENTRY');
+                    return;
+                  }
                   maybeAutoLogin();
                   if (!autoLoginAttemptedRef.current) startAutofillWatcher();
                 }}
                 onFocus={() => handleInputFocus('email')}
                 onBlur={() => handleInputBlur('email')}
-                onKeyDown={handleManualKeyDown}
                 onPaste={handleManualPaste}
                 onAnimationStart={(e) => {
                   if (e.animationName === 'adminAutofillDetect') startAutofillWatcher();
@@ -432,14 +437,25 @@ export default function AdminLogin({ onSuccess }: Props) {
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                onInput={() => {
+                onInput={(e) => {
                   if (manualEntryRef.current) return;
+                  const inputType = (e.nativeEvent as InputEvent).inputType ?? '';
+                  if (
+                    inputType === 'insertText' ||
+                    inputType === 'deleteContentBackward' ||
+                    inputType === 'deleteContentForward' ||
+                    inputType === 'insertFromPaste'
+                  ) {
+                    manualEntryRef.current = true;
+                    lastEventRef.current = `MANUAL INPUT (${inputType})`;
+                    stopAutofillWatcher('MANUAL ENTRY');
+                    return;
+                  }
                   maybeAutoLogin();
                   if (!autoLoginAttemptedRef.current) startAutofillWatcher();
                 }}
                 onFocus={() => handleInputFocus('password')}
                 onBlur={() => handleInputBlur('password')}
-                onKeyDown={handleManualKeyDown}
                 onPaste={handleManualPaste}
                 onAnimationStart={(e) => {
                   if (e.animationName === 'adminAutofillDetect') startAutofillWatcher();
