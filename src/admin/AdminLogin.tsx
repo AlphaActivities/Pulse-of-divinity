@@ -16,6 +16,9 @@ export default function AdminLogin({ onSuccess }: Props) {
   const emailRef = useRef<HTMLInputElement>(null);
   const successTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const mountedRef = useRef(true);
+  const passwordRef = useRef<HTMLInputElement>(null);
+  const autoLoginAttemptedRef = useRef(false);
+  const autoLoginTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -35,8 +38,30 @@ export default function AdminLogin({ onSuccess }: Props) {
         clearTimeout(successTimerRef.current);
         successTimerRef.current = null;
       }
+      if (autoLoginTimerRef.current) {
+        clearTimeout(autoLoginTimerRef.current);
+        autoLoginTimerRef.current = null;
+      }
     };
   }, []);
+
+  const handleAutofillDetected = () => {
+    if (autoLoginAttemptedRef.current || loading) return;
+    if (autoLoginTimerRef.current) clearTimeout(autoLoginTimerRef.current);
+    autoLoginTimerRef.current = setTimeout(() => {
+      if (autoLoginAttemptedRef.current || !mountedRef.current || loading) return;
+      const emailValue = emailRef.current?.value ?? '';
+      const passwordValue = passwordRef.current?.value ?? '';
+      if (!emailValue || !passwordValue) return;
+      autoLoginAttemptedRef.current = true;
+      setEmail(emailValue);
+      setPassword(passwordValue);
+      autoLoginTimerRef.current = setTimeout(() => {
+        if (!mountedRef.current || loading) return;
+        emailRef.current?.form?.requestSubmit();
+      }, 50);
+    }, 150);
+  };
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -198,8 +223,11 @@ export default function AdminLogin({ onSuccess }: Props) {
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
+                onAnimationStart={(e) => {
+                  if (e.animationName === 'adminAutofillDetect') handleAutofillDetected();
+                }}
                 required
-                autoComplete="email"
+                autoComplete="username"
                 className="admin-field-input"
                 disabled={loading}
               />
@@ -210,10 +238,14 @@ export default function AdminLogin({ onSuccess }: Props) {
                 Password
               </label>
               <input
+                ref={passwordRef}
                 id="admin-password"
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                onAnimationStart={(e) => {
+                  if (e.animationName === 'adminAutofillDetect') handleAutofillDetected();
+                }}
                 required
                 autoComplete="current-password"
                 className="admin-field-input"
