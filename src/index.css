@@ -2733,6 +2733,7 @@ select::placeholder {
     overflow-x: visible;
     width: 100%;
     flex-wrap: nowrap;
+    justify-content: space-between;
     gap: 0.28rem;
     padding-bottom: 0;
   }
