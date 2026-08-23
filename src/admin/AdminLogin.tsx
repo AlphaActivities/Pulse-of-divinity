@@ -28,16 +28,6 @@ export default function AdminLogin({ onSuccess }: Props) {
   const resetModeRef = useRef(false);
   const autofillIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const autofillTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const lastEmailLenRef = useRef(-1);
-  const lastPwLenRef = useRef(-1);
-
-  // Debug panel refs
-  const lastEventRef = useRef('MOUNT');
-  const requestSubmitCalledRef = useRef(false);
-  const handleLoginEnteredRef = useRef(false);
-  const emailFocusRef = useRef(false);
-  const passwordFocusRef = useRef(false);
-  const bothValuesDetectedRef = useRef(false);
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -46,7 +36,6 @@ export default function AdminLogin({ onSuccess }: Props) {
   const [resetMode, setResetMode] = useState(false);
   const [resetSent, setResetSent] = useState(false);
   const [authTransitioning, setAuthTransitioning] = useState(false);
-  const [, setDebugTick] = useState(0);
 
   useEffect(() => {
     loadingRef.current = loading;
@@ -56,19 +45,9 @@ export default function AdminLogin({ onSuccess }: Props) {
     resetModeRef.current = resetMode;
   }, [resetMode]);
 
-  // Debug panel refresh tick — reads refs only, no behavior change
-  useEffect(() => {
-    const tick = setInterval(() => setDebugTick((t) => t + 1), 200);
-    return () => clearInterval(tick);
-  }, []);
-
   // ── Autofill watcher ──────────────────────────────────────────
 
-  const stopAutofillWatcher = useCallback((reason: string) => {
-    if (autofillIntervalRef.current || autofillTimeoutRef.current) {
-      console.log(`[POD AUTOLOGIN] WATCHER STOP: ${reason}`);
-      lastEventRef.current = `WATCHER STOP: ${reason}`;
-    }
+  const stopAutofillWatcher = useCallback(() => {
     if (autofillIntervalRef.current) {
       clearInterval(autofillIntervalRef.current);
       autofillIntervalRef.current = null;
@@ -90,54 +69,19 @@ export default function AdminLogin({ onSuccess }: Props) {
 
     const emailValue = emailRef.current?.value.trim() ?? '';
     const passwordValue = passwordRef.current?.value ?? '';
-    const emailLen = emailValue.length;
-    const pwLen = passwordValue.length;
-
-    // Log only when observed lengths change
-    if (emailLen !== lastEmailLenRef.current || pwLen !== lastPwLenRef.current) {
-      console.log('[POD AUTOLOGIN] DOM VALUES CHANGED', { emailLength: emailLen, passwordLength: pwLen });
-      lastEmailLenRef.current = emailLen;
-      lastPwLenRef.current = pwLen;
-    }
-
     if (!emailValue || !passwordValue) return;
-
-    bothValuesDetectedRef.current = true;
-    console.log('[POD AUTOLOGIN] BOTH VALUES PRESENT', {
-      mounted: mountedRef.current,
-      manualEntry: manualEntryRef.current,
-      attempted: autoLoginAttemptedRef.current,
-      loading: loadingRef.current,
-      resetMode: resetModeRef.current,
-    });
-    lastEventRef.current = 'BOTH VALUES PRESENT';
 
     setEmail(emailValue);
     setPassword(passwordValue);
 
-    stopAutofillWatcher('SUBMIT');
+    stopAutofillWatcher();
 
     requestAnimationFrame(() => {
       requestAnimationFrame(() => {
-        if (!mountedRef.current) {
-          console.log('[POD AUTOLOGIN] BLOCKED: UNMOUNTED (rAF)');
-          lastEventRef.current = 'BLOCKED: UNMOUNTED (rAF)';
-          return;
-        }
-        if (loadingRef.current) {
-          console.log('[POD AUTOLOGIN] BLOCKED: LOADING (rAF)');
-          lastEventRef.current = 'BLOCKED: LOADING (rAF)';
-          return;
-        }
-        if (autoLoginAttemptedRef.current) {
-          console.log('[POD AUTOLOGIN] BLOCKED: ATTEMPTED (rAF)');
-          lastEventRef.current = 'BLOCKED: ATTEMPTED (rAF)';
-          return;
-        }
+        if (!mountedRef.current) return;
+        if (loadingRef.current) return;
+        if (autoLoginAttemptedRef.current) return;
         autoLoginAttemptedRef.current = true;
-        requestSubmitCalledRef.current = true;
-        console.log('[POD AUTOLOGIN] REQUESTSUBMIT CALLED', { formRefPresent: !!formRef.current });
-        lastEventRef.current = 'REQUESTSUBMIT CALLED';
         formRef.current?.requestSubmit();
       });
     });
@@ -146,14 +90,12 @@ export default function AdminLogin({ onSuccess }: Props) {
   const startAutofillWatcher = useCallback(() => {
     if (!mountedRef.current) return;
     if (manualEntryRef.current || autoLoginAttemptedRef.current) return;
-    stopAutofillWatcher('RESTART');
-    console.log('[POD AUTOLOGIN] WATCHER START', { duration: AUTOFILL_POLL_DURATION_MS, interval: AUTOFILL_POLL_INTERVAL_MS });
-    lastEventRef.current = 'WATCHER START';
+    stopAutofillWatcher();
     autofillIntervalRef.current = setInterval(() => {
       maybeAutoLogin();
     }, AUTOFILL_POLL_INTERVAL_MS);
     autofillTimeoutRef.current = setTimeout(() => {
-      stopAutofillWatcher('TIMEOUT');
+      stopAutofillWatcher();
     }, AUTOFILL_POLL_DURATION_MS);
   }, [stopAutofillWatcher, maybeAutoLogin]);
 
@@ -191,7 +133,7 @@ export default function AdminLogin({ onSuccess }: Props) {
         clearTimeout(successTimerRef.current);
         successTimerRef.current = null;
       }
-      stopAutofillWatcher('UNMOUNT');
+      stopAutofillWatcher();
       window.removeEventListener('focus', handleWindowFocus);
       document.removeEventListener('visibilitychange', handleVisibilityChange);
       window.removeEventListener('pageshow', handlePageshow);
@@ -202,36 +144,18 @@ export default function AdminLogin({ onSuccess }: Props) {
 
   const handleManualPaste = () => {
     manualEntryRef.current = true;
-    lastEventRef.current = 'MANUAL PASTE';
-    stopAutofillWatcher('MANUAL ENTRY');
+    stopAutofillWatcher();
   };
 
-  const handleInputFocus = (field: 'email' | 'password') => {
-    if (field === 'email') {
-      emailFocusRef.current = true;
-      console.log('[POD AUTOLOGIN] EMAIL FOCUS');
-      lastEventRef.current = 'EMAIL FOCUS';
-    } else {
-      passwordFocusRef.current = true;
-      console.log('[POD AUTOLOGIN] PASSWORD FOCUS');
-      lastEventRef.current = 'PASSWORD FOCUS';
-    }
+  const handleInputFocus = () => {
     if (manualEntryRef.current || autoLoginAttemptedRef.current || loadingRef.current) return;
     startAutofillWatcher();
-  };
-
-  const handleInputBlur = (field: 'email' | 'password') => {
-    if (field === 'email') emailFocusRef.current = false;
-    else passwordFocusRef.current = false;
   };
 
   // ── Existing login handler (unchanged) ────────────────────────
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    handleLoginEnteredRef.current = true;
-    console.log('[POD AUTOLOGIN] HANDLELOGIN ENTERED');
-    lastEventRef.current = 'HANDLELOGIN ENTERED';
     if (loading) return;
     setError(null);
     setLoading(true);
@@ -356,10 +280,6 @@ export default function AdminLogin({ onSuccess }: Props) {
     );
   }
 
-  const watcherActive = !!autofillIntervalRef.current;
-  const currentEmailLen = emailRef.current?.value.trim().length ?? 0;
-  const currentPwLen = passwordRef.current?.value.length ?? 0;
-
   return (
     <div className="admin-auth-container">
       <div className="admin-auth-card">
@@ -406,15 +326,13 @@ export default function AdminLogin({ onSuccess }: Props) {
                     inputType === 'insertFromPaste'
                   ) {
                     manualEntryRef.current = true;
-                    lastEventRef.current = `MANUAL INPUT (${inputType})`;
-                    stopAutofillWatcher('MANUAL ENTRY');
+                    stopAutofillWatcher();
                     return;
                   }
                   maybeAutoLogin();
                   if (!autoLoginAttemptedRef.current) startAutofillWatcher();
                 }}
-                onFocus={() => handleInputFocus('email')}
-                onBlur={() => handleInputBlur('email')}
+                onFocus={handleInputFocus}
                 onPaste={handleManualPaste}
                 onAnimationStart={(e) => {
                   if (e.animationName === 'adminAutofillDetect') startAutofillWatcher();
@@ -447,15 +365,13 @@ export default function AdminLogin({ onSuccess }: Props) {
                     inputType === 'insertFromPaste'
                   ) {
                     manualEntryRef.current = true;
-                    lastEventRef.current = `MANUAL INPUT (${inputType})`;
-                    stopAutofillWatcher('MANUAL ENTRY');
+                    stopAutofillWatcher();
                     return;
                   }
                   maybeAutoLogin();
                   if (!autoLoginAttemptedRef.current) startAutofillWatcher();
                 }}
-                onFocus={() => handleInputFocus('password')}
-                onBlur={() => handleInputBlur('password')}
+                onFocus={handleInputFocus}
                 onPaste={handleManualPaste}
                 onAnimationStart={(e) => {
                   if (e.animationName === 'adminAutofillDetect') startAutofillWatcher();
@@ -552,43 +468,6 @@ export default function AdminLogin({ onSuccess }: Props) {
           </form>
         )}
       </div>
-
-      {!resetMode && (
-        <div
-          style={{
-            marginTop: '16px',
-            padding: '10px 12px',
-            background: 'rgba(0,0,0,0.75)',
-            borderRadius: '8px',
-            fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace',
-            fontSize: '11px',
-            lineHeight: '1.6',
-            color: '#0f0',
-            pointerEvents: 'none',
-            userSelect: 'none',
-            maxWidth: '360px',
-            margin: '16px auto 0',
-            border: '1px solid rgba(0,255,0,0.2)',
-          }}
-        >
-          <div style={{ fontWeight: 'bold', marginBottom: '4px', color: '#0ff' }}>
-            AUTOLOGIN DEBUG
-          </div>
-          <div>Email focus: {emailFocusRef.current ? 'YES' : 'NO'}</div>
-          <div>Password focus: {passwordFocusRef.current ? 'YES' : 'NO'}</div>
-          <div>Watcher: {watcherActive ? 'ACTIVE' : 'INACTIVE'}</div>
-          <div>Email length: {currentEmailLen}</div>
-          <div>Password length: {currentPwLen}</div>
-          <div>Both values detected: {bothValuesDetectedRef.current ? 'YES' : 'NO'}</div>
-          <div>Manual entry: {manualEntryRef.current ? 'YES' : 'NO'}</div>
-          <div>Auto-login attempted: {autoLoginAttemptedRef.current ? 'YES' : 'NO'}</div>
-          <div>Loading: {loading ? 'YES' : 'NO'}</div>
-          <div>Reset mode: {resetMode ? 'YES' : 'NO'}</div>
-          <div>requestSubmit called: {requestSubmitCalledRef.current ? 'YES' : 'NO'}</div>
-          <div>handleLogin entered: {handleLoginEnteredRef.current ? 'YES' : 'NO'}</div>
-          <div>Last event: {lastEventRef.current}</div>
-        </div>
-      )}
     </div>
   );
 }
