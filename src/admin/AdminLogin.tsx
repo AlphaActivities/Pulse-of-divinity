@@ -11,8 +11,8 @@ interface Props {
 const SUCCESS_TRANSITION_DURATION = 1100;
 const PROFILE_TIMEOUT_MS = 12000;
 
-const AUTOFILL_POLL_INTERVAL_MS = 50;
-const AUTOFILL_POLL_DURATION_MS = 2000;
+const AUTOFILL_POLL_INTERVAL_MS = 100;
+const AUTOFILL_POLL_DURATION_MS = 15000;
 
 export default function AdminLogin({ onSuccess }: Props) {
   const navigate = useNavigate();
@@ -72,6 +72,7 @@ export default function AdminLogin({ onSuccess }: Props) {
 
     if (!emailValue || !passwordValue) return;
 
+    console.log('[AUTOFILL] BOTH VALUES DETECTED', { emailLen: emailValue.length, pwLen: passwordValue.length });
     setEmail(emailValue);
     setPassword(passwordValue);
 
@@ -81,6 +82,7 @@ export default function AdminLogin({ onSuccess }: Props) {
       requestAnimationFrame(() => {
         if (!mountedRef.current || loadingRef.current || autoLoginAttemptedRef.current) return;
         autoLoginAttemptedRef.current = true;
+        console.log('[AUTOFILL] REQUESTSUBMIT CALLED');
         formRef.current?.requestSubmit();
       });
     });
@@ -88,11 +90,14 @@ export default function AdminLogin({ onSuccess }: Props) {
 
   const startAutofillWatcher = useCallback(() => {
     if (!mountedRef.current) return;
+    if (manualEntryRef.current || autoLoginAttemptedRef.current) return;
     stopAutofillWatcher();
+    console.log('[AUTOFILL] WATCHER STARTED');
     autofillIntervalRef.current = setInterval(() => {
       maybeAutoLogin();
     }, AUTOFILL_POLL_INTERVAL_MS);
     autofillTimeoutRef.current = setTimeout(() => {
+      console.log('[AUTOFILL] WATCHER STOPPED (timeout)');
       stopAutofillWatcher();
     }, AUTOFILL_POLL_DURATION_MS);
   }, [stopAutofillWatcher, maybeAutoLogin]);
@@ -142,18 +147,26 @@ export default function AdminLogin({ onSuccess }: Props) {
 
   const handleManualKeyDown = () => {
     manualEntryRef.current = true;
+    console.log('[AUTOFILL] WATCHER STOPPED (manual keydown)');
     stopAutofillWatcher();
   };
 
   const handleManualPaste = () => {
     manualEntryRef.current = true;
+    console.log('[AUTOFILL] WATCHER STOPPED (manual paste)');
     stopAutofillWatcher();
+  };
+
+  const handleInputFocus = () => {
+    if (manualEntryRef.current || autoLoginAttemptedRef.current || loadingRef.current) return;
+    startAutofillWatcher();
   };
 
   // ── Existing login handler (unchanged) ────────────────────────
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    console.log('[AUTOFILL] HANDLELOGIN ENTERED');
     if (loading) return;
     setError(null);
     setLoading(true);
@@ -315,8 +328,11 @@ export default function AdminLogin({ onSuccess }: Props) {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 onInput={() => {
-                  if (!manualEntryRef.current) maybeAutoLogin();
+                  if (manualEntryRef.current) return;
+                  maybeAutoLogin();
+                  if (!autoLoginAttemptedRef.current) startAutofillWatcher();
                 }}
+                onFocus={handleInputFocus}
                 onKeyDown={handleManualKeyDown}
                 onPaste={handleManualPaste}
                 onAnimationStart={(e) => {
@@ -341,8 +357,11 @@ export default function AdminLogin({ onSuccess }: Props) {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 onInput={() => {
-                  if (!manualEntryRef.current) maybeAutoLogin();
+                  if (manualEntryRef.current) return;
+                  maybeAutoLogin();
+                  if (!autoLoginAttemptedRef.current) startAutofillWatcher();
                 }}
+                onFocus={handleInputFocus}
                 onKeyDown={handleManualKeyDown}
                 onPaste={handleManualPaste}
                 onAnimationStart={(e) => {
