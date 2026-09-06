@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useReveal } from '../hooks/useReveal';
+import { useCommerceAvailability } from '../hooks/useCommerceAvailability';
 import ArtworkLightbox from './ArtworkLightbox';
 import { availableWorks } from '../data/artworks';
 import type { Artwork } from '../data/artworkTypes';
@@ -254,6 +255,8 @@ function PaintingCard({
 
 export default function AvailableWorks({ onInquire }: { onInquire: (artworkId: string) => void }) {
   const { ref: titleRef, visible: titleVisible } = useReveal();
+  const commerce = useCommerceAvailability();
+  void commerce;
   const [lightbox, setLightbox] = useState<LightboxState | null>(null);
 
   return (
