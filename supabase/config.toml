@@ -1,0 +1,29 @@
+[functions.create-lead]
+verify_jwt = false
+
+[functions.get-me]
+verify_jwt = true
+
+[functions.list-admins]
+verify_jwt = true
+
+[functions.list-leads]
+verify_jwt = true
+
+[functions.get-lead]
+verify_jwt = true
+
+[functions.update-lead]
+verify_jwt = true
+
+[functions.list-notes]
+verify_jwt = true
+
+[functions.add-note]
+verify_jwt = true
+
+[functions.dashboard-summary]
+verify_jwt = true
+
+[functions.get-commerce-availability]
+verify_jwt = false
