@@ -27,3 +27,15 @@ verify_jwt = true
 
 [functions.get-commerce-availability]
 verify_jwt = false
+
+[functions.start-stripe-onboarding]
+verify_jwt = true
+
+[functions.get-stripe-account-status]
+verify_jwt = true
+
+[functions.create-commerce-checkout]
+verify_jwt = false
+
+[functions.stripe-webhook]
+verify_jwt = false
