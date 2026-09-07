@@ -137,7 +137,6 @@ Deno.serve(async (req: Request) => {
     // Create connected account only if one does not already exist
     if (!connectedAccountId) {
       const account = await stripe.accounts.create({
-        type: "standard",
         country,
         email,
         business_type: business_type as "individual" | "company" | "non_profit",
