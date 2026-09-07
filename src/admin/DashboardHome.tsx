@@ -1,10 +1,10 @@
 import { useState, useEffect, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { AlertCircle, RotateCw, Clock, Calendar, Trophy, Users, Sparkles } from 'lucide-react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import { AlertCircle, RotateCw, Clock, Calendar, Trophy, Users, Sparkles, CreditCard, ExternalLink, CheckCircle2, XCircle } from 'lucide-react';
 import { getStoredSession } from './auth';
 import type { AdminProfile } from './auth';
-import { fetchDashboardSummary } from './leadsApi';
-import type { DashboardSummary } from './leadsApi';
+import { fetchDashboardSummary, fetchStripeAccountStatus, startStripeOnboarding } from './leadsApi';
+import type { DashboardSummary, StripeAccountStatus } from './leadsApi';
 import MetricIcon from './MetricIcon';
 import { statusClass, statusLabel, METRIC_COLORS } from './statusConfig';
 
@@ -29,9 +29,16 @@ function formatDate(dateStr: string | null): string {
 
 export default function DashboardHome({ profile, onLeadClick, justLoggedIn, onRevealed }: Props) {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [data, setData] = useState<DashboardSummary | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [stripeStatus, setStripeStatus] = useState<StripeAccountStatus | null>(null);
+  const [stripeLoading, setStripeLoading] = useState(false);
+  const [stripeError, setStripeError] = useState<string | null>(null);
+  const [onboardingLoading, setOnboardingLoading] = useState(false);
+  const [onboardingError, setOnboardingError] = useState<string | null>(null);
+  const [onboardingBanner, setOnboardingBanner] = useState<string | null>(null);
 
   const loadDashboard = useCallback(async () => {
     setLoading(true);
@@ -65,6 +72,65 @@ export default function DashboardHome({ profile, onLeadClick, justLoggedIn, onRe
       return () => clearTimeout(t);
     }
   }, [justLoggedIn, onRevealed]);
+
+  const loadStripeStatus = useCallback(async () => {
+    setStripeLoading(true);
+    setStripeError(null);
+    const session = getStoredSession();
+    if (!session) {
+      setStripeError('Session expired.');
+      setStripeLoading(false);
+      return;
+    }
+    const { data: status, error: fetchError } = await fetchStripeAccountStatus(session.access_token);
+    if (fetchError || !status) {
+      setStripeError(fetchError || 'Unable to load Stripe status.');
+    } else {
+      setStripeStatus(status);
+    }
+    setStripeLoading(false);
+  }, []);
+
+  useEffect(() => {
+    loadStripeStatus();
+  }, [loadStripeStatus]);
+
+  useEffect(() => {
+    const param = searchParams.get('stripe_onboarding');
+    if (param === 'complete') {
+      setOnboardingBanner('Stripe onboarding returned successfully. Refreshing account status.');
+      loadStripeStatus();
+      setSearchParams({}, { replace: true });
+    } else if (param === 'refresh') {
+      setOnboardingBanner('Stripe onboarding needs to be continued. Generate a fresh onboarding link below.');
+      loadStripeStatus();
+      setSearchParams({}, { replace: true });
+    }
+  }, [searchParams, setSearchParams, loadStripeStatus]);
+
+  const handleStartOnboarding = async () => {
+    setOnboardingLoading(true);
+    setOnboardingError(null);
+    setOnboardingBanner(null);
+    const session = getStoredSession();
+    if (!session) {
+      setOnboardingError('Session expired. Please log in again.');
+      setOnboardingLoading(false);
+      return;
+    }
+    const payload = stripeStatus?.configured ? undefined : {
+      email: profile.email,
+      country: 'US',
+      business_type: 'individual',
+    };
+    const { data: result, error: fetchError } = await startStripeOnboarding(session.access_token, payload);
+    if (fetchError || !result) {
+      setOnboardingError(fetchError || 'Unable to generate onboarding link.');
+      setOnboardingLoading(false);
+      return;
+    }
+    window.location.href = result.url;
+  };
 
   const handleCardClick = (scope: string, status: string) => {
     const params = new URLSearchParams();
@@ -221,6 +287,103 @@ export default function DashboardHome({ profile, onLeadClick, justLoggedIn, onRe
             ))}
           </div>
         )}
+      </section>
+
+      {/* Stripe Commerce Setup */}
+      <section className="admin-dashboard-section admin-stripe-section admin-entrance-section" style={{ animationDelay: '760ms' }}>
+        <div className="admin-dashboard-section-header">
+          <h2 className="admin-dashboard-section-title">Stripe Commerce Setup</h2>
+          <button
+            className="admin-view-all-btn"
+            onClick={loadStripeStatus}
+            disabled={stripeLoading}
+          >
+            <RotateCw size={14} strokeWidth={1.5} />
+            <span>{stripeLoading ? 'Refreshing...' : 'Refresh Stripe Status'}</span>
+          </button>
+        </div>
+
+        {onboardingBanner && (
+          <div className="admin-stripe-banner">
+            <AlertCircle size={16} strokeWidth={1.5} />
+            <span>{onboardingBanner}</span>
+          </div>
+        )}
+
+        {stripeError && (
+          <div className="admin-stripe-banner admin-stripe-banner-error">
+            <AlertCircle size={16} strokeWidth={1.5} />
+            <span>{stripeError}</span>
+          </div>
+        )}
+
+        {onboardingError && (
+          <div className="admin-stripe-banner admin-stripe-banner-error">
+            <AlertCircle size={16} strokeWidth={1.5} />
+            <span>{onboardingError}</span>
+          </div>
+        )}
+
+        {stripeLoading && !stripeStatus ? (
+          <div className="admin-stripe-status-loading">
+            <div className="admin-loading-spinner admin-loading-spinner-sm" />
+            <span>Loading Stripe status...</span>
+          </div>
+        ) : stripeStatus ? (
+          <>
+            <div className="admin-stripe-status-grid">
+              <div className="admin-stripe-status-item">
+                <span className="admin-stripe-status-label">Connected</span>
+                <span className={`admin-stripe-status-value ${stripeStatus.configured ? 'is-yes' : 'is-no'}`}>
+                  {stripeStatus.configured ? <CheckCircle2 size={14} strokeWidth={1.5} /> : <XCircle size={14} strokeWidth={1.5} />}
+                  {stripeStatus.configured ? 'Yes' : 'No'}
+                </span>
+              </div>
+              <div className="admin-stripe-status-item">
+                <span className="admin-stripe-status-label">Onboarding</span>
+                <span className={`admin-stripe-status-value ${stripeStatus.details_submitted ? 'is-yes' : 'is-no'}`}>
+                  {stripeStatus.details_submitted ? <CheckCircle2 size={14} strokeWidth={1.5} /> : <XCircle size={14} strokeWidth={1.5} />}
+                  {stripeStatus.details_submitted ? 'Complete' : 'Incomplete'}
+                </span>
+              </div>
+              <div className="admin-stripe-status-item">
+                <span className="admin-stripe-status-label">Charges Enabled</span>
+                <span className={`admin-stripe-status-value ${stripeStatus.charges_enabled ? 'is-yes' : 'is-no'}`}>
+                  {stripeStatus.charges_enabled ? <CheckCircle2 size={14} strokeWidth={1.5} /> : <XCircle size={14} strokeWidth={1.5} />}
+                  {stripeStatus.charges_enabled ? 'Yes' : 'No'}
+                </span>
+              </div>
+              <div className="admin-stripe-status-item">
+                <span className="admin-stripe-status-label">Payouts Enabled</span>
+                <span className={`admin-stripe-status-value ${stripeStatus.payouts_enabled ? 'is-yes' : 'is-no'}`}>
+                  {stripeStatus.payouts_enabled ? <CheckCircle2 size={14} strokeWidth={1.5} /> : <XCircle size={14} strokeWidth={1.5} />}
+                  {stripeStatus.payouts_enabled ? 'Yes' : 'No'}
+                </span>
+              </div>
+            </div>
+
+            {stripeStatus.configured && !stripeStatus.details_submitted && (
+              <button
+                className="admin-stripe-onboard-btn"
+                onClick={handleStartOnboarding}
+                disabled={onboardingLoading}
+              >
+                {onboardingLoading ? (
+                  <>
+                    <div className="admin-loading-spinner admin-loading-spinner-sm admin-loading-spinner-light" />
+                    <span>Generating link...</span>
+                  </>
+                ) : (
+                  <>
+                    <CreditCard size={15} strokeWidth={1.5} />
+                    <span>Continue Stripe Onboarding</span>
+                    <ExternalLink size={13} strokeWidth={1.5} />
+                  </>
+                )}
+              </button>
+            )}
+          </>
+        ) : null}
       </section>
     </div>
   );

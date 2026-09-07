@@ -328,3 +328,61 @@ export async function fetchDashboardSummary(
     return { data: null, error: 'Unable to connect. Please try again.', status: 0 };
   }
 }
+
+export interface StripeAccountStatus {
+  configured: boolean;
+  details_submitted: boolean;
+  charges_enabled: boolean;
+  payouts_enabled: boolean;
+  checkout_ready: boolean;
+}
+
+export async function fetchStripeAccountStatus(
+  token: string,
+): Promise<{ data: StripeAccountStatus | null; error: string | null; status: number }> {
+  try {
+    const res = await fetchWithTimeout(`${SUPABASE_URL}/functions/v1/get-stripe-account-status`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        apikey: SUPABASE_ANON_KEY,
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    if (res.status === 401) return { data: null, error: 'Authentication required', status: 401 };
+    if (res.status === 403) return { data: null, error: 'Access denied', status: 403 };
+    if (!res.ok) return { data: null, error: 'Unable to load Stripe account status.', status: res.status };
+    const data = (await res.json()) as StripeAccountStatus;
+    return { data, error: null, status: 200 };
+  } catch {
+    return { data: null, error: 'Unable to connect. Please try again.', status: 0 };
+  }
+}
+
+export async function startStripeOnboarding(
+  token: string,
+  payload?: { email: string; country: string; business_type: string },
+): Promise<{ data: { url: string } | null; error: string | null; status: number }> {
+  try {
+    const res = await fetchWithTimeout(`${SUPABASE_URL}/functions/v1/start-stripe-onboarding`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        apikey: SUPABASE_ANON_KEY,
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(payload ?? {}),
+    });
+    if (res.status === 401) return { data: null, error: 'Authentication required', status: 401 };
+    if (res.status === 403) return { data: null, error: 'Access denied', status: 403 };
+    if (res.status === 400) {
+      const errData = await res.json().catch(() => ({}));
+      return { data: null, error: errData.error || 'Invalid request', status: 400 };
+    }
+    if (!res.ok) return { data: null, error: 'Unable to generate onboarding link.', status: res.status };
+    const data = (await res.json()) as { url: string };
+    return { data, error: null, status: 200 };
+  } catch {
+    return { data: null, error: 'Unable to connect. Please try again.', status: 0 };
+  }
+}

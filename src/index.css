@@ -3830,6 +3830,135 @@ select::placeholder {
   }
 }
 
+/* ── Stripe Commerce Setup ── */
+.admin-stripe-section {
+  margin-top: 0;
+}
+
+.admin-stripe-banner {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.65rem 0.85rem;
+  margin-bottom: 0.75rem;
+  background: rgba(201, 162, 39, 0.08);
+  border: 1px solid rgba(201, 162, 39, 0.15);
+  border-radius: 3px;
+  font-family: 'Jost', system-ui, sans-serif;
+  font-size: 0.72rem;
+  font-weight: 300;
+  color: rgba(201, 162, 39, 0.85);
+  line-height: 1.5;
+}
+
+.admin-stripe-banner-error {
+  background: rgba(220, 100, 80, 0.08);
+  border-color: rgba(220, 100, 80, 0.2);
+  color: rgba(220, 100, 80, 0.9);
+}
+
+.admin-stripe-status-loading {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem 0;
+  font-family: 'Jost', system-ui, sans-serif;
+  font-size: 0.75rem;
+  font-weight: 300;
+  color: rgba(250, 243, 217, 0.4);
+}
+
+.admin-stripe-status-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.admin-stripe-status-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  padding: 0.75rem 0.85rem;
+  background: rgba(42, 22, 41, 0.25);
+  border: 1px solid rgba(201, 162, 39, 0.06);
+  border-radius: 3px;
+}
+
+.admin-stripe-status-label {
+  font-family: 'Jost', system-ui, sans-serif;
+  font-size: 0.55rem;
+  font-weight: 400;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(250, 243, 217, 0.35);
+}
+
+.admin-stripe-status-value {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-family: 'Jost', system-ui, sans-serif;
+  font-size: 0.78rem;
+  font-weight: 400;
+}
+
+.admin-stripe-status-value.is-yes {
+  color: rgba(120, 180, 100, 0.9);
+}
+
+.admin-stripe-status-value.is-no {
+  color: rgba(220, 100, 80, 0.75);
+}
+
+.admin-stripe-onboard-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.65rem 1.25rem;
+  background: rgba(201, 162, 39, 0.12);
+  border: 1px solid rgba(201, 162, 39, 0.25);
+  border-radius: 3px;
+  font-family: 'Jost', system-ui, sans-serif;
+  font-size: 0.68rem;
+  font-weight: 400;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #c9a227;
+  cursor: pointer;
+  transition: background 0.25s ease, border-color 0.25s ease, color 0.25s ease;
+}
+
+.admin-stripe-onboard-btn:hover:not(:disabled) {
+  background: rgba(201, 162, 39, 0.2);
+  border-color: rgba(201, 162, 39, 0.4);
+  color: #e0b533;
+}
+
+.admin-stripe-onboard-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.admin-loading-spinner-light {
+  border-top-color: rgba(201, 162, 39, 0.3);
+  border-right-color: rgba(201, 162, 39, 0.3);
+  border-bottom-color: rgba(201, 162, 39, 0.3);
+  border-left-color: #c9a227;
+}
+
+@media (max-width: 768px) {
+  .admin-stripe-status-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 480px) {
+  .admin-stripe-status-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
 /* ─────────────────────────────────────────
    NOTES — in lead detail drawer
 ───────────────────────────────────────── */
