@@ -122,7 +122,15 @@ export default function AdminLogin({ onSuccess }: Props) {
   useEffect(() => {
     mountedRef.current = true;
     emailRef.current?.focus();
-    startAutofillWatcher();
+
+    const explicitLogout = sessionStorage.getItem('pod_admin_explicit_logout');
+    if (explicitLogout === '1') {
+      sessionStorage.removeItem('pod_admin_explicit_logout');
+      autoLoginAttemptedRef.current = true;
+    } else {
+      startAutofillWatcher();
+    }
+
     window.addEventListener('focus', handleWindowFocus);
     document.addEventListener('visibilitychange', handleVisibilityChange);
     window.addEventListener('pageshow', handlePageshow);
@@ -160,8 +168,13 @@ export default function AdminLogin({ onSuccess }: Props) {
     setError(null);
     setLoading(true);
 
+    const emailValue = emailRef.current?.value.trim() || email;
+    const passwordValue = passwordRef.current?.value || password;
+    if (emailValue !== email) setEmail(emailValue);
+    if (passwordValue !== password) setPassword(passwordValue);
+
     try {
-      const { session, error: loginError } = await loginWithPassword(email, password);
+      const { session, error: loginError } = await loginWithPassword(emailValue, passwordValue);
 
       if (loginError || !session) {
         if (mountedRef.current) {

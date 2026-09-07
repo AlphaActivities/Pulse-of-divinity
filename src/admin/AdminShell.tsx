@@ -37,6 +37,7 @@ export default function AdminShell({ profile, onLogout, children }: Props) {
     }
     setLoggingOut(false);
     onLogout();
+    sessionStorage.setItem('pod_admin_explicit_logout', '1');
     navigate('/login', { replace: true });
   };
 
