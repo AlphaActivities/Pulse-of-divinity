@@ -101,16 +101,7 @@ Deno.serve(async (req: Request) => {
       });
     }
 
-    const body = await req.json();
-    const result = validatePayload(body);
-    if (!result.valid) {
-      return new Response(JSON.stringify({ error: result.error }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    const { email, country, business_type } = result.payload!;
+    const body = await req.json().catch(() => ({}));
 
     // Read commerce_settings
     const { data: settings, error: settingsError } = await supabase
@@ -136,6 +127,15 @@ Deno.serve(async (req: Request) => {
 
     // Create connected account only if one does not already exist
     if (!connectedAccountId) {
+      const result = validatePayload(body);
+      if (!result.valid) {
+        return new Response(JSON.stringify({ error: result.error }), {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      const { email, country, business_type } = result.payload!;
       const account = await stripe.accounts.create({
         country,
         email,
