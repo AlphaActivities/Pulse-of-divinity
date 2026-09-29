@@ -362,7 +362,7 @@ export default function DashboardHome({ profile, onLeadClick, justLoggedIn, onRe
               </div>
             </div>
 
-            {stripeStatus.configured && !stripeStatus.details_submitted && (
+            {stripeStatus.configured && (!stripeStatus.details_submitted || !stripeStatus.charges_enabled || !stripeStatus.payouts_enabled) && (
               <button
                 className="admin-stripe-onboard-btn"
                 onClick={handleStartOnboarding}
@@ -376,7 +376,7 @@ export default function DashboardHome({ profile, onLeadClick, justLoggedIn, onRe
                 ) : (
                   <>
                     <CreditCard size={15} strokeWidth={1.5} />
-                    <span>Continue Stripe Onboarding</span>
+                    <span>{stripeStatus.details_submitted ? 'Resolve Stripe Requirements' : 'Continue Stripe Onboarding'}</span>
                     <ExternalLink size={13} strokeWidth={1.5} />
                   </>
                 )}
