@@ -335,6 +335,17 @@ export interface StripeAccountStatus {
   charges_enabled: boolean;
   payouts_enabled: boolean;
   checkout_ready: boolean;
+  requirements: {
+    currently_due: string[];
+    past_due: string[];
+    eventually_due: string[];
+    pending_verification: string[];
+    disabled_reason: string | null;
+  };
+  capabilities: {
+    card_payments: string;
+    transfers: string;
+  };
 }
 
 export async function fetchStripeAccountStatus(

@@ -97,6 +97,17 @@ Deno.serve(async (req: Request) => {
           charges_enabled: false,
           payouts_enabled: false,
           checkout_ready: false,
+          requirements: {
+            currently_due: [],
+            past_due: [],
+            eventually_due: [],
+            pending_verification: [],
+            disabled_reason: null,
+          },
+          capabilities: {
+            card_payments: "inactive",
+            transfers: "inactive",
+          },
         }),
         { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } },
       );
@@ -115,6 +126,19 @@ Deno.serve(async (req: Request) => {
     const checkoutReady =
       account.charges_enabled === true && shippingConfigured;
 
+    const reqs = account.requirements ?? {};
+    const currentlyDue: string[] = Array.isArray(reqs.currently_due) ? reqs.currently_due : [];
+    const pastDue: string[] = Array.isArray(reqs.past_due) ? reqs.past_due : [];
+    const eventuallyDue: string[] = Array.isArray(reqs.eventually_due) ? reqs.eventually_due : [];
+    const pendingVerification: string[] = Array.isArray(reqs.pending_verification)
+      ? reqs.pending_verification
+      : [];
+    const disabledReason = typeof reqs.disabled_reason === "string" ? reqs.disabled_reason : null;
+
+    const caps = account.capabilities ?? {};
+    const cardPaymentsStatus = typeof caps.card_payments === "string" ? caps.card_payments : "inactive";
+    const transfersStatus = typeof caps.transfers === "string" ? caps.transfers : "inactive";
+
     return new Response(
       JSON.stringify({
         configured: true,
@@ -122,6 +146,17 @@ Deno.serve(async (req: Request) => {
         charges_enabled: account.charges_enabled,
         payouts_enabled: account.payouts_enabled,
         checkout_ready: checkoutReady,
+        requirements: {
+          currently_due: currentlyDue,
+          past_due: pastDue,
+          eventually_due: eventuallyDue,
+          pending_verification: pendingVerification,
+          disabled_reason: disabledReason,
+        },
+        capabilities: {
+          card_payments: cardPaymentsStatus,
+          transfers: transfersStatus,
+        },
       }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } },
     );

@@ -3929,6 +3929,77 @@ select::placeholder {
   transition: background 0.25s ease, border-color 0.25s ease, color 0.25s ease;
 }
 
+.admin-stripe-requirements {
+  margin-bottom: 1rem;
+  padding: 0.85rem 1rem;
+  background: rgba(42, 22, 41, 0.3);
+  border: 1px solid rgba(220, 100, 80, 0.12);
+  border-radius: 3px;
+}
+
+.admin-stripe-requirements-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.6rem;
+  font-family: 'Jost', system-ui, sans-serif;
+  font-size: 0.6rem;
+  font-weight: 400;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(220, 100, 80, 0.75);
+}
+
+.admin-stripe-disabled-reason {
+  margin: 0 0 0.6rem;
+  font-family: 'Jost', system-ui, sans-serif;
+  font-size: 0.75rem;
+  font-weight: 300;
+  color: rgba(220, 100, 80, 0.85);
+  line-height: 1.5;
+}
+
+.admin-stripe-req-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.admin-stripe-req-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: 'Jost', system-ui, sans-serif;
+  font-size: 0.78rem;
+  font-weight: 300;
+  color: rgba(250, 243, 217, 0.75);
+  line-height: 1.5;
+}
+
+.admin-stripe-req-dot {
+  flex-shrink: 0;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: rgba(220, 100, 80, 0.6);
+}
+
+.admin-stripe-req-pending .admin-stripe-req-dot {
+  background: rgba(201, 162, 39, 0.6);
+}
+
+.admin-stripe-req-status {
+  margin-left: auto;
+  font-size: 0.6rem;
+  font-weight: 400;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(201, 162, 39, 0.5);
+}
+
 .admin-stripe-onboard-btn:hover:not(:disabled) {
   background: rgba(201, 162, 39, 0.2);
   border-color: rgba(201, 162, 39, 0.4);

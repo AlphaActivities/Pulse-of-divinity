@@ -21,6 +21,58 @@ const INQUIRY_LABELS: Record<string, string> = {
   general: 'General Inquiry',
 };
 
+const REQUIREMENT_LABELS: Record<string, string> = {
+  'external_account': 'Bank account',
+  'business_profile.mcc': 'Business category (MCC)',
+  'business_profile.url': 'Business website URL',
+  'business_type': 'Business type',
+  'company.address.city': 'Company address — city',
+  'company.address.line1': 'Company address — street',
+  'company.address.postal_code': 'Company address — postal code',
+  'company.address.state': 'Company address — state',
+  'company.name': 'Company name',
+  'company.phone': 'Company phone number',
+  'company.tax_id': 'Business tax ID',
+  'individual.address.city': 'Address — city',
+  'individual.address.line1': 'Address — street',
+  'individual.address.postal_code': 'Address — postal code',
+  'individual.address.state': 'Address — state',
+  'individual.dob.day': 'Date of birth — day',
+  'individual.dob.month': 'Date of birth — month',
+  'individual.dob.year': 'Date of birth — year',
+  'individual.email': 'Email address',
+  'individual.first_name': 'Legal first name',
+  'individual.last_name': 'Legal last name',
+  'individual.id_number': 'Personal ID number (SSN)',
+  'individual.phone': 'Phone number',
+  'individual.ssn_last_4': 'Last 4 digits of SSN',
+  'relationship.representative': 'Representative details',
+  'relationship.owner': 'Owner details',
+  'relationship.director': 'Director details',
+  'tos_acceptance.date': 'Terms of service acceptance',
+  'tos_acceptance.ip': 'Terms of service acceptance (IP)',
+};
+
+function formatRequirement(field: string): string {
+  return REQUIREMENT_LABELS[field] ?? field.replace(/[._]/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
+function formatDisabledReason(reason: string): string {
+  const map: Record<string, string> = {
+    'requirements.past_due': 'Required information is overdue',
+    'requirements.pending_verification': 'Identity verification is pending',
+    'requirements.eventually_due': 'Additional information will be required',
+    'rejected.fraud': 'Account was rejected (fraud)',
+    'rejected.terms_of_service': 'Account was rejected (terms of service)',
+    'rejected.listed': 'Account was rejected (listed entity)',
+    'rejected.other': 'Account was rejected',
+    'under_review': 'Account is under review',
+    'listed': 'Account is listed',
+    'paused.inactivity': 'Account paused due to inactivity',
+  };
+  return map[reason] ?? reason;
+}
+
 function formatDate(dateStr: string | null): string {
   if (!dateStr) return '—';
   const d = new Date(dateStr);
@@ -361,6 +413,48 @@ export default function DashboardHome({ profile, onLeadClick, justLoggedIn, onRe
                 </span>
               </div>
             </div>
+
+            {stripeStatus.configured && (!stripeStatus.charges_enabled || !stripeStatus.payouts_enabled) && (() => {
+              const due = [...stripeStatus.requirements.past_due, ...stripeStatus.requirements.currently_due];
+              const pending = stripeStatus.requirements.pending_verification;
+              const disabled = stripeStatus.requirements.disabled_reason;
+              const hasItems = due.length > 0 || pending.length > 0 || disabled;
+              if (!hasItems) return null;
+              return (
+                <div className="admin-stripe-requirements">
+                  <div className="admin-stripe-requirements-header">
+                    <AlertCircle size={14} strokeWidth={1.5} />
+                    <span>Outstanding Requirements</span>
+                  </div>
+                  {disabled && (
+                    <p className="admin-stripe-disabled-reason">
+                      {formatDisabledReason(disabled)}
+                    </p>
+                  )}
+                  {due.length > 0 && (
+                    <ul className="admin-stripe-req-list">
+                      {due.map((field, i) => (
+                        <li key={`due-${i}`} className="admin-stripe-req-item admin-stripe-req-overdue">
+                          <span className="admin-stripe-req-dot" />
+                          {formatRequirement(field)}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                  {pending.length > 0 && (
+                    <ul className="admin-stripe-req-list">
+                      {pending.map((field, i) => (
+                        <li key={`pending-${i}`} className="admin-stripe-req-item admin-stripe-req-pending">
+                          <span className="admin-stripe-req-dot" />
+                          {formatRequirement(field)}
+                          <span className="admin-stripe-req-status">Pending verification</span>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              );
+            })()}
 
             {stripeStatus.configured && (!stripeStatus.details_submitted || !stripeStatus.charges_enabled || !stripeStatus.payouts_enabled) && (
               <button
