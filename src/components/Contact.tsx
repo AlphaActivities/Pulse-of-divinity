@@ -65,8 +65,8 @@ const contactMethods = [
 ];
 
 const CONTACT_EMAIL = 'darcy.pulseofdivinity@gmail.com';
-const CONTACT_PHONE = '+1 (458) 488-0450';
-const CONTACT_PHONE_HREF = 'tel:+14584880450';
+const CONTACT_PHONE = '+1 (458) 488-9001';
+const CONTACT_PHONE_HREF = 'tel:+14584889001';
 
 export default function Contact({ pendingInquiryArtworkId, onInquiryConsumed }: { pendingInquiryArtworkId: string | null; onInquiryConsumed: () => void }) {
   const { ref: titleRef, visible: titleVisible } = useReveal();
