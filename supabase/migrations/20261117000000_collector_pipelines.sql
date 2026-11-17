@@ -153,3 +153,22 @@ BEGIN
 END $$;
 CREATE TRIGGER pod_audit_lead AFTER UPDATE ON public.leads FOR EACH ROW
  WHEN (ROW(OLD.status,OLD.assigned_admin_id,OLD.follow_up_at,OLD.outcome,OLD.archived) IS DISTINCT FROM ROW(NEW.status,NEW.assigned_admin_id,NEW.follow_up_at,NEW.outcome,NEW.archived)) EXECUTE FUNCTION public.pod_audit_lead();
+
+CREATE OR REPLACE FUNCTION public.pod_update_lead(p_id uuid,p_changes jsonb) RETURNS public.leads
+LANGUAGE plpgsql SECURITY DEFINER SET search_path=public,pg_temp AS $$
+DECLARE result public.leads;
+BEGIN
+ PERFORM public.pod_profile();
+ IF jsonb_typeof(p_changes)<>'object' OR p_changes - ARRAY['status','assigned_admin_id','follow_up_at','outcome','archived','archived_at','updated_at'] <> '{}'::jsonb THEN RAISE EXCEPTION 'Invalid fields'; END IF;
+ SELECT * INTO result FROM public.leads WHERE id=p_id FOR UPDATE;
+ IF result.id IS NULL THEN RAISE EXCEPTION 'Lead not found'; END IF;
+ result:=jsonb_populate_record(result,p_changes);
+ IF result.status IS NULL OR result.status NOT IN ('NEW','CONTACTED','ACTIVE_CONVERSATION','FOLLOW_UP','QUALIFIED','WON','CLOSED') THEN RAISE EXCEPTION 'Invalid status'; END IF;
+ IF result.assigned_admin_id IS NOT NULL AND NOT EXISTS(SELECT 1 FROM public.admins WHERE id=result.assigned_admin_id AND active AND project_key='pulse-of-divinity' AND role IN ('owner','client','staff')) THEN RAISE EXCEPTION 'Invalid assignment'; END IF;
+ IF result.outcome IS NOT NULL AND result.outcome NOT IN ('Artwork Sale','Commission Secured','Not Ready','No Response','Not a Fit','Other') THEN RAISE EXCEPTION 'Invalid outcome'; END IF;
+ UPDATE public.leads SET status=result.status,assigned_admin_id=result.assigned_admin_id,follow_up_at=result.follow_up_at,outcome=result.outcome,archived=result.archived,
+ archived_at=CASE WHEN result.archived THEN coalesce(result.archived_at,now()) ELSE NULL END WHERE id=p_id RETURNING * INTO result;
+ RETURN result;
+END $$;
+REVOKE ALL ON FUNCTION public.pod_update_lead(uuid,jsonb) FROM PUBLIC,anon;
+GRANT EXECUTE ON FUNCTION public.pod_update_lead(uuid,jsonb) TO authenticated;

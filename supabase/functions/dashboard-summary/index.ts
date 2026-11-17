@@ -18,10 +18,10 @@ async function verifyAdmin(
   if (userError || !userData.user) return { authorized: false };
   const { data: admin } = await supabase
     .from("admins")
-    .select("active")
+    .select("active, role, project_key")
     .eq("auth_user_id", userData.user.id)
     .single();
-  if (!admin || !admin.active) return { authorized: false };
+  if (!admin || !admin.active || admin.project_key !== "pulse-of-divinity" || !["owner", "client", "staff"].includes(admin.role)) return { authorized: false };
   return { authorized: true };
 }
 

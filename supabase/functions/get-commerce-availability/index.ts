@@ -18,7 +18,7 @@ interface PublicAvailability {
   artwork_id: string;
   price_cents: number;
   currency: string;
-  status: "available" | "unavailable";
+  status: "available" | "reserved" | "sold" | "unavailable";
 }
 
 Deno.serve(async (req: Request) => {
@@ -39,18 +39,10 @@ Deno.serve(async (req: Request) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
     );
 
-    const { error: releaseError } = await supabase.rpc("release_expired_reservations");
-    if (releaseError) {
-      console.error("release_expired_reservations failed:", releaseError.message);
-      return new Response(JSON.stringify({ error: "Internal server error" }), {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
     const { data, error } = await supabase
       .from("artwork_inventory")
-      .select("artwork_id, price_cents, currency, purchasable, inventory_status");
+      .select("artwork_id, price_cents, currency, purchasable, inventory_status")
+      .in("artwork_id", ["for-sale-cosmic-energy", "for-sale-bloom-through-the-breaking"]);
 
     if (error) {
       console.error("inventory query failed:", error.message);
@@ -65,8 +57,8 @@ Deno.serve(async (req: Request) => {
       price_cents: row.price_cents,
       currency: row.currency,
       status:
-        row.purchasable && row.inventory_status === "available"
-          ? "available"
+        ["available", "reserved", "sold"].includes(row.inventory_status)
+          ? row.inventory_status as PublicAvailability["status"]
           : "unavailable",
     }));
 

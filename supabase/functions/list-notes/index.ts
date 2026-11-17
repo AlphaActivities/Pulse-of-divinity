@@ -17,7 +17,7 @@ async function verifyAdmin(
     .select("id, active")
     .eq("auth_user_id", userData.user.id)
     .single();
-  if (!admin || !admin.active) return { authorized: false, adminId: null };
+  if (!admin || !admin.active || admin.project_key !== "pulse-of-divinity" || !["owner", "client", "staff"].includes(admin.role)) return { authorized: false, adminId: null };
   return { authorized: true, adminId: admin.id };
 }
 

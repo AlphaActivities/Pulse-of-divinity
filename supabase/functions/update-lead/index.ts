@@ -43,11 +43,11 @@ async function verifyAdmin(
 
   const { data: admin } = await supabase
     .from("admins")
-    .select("active")
+    .select("active, role, project_key")
     .eq("auth_user_id", userData.user.id)
     .single();
 
-  if (!admin || !admin.active) return { authorized: false };
+  if (!admin || !admin.active || admin.project_key !== "pulse-of-divinity" || !["owner", "client", "staff"].includes(admin.role)) return { authorized: false };
   return { authorized: true };
 }
 
@@ -207,14 +207,10 @@ Deno.serve(async (req: Request) => {
 
     updates.updated_at = new Date().toISOString();
 
-    const { data: updated, error } = await supabase
-      .from("leads")
-      .update(updates)
-      .eq("id", leadId)
-      .select(
-        "id, name, email, phone, contact_method, inquiry_type, interest, message, artwork_id, artwork_title, artwork_collection, artwork_price_display, artwork_price_numeric, status, assigned_admin_id, follow_up_at, outcome, archived, archived_at, created_at, updated_at",
-      )
-      .single();
+    const userClient = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_ANON_KEY")!, {
+      global: { headers: { Authorization: `Bearer ${token}` } },
+    });
+    const { data: updated, error } = await userClient.rpc("pod_update_lead", { p_id: leadId, p_changes: updates });
 
     if (error || !updated) {
       return new Response(JSON.stringify({ error: "Unable to save changes" }), {

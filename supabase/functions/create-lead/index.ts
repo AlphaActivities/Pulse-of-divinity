@@ -128,6 +128,13 @@ Deno.serve(async (req: Request) => {
       });
     }
     if (!data?.id || data.success !== true) throw new Error("Missing committed inquiry ID");
+    if (body.handoff === true) {
+      const { error: handoffError } = await supabase.from("concierge_handoffs").upsert({ lead_id: data.id }, { onConflict: "lead_id", ignoreDuplicates: true });
+      if (handoffError) throw new Error("Handoff not saved");
+      await supabase.from("push_outbox").delete().eq("lead_id", data.id).eq("kind", "website_inquiries");
+      const { error: queueError } = await supabase.from("push_outbox").upsert({ lead_id: data.id, kind: "chatbot_handoffs" }, { onConflict: "kind,lead_id", ignoreDuplicates: true });
+      if (queueError) throw new Error("Handoff notification not queued");
+    }
     return new Response(JSON.stringify(data), {
       status: data.duplicate ? 200 : 201, headers: { ...corsHeaders, "Content-Type": "application/json" },
     });

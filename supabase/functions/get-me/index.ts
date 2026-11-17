@@ -47,7 +47,7 @@ Deno.serve(async (req: Request) => {
 
     const { data: admin, error: adminError } = await supabase
       .from("admins")
-      .select("id, auth_user_id, display_name, email, role, active")
+      .select("id, auth_user_id, display_name, email, role, active, project_key")
       .eq("auth_user_id", authUserId)
       .single();
 
@@ -58,7 +58,7 @@ Deno.serve(async (req: Request) => {
       });
     }
 
-    if (!admin.active) {
+    if (!admin.active || admin.project_key !== "pulse-of-divinity" || !["owner", "client", "staff"].includes(admin.role)) {
       return new Response(JSON.stringify({ error: "Access denied" }), {
         status: 403,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
