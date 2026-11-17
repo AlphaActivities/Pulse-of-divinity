@@ -1,4 +1,4 @@
-import { createClient } from "npm:@supabase/supabase-js@2.45.0";
+import { createClient, type SupabaseClient } from "npm:@supabase/supabase-js@2.45.0";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -54,7 +54,7 @@ function parseParams(url: URL, adminId: string): ListLeadsParams {
 }
 
 async function verifyAdmin(
-  supabase: ReturnType<typeof createClient>,
+  supabase: SupabaseClient,
   token: string,
 ): Promise<{ authorized: boolean; adminId: string | null }> {
   const { data: userData, error: userError } = await supabase.auth.getUser(token);
@@ -62,7 +62,7 @@ async function verifyAdmin(
 
   const { data: admin } = await supabase
     .from("admins")
-    .select("id, active")
+    .select("id, active, role, project_key")
     .eq("auth_user_id", userData.user.id)
     .single();
 

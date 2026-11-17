@@ -63,7 +63,7 @@ BEGIN
  ) q;
  RETURN jsonb_build_object('count',jsonb_array_length(result),'items',result);
 END $$;
-CREATE OR REPLACE FUNCTION public.pod_handoff_action(p_id uuid,p_action text,p_outcome text DEFAULT NULL) RETURNS public.concierge_handoffs
+CREATE OR REPLACE FUNCTION public.pod_handoff_action(p_id uuid,p_action text,p_outcome text DEFAULT NULL) RETURNS jsonb
 LANGUAGE plpgsql SECURITY DEFINER SET search_path=public,pg_temp AS $$
 DECLARE actor public.admins; result public.concierge_handoffs;
 BEGIN
@@ -80,7 +80,7 @@ BEGIN
  ELSE RAISE EXCEPTION 'Invalid action'; END IF;
  UPDATE public.concierge_handoffs SET state=result.state,claimed_by=result.claimed_by,outcome=result.outcome,updated_at=now() WHERE id=p_id RETURNING * INTO result;
  INSERT INTO public.lead_events(lead_id,actor_admin_id,kind,changes) VALUES(result.lead_id,actor.id,'handoff',jsonb_build_object('state',result.state,'outcome',result.outcome));
- RETURN result;
+ RETURN to_jsonb(result);
 END $$;
 DO $$ DECLARE signature text; BEGIN FOREACH signature IN ARRAY ARRAY['pod_register_device(text,text,text,text)','pod_confirm_receipt(uuid)','pod_attention()','pod_handoff_action(uuid,text,text)'] LOOP
  EXECUTE 'REVOKE ALL ON FUNCTION public.'||signature||' FROM PUBLIC,anon';

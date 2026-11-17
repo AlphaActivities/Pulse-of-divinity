@@ -28,6 +28,10 @@ const MAX_FIELD_LENGTH = 2000;
 const MAX_MESSAGE_LENGTH = 10000;
 
 function validatePayload(data: Record<string, unknown>): { valid: boolean; error?: string; payload?: LeadPayload } {
+  if (!data || Array.isArray(data) || typeof data !== "object") return {valid:false,error:"Invalid inquiry"};
+  for (const field of ["submissionId","name","email","phone","contactMethod","inquiryType","interest","artworkId","artworkTitle","artworkCollection","artworkPrice","message"]) {
+    if (data[field] !== undefined && typeof data[field] !== "string") return {valid:false,error:"Invalid field type"};
+  }
   const submissionId = String(data.submissionId ?? "").trim();
   const name = String(data.name ?? "").trim();
   const email = String(data.email ?? "").trim();
@@ -104,7 +108,9 @@ Deno.serve(async (req: Request) => {
   }
 
   try {
-    const body = await req.json();
+    const raw = await req.text();
+    if (raw.length > 24000) return new Response(JSON.stringify({error:"Inquiry too large"}), {status:413,headers:{...corsHeaders,"Content-Type":"application/json"}});
+    const body = JSON.parse(raw);
     const result = validatePayload(body);
     if (!result.valid) {
       return new Response(JSON.stringify({ error: result.error }), {
@@ -120,7 +126,10 @@ Deno.serve(async (req: Request) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
     );
 
-    const { data, error } = await supabase.rpc("pod_create_inquiry", { p_payload: p });
+    const address = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
+    const hash = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(address));
+    const rateKey = Array.from(new Uint8Array(hash), value => value.toString(16).padStart(2,"0")).join("");
+    const { data, error } = await supabase.rpc("pod_create_inquiry", { p_payload: {...p, handoff:body.handoff===true, _rateKey:rateKey} });
     if (error) {
       const status = error.code === "P0003" ? 429 : error.code === "23505" ? 409 : error.code === "P0001" ? 400 : 500;
       return new Response(JSON.stringify({ error: status === 500 ? "Unable to save inquiry" : "Please check your inquiry or retry later" }), {
@@ -128,13 +137,6 @@ Deno.serve(async (req: Request) => {
       });
     }
     if (!data?.id || data.success !== true) throw new Error("Missing committed inquiry ID");
-    if (body.handoff === true) {
-      const { error: handoffError } = await supabase.from("concierge_handoffs").upsert({ lead_id: data.id }, { onConflict: "lead_id", ignoreDuplicates: true });
-      if (handoffError) throw new Error("Handoff not saved");
-      await supabase.from("push_outbox").delete().eq("lead_id", data.id).eq("kind", "website_inquiries");
-      const { error: queueError } = await supabase.from("push_outbox").upsert({ lead_id: data.id, kind: "chatbot_handoffs" }, { onConflict: "kind,lead_id", ignoreDuplicates: true });
-      if (queueError) throw new Error("Handoff notification not queued");
-    }
     return new Response(JSON.stringify(data), {
       status: data.duplicate ? 200 : 201, headers: { ...corsHeaders, "Content-Type": "application/json" },
     });

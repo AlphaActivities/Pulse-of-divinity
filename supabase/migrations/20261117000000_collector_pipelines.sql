@@ -49,7 +49,7 @@ CREATE POLICY pod_read_artwork_events ON public.artwork_events FOR SELECT TO aut
 -- No direct client mutations; audited RPCs provide the only authenticated path.
 GRANT SELECT ON public.commissions,public.lead_events,public.collector_metrics,public.artwork_inventory,public.artwork_events TO authenticated;
 
-CREATE OR REPLACE FUNCTION public.pod_set_availability(p_artwork_id text,p_status text,p_updated_at timestamptz) RETURNS public.artwork_inventory
+CREATE OR REPLACE FUNCTION public.pod_set_availability(p_artwork_id text,p_status text,p_updated_at timestamptz) RETURNS jsonb
 LANGUAGE plpgsql SECURITY DEFINER SET search_path=public,pg_temp AS $$
 DECLARE actor public.admins; item public.artwork_inventory; old_status text;
 BEGIN
@@ -68,12 +68,12 @@ BEGIN
  IF old_status<>p_status THEN
  INSERT INTO public.artwork_events(artwork_id,actor_admin_id,previous_status,status) VALUES(p_artwork_id,actor.id,old_status,p_status);
  END IF;
- RETURN item;
+ RETURN to_jsonb(item);
 END $$;
 REVOKE ALL ON FUNCTION public.pod_set_availability(text,text,timestamptz) FROM PUBLIC,anon;
 GRANT EXECUTE ON FUNCTION public.pod_set_availability(text,text,timestamptz) TO authenticated;
 
-CREATE OR REPLACE FUNCTION public.pod_update_commission(p_lead_id uuid,p_changes jsonb) RETURNS public.commissions
+CREATE OR REPLACE FUNCTION public.pod_update_commission(p_lead_id uuid,p_changes jsonb) RETURNS jsonb
 LANGUAGE plpgsql SECURITY DEFINER SET search_path=public,pg_temp AS $$
 DECLARE actor public.admins; result public.commissions; before_row public.commissions;
 BEGIN
@@ -93,7 +93,7 @@ BEGIN
  IF result.stage IN ('accepted','creating','delivered') THEN
  INSERT INTO public.collector_metrics(lead_id,event) VALUES(p_lead_id,'commission_accepted') ON CONFLICT DO NOTHING;
  END IF;
- RETURN result;
+ RETURN to_jsonb(result);
 END $$;
 REVOKE ALL ON FUNCTION public.pod_update_commission(uuid,jsonb) FROM PUBLIC,anon;
 GRANT EXECUTE ON FUNCTION public.pod_update_commission(uuid,jsonb) TO authenticated;
@@ -154,7 +154,7 @@ END $$;
 CREATE TRIGGER pod_audit_lead AFTER UPDATE ON public.leads FOR EACH ROW
  WHEN (ROW(OLD.status,OLD.assigned_admin_id,OLD.follow_up_at,OLD.outcome,OLD.archived) IS DISTINCT FROM ROW(NEW.status,NEW.assigned_admin_id,NEW.follow_up_at,NEW.outcome,NEW.archived)) EXECUTE FUNCTION public.pod_audit_lead();
 
-CREATE OR REPLACE FUNCTION public.pod_update_lead(p_id uuid,p_changes jsonb) RETURNS public.leads
+CREATE OR REPLACE FUNCTION public.pod_update_lead(p_id uuid,p_changes jsonb) RETURNS jsonb
 LANGUAGE plpgsql SECURITY DEFINER SET search_path=public,pg_temp AS $$
 DECLARE result public.leads;
 BEGIN
@@ -168,7 +168,7 @@ BEGIN
  IF result.outcome IS NOT NULL AND result.outcome NOT IN ('Artwork Sale','Commission Secured','Not Ready','No Response','Not a Fit','Other') THEN RAISE EXCEPTION 'Invalid outcome'; END IF;
  UPDATE public.leads SET status=result.status,assigned_admin_id=result.assigned_admin_id,follow_up_at=result.follow_up_at,outcome=result.outcome,archived=result.archived,
  archived_at=CASE WHEN result.archived THEN coalesce(result.archived_at,now()) ELSE NULL END WHERE id=p_id RETURNING * INTO result;
- RETURN result;
+ RETURN to_jsonb(result);
 END $$;
 REVOKE ALL ON FUNCTION public.pod_update_lead(uuid,jsonb) FROM PUBLIC,anon;
 GRANT EXECUTE ON FUNCTION public.pod_update_lead(uuid,jsonb) TO authenticated;

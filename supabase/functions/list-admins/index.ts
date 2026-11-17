@@ -1,4 +1,4 @@
-import { createClient } from "npm:@supabase/supabase-js@2.45.0";
+import { createClient, type SupabaseClient } from "npm:@supabase/supabase-js@2.45.0";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -7,7 +7,7 @@ const corsHeaders = {
 };
 
 async function verifyAdmin(
-  supabase: ReturnType<typeof createClient>,
+  supabase: SupabaseClient,
   token: string,
 ): Promise<{ authorized: boolean }> {
   const { data: userData, error: userError } = await supabase.auth.getUser(token);
@@ -63,6 +63,8 @@ Deno.serve(async (req: Request) => {
       .from("admins")
       .select("id, display_name, email")
       .eq("active", true)
+      .eq("project_key", "pulse-of-divinity")
+      .in("role", ["owner", "client", "staff"])
       .order("display_name");
 
     if (error) {
