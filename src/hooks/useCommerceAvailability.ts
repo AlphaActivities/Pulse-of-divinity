@@ -5,7 +5,7 @@ const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string;
 const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY as string;
 const COMMERCE_TIMEOUT_MS = 10000;
 
-export type CommerceStatus = 'available' | 'unavailable';
+export type CommerceStatus = 'available' | 'reserved' | 'sold' | 'unavailable';
 
 export interface CommerceAvailability {
   artwork_id: string;
@@ -29,7 +29,7 @@ function isValidRecord(value: unknown): value is CommerceAvailability {
     typeof r.artwork_id === 'string' &&
     typeof r.price_cents === 'number' &&
     typeof r.currency === 'string' &&
-    (r.status === 'available' || r.status === 'unavailable')
+    (['available','reserved','sold','unavailable'].includes(r.status as string))
   );
 }
 
@@ -69,25 +69,33 @@ export function useCommerceAvailability(): UseCommerceAvailabilityResult {
 
   useEffect(() => {
     const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), COMMERCE_TIMEOUT_MS);
 
+
+    let generation = 0;
+    const load = () => {
+      const current = ++generation;
+      setAvailability(null);
+      setLoading(true);
+      setError(null);
     fetch(`${SUPABASE_URL}/functions/v1/get-commerce-availability`, {
       method: 'GET',
       headers: {
         Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
       },
-      signal: controller.signal,
+      signal: AbortSignal.any([controller.signal, AbortSignal.timeout(COMMERCE_TIMEOUT_MS)]),
     })
       .then(async (res) => {
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const json: unknown = await res.json();
         if (!Array.isArray(json)) throw new Error('Response is not an array');
+        if (current !== generation || controller.signal.aborted) return;
         const map = buildMap(json);
         setAvailability(map);
         setLoading(false);
         checkPriceDrift(map);
       })
       .catch((err: unknown) => {
+        if (current !== generation || controller.signal.aborted) return;
         if (import.meta.env.DEV) {
           console.warn('[Commerce] Availability fetch failed:', err instanceof Error ? err.message : err);
         }
@@ -95,10 +103,13 @@ export function useCommerceAvailability(): UseCommerceAvailabilityResult {
         setAvailability(null);
         setLoading(false);
       })
-      .finally(() => clearTimeout(timer));
+;
+    };
+    load();
+    window.addEventListener('focus', load);
 
     return () => {
-      clearTimeout(timer);
+      window.removeEventListener('focus', load);
       controller.abort();
     };
   }, []);

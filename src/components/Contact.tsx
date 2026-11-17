@@ -206,6 +206,7 @@ export default function Contact({ pendingInquiryArtworkId, onInquiryConsumed }: 
     if (!form.name.trim()) errs.name = 'Please enter your name';
     if (!form.email.trim()) errs.email = 'Please enter your email';
     else if (!emailRegex.test(form.email)) errs.email = 'Please enter a valid email address';
+    if (['call','text'].includes(form.contactMethod) && form.phone.replace(/\D/g,'').length < 7) errs.phone = 'Please enter a phone number for calls or texts';
     if (!form.interest) errs.interest = 'Please select an option';
     if (!form.contactMethod) errs.contactMethod = 'Please select a contact method';
     if (!form.message.trim()) errs.message = 'Please enter a message';
@@ -577,6 +578,7 @@ export default function Contact({ pendingInquiryArtworkId, onInquiryConsumed }: 
                   />
                 </div>
 
+                {errors.phone && <p role="alert">{errors.phone}</p>}
                 {/* Interest — custom dropdown */}
                 <div ref={dropdownRef} style={{ position:'relative' }}>
                   <label style={labelStyle}>Which piece are you interested in?</label>

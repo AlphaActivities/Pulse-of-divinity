@@ -71,7 +71,7 @@ export async function loginWithPassword(
     const session: AdminSession = {
       access_token: data.access_token,
       refresh_token: data.refresh_token,
-      expires_at: data.expires_at,
+      expires_at: data.expires_at ?? Math.floor(Date.now()/1000) + data.expires_in,
       user_id: data.user.id,
       email: data.user.email,
     };
@@ -83,7 +83,7 @@ export async function loginWithPassword(
   }
 }
 
-export async function refreshSession(
+async function refreshSessionRequest(
   refreshToken: string
 ): Promise<{ session: AdminSession | null; error: string | null }> {
   try {
@@ -109,7 +109,7 @@ export async function refreshSession(
     const session: AdminSession = {
       access_token: data.access_token,
       refresh_token: data.refresh_token,
-      expires_at: data.expires_at,
+      expires_at: data.expires_at ?? Math.floor(Date.now()/1000) + data.expires_in,
       user_id: data.user.id,
       email: data.user.email,
     };
@@ -119,6 +119,12 @@ export async function refreshSession(
   } catch {
     return { session: null, error: 'Session expired' };
   }
+}
+
+let refreshInFlight: Promise<{session: AdminSession|null; error: string|null}> | null = null;
+export function refreshSession(refreshToken: string) {
+  refreshInFlight ??= refreshSessionRequest(refreshToken).finally(() => {refreshInFlight = null;});
+  return refreshInFlight;
 }
 
 export async function logout(token: string): Promise<void> {
@@ -203,18 +209,16 @@ export async function fetchAdminProfile(
 }
 
 export function persistSession(session: AdminSession): void {
-  sessionStorage.setItem(TOKEN_KEY, JSON.stringify(session));
+  localStorage.setItem(TOKEN_KEY, JSON.stringify(session));
+  sessionStorage.removeItem(TOKEN_KEY);
+  localStorage.removeItem(TOKEN_KEY);
 }
 
 export function getStoredSession(): AdminSession | null {
-  const raw = sessionStorage.getItem(TOKEN_KEY);
+  const raw = localStorage.getItem(TOKEN_KEY) ?? sessionStorage.getItem(TOKEN_KEY);
   if (!raw) return null;
   try {
     const session = JSON.parse(raw) as AdminSession;
-    if (session.expires_at && session.expires_at * 1000 < Date.now()) {
-      clearSession();
-      return null;
-    }
     return session;
   } catch {
     clearSession();
@@ -223,5 +227,9 @@ export function getStoredSession(): AdminSession | null {
 }
 
 export function clearSession(): void {
+  sessionStorage.removeItem('pod-entrance-played');
+  const badge = navigator as Navigator & {clearAppBadge?:()=>Promise<void>};
+  void badge.clearAppBadge?.().catch(() => {});
   sessionStorage.removeItem(TOKEN_KEY);
+  localStorage.removeItem(TOKEN_KEY);
 }

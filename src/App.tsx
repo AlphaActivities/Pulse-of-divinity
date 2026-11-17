@@ -1,3 +1,4 @@
+import CollectorConcierge from './components/CollectorConcierge';
 import { useState, useEffect, useRef } from 'react';
 import Navbar from './components/Navbar';
 import Hero from './components/Hero';
@@ -28,7 +29,7 @@ function getPage(): 'home' | 'archive' {
 }
 
 export default function App() {
-  const isAdminRoute = window.location.pathname.startsWith('/admin');
+  const isAdminRoute = /^\/admin(?:\/|$)/.test(window.location.pathname);
 
   const [page, setPage] = useState<'home' | 'archive'>(getPage);
   const observedSections = useRef<Set<string>>(new Set());
@@ -184,6 +185,7 @@ export default function App() {
         <Contact pendingInquiryArtworkId={pendingInquiryArtworkId} onInquiryConsumed={() => setPendingInquiryArtworkId(null)} />
       </main>
       <Footer />
+      <CollectorConcierge />
     </div>
   );
 }

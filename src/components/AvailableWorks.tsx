@@ -17,7 +17,9 @@ function PaintingCard({
   index,
   onImageClick,
   onInquire,
+  availabilityLabel,
 }: {
+  availabilityLabel: string;
   painting: Artwork;
   index: number;
   onImageClick: (painting: Artwork) => void;
@@ -181,6 +183,7 @@ function PaintingCard({
             {/* Animated divider */}
             <div style={{ height:'1px', width:visible?'55px':'0', background:'linear-gradient(90deg,#c9a227,transparent)', marginBottom:'1.4rem', transition:'width 1.1s ease 0.4s' }} />
 
+            <p role="status" className="mb-3" style={{ color: '#573f36' }}>{availabilityLabel}</p>
             {/* Details */}
             <dl className="space-y-2 mb-6">
               <div className="flex justify-between items-center pt-1.5">
@@ -256,7 +259,7 @@ function PaintingCard({
 export default function AvailableWorks({ onInquire }: { onInquire: (artworkId: string) => void }) {
   const { ref: titleRef, visible: titleVisible } = useReveal();
   const commerce = useCommerceAvailability();
-  void commerce;
+
   const [lightbox, setLightbox] = useState<LightboxState | null>(null);
 
   return (
@@ -297,6 +300,7 @@ export default function AvailableWorks({ onInquire }: { onInquire: (artworkId: s
             <PaintingCard
               key={p.id}
               painting={p}
+              availabilityLabel={commerce.loading ? 'Checking availability…' : commerce.availability?.[p.id]?.status === 'available' ? 'Available' : commerce.availability?.[p.id]?.status === 'reserved' ? 'Reserved — ask Darcy about this work' : commerce.availability?.[p.id]?.status === 'sold' ? 'Sold — ask Darcy about a commission' : 'Availability unverified — inquire with Darcy'}
               index={i}
               onInquire={onInquire}
               onImageClick={(painting) => {

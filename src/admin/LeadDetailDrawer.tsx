@@ -1,8 +1,10 @@
+import HandoffPanel from './HandoffPanel';
+import InquiryPipeline from './InquiryPipeline';
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { X, Mail, Phone, Archive, RotateCcw, AlertCircle, Check } from 'lucide-react';
 import { getStoredSession } from './auth';
-import { fetchLeadDetail, updateLead, fetchNotes, addNote } from './leadsApi';
-import type { LeadDetail, UpdateLeadBody, LeadNote } from './leadsApi';
+import { fetchLeadDetail, updateLead, fetchNotes, addNote, fetchAdminOptions } from './leadsApi';
+import type { LeadDetail, UpdateLeadBody, LeadNote, AdminOption } from './leadsApi';
 import { STATUS_SELECT_OPTIONS } from './statusConfig';
 import StatusSelect from './StatusSelect';
 
@@ -28,19 +30,19 @@ const CONTACT_LABELS: Record<string, string> = {
 
 function formatDate(dateStr: string | null): string {
   if (!dateStr) return '—';
-  const d = new Date(dateStr);
+  const d = new Date(dateStr.length === 10 ? dateStr + 'T12:00:00' : dateStr);
   return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 }
 
 function formatDateTime(dateStr: string): string {
-  const d = new Date(dateStr);
+  const d = new Date(dateStr.length === 10 ? dateStr + 'T12:00:00' : dateStr);
   return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) +
     ' at ' + d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
 }
 
 function toDateInputValue(dateStr: string | null): string {
   if (!dateStr) return '';
-  const d = new Date(dateStr);
+  const d = new Date(dateStr.length === 10 ? dateStr + 'T12:00:00' : dateStr);
   const year = d.getFullYear();
   const month = String(d.getMonth() + 1).padStart(2, '0');
   const day = String(d.getDate()).padStart(2, '0');
@@ -51,7 +53,7 @@ function isOverdue(followUpAt: string | null, archived: boolean): boolean {
   if (!followUpAt || archived) return false;
   const today = new Date();
   today.setHours(0, 0, 0, 0);
-  const followUp = new Date(followUpAt);
+  const followUp = new Date(followUpAt + 'T12:00:00');
   followUp.setHours(0, 0, 0, 0);
   return followUp < today;
 }
@@ -60,7 +62,7 @@ function isToday(followUpAt: string | null): boolean {
   if (!followUpAt) return false;
   const today = new Date();
   today.setHours(0, 0, 0, 0);
-  const followUp = new Date(followUpAt);
+  const followUp = new Date(followUpAt + 'T12:00:00');
   followUp.setHours(0, 0, 0, 0);
   return followUp.getTime() === today.getTime();
 }
@@ -78,6 +80,9 @@ export default function LeadDetailDrawer({
 
   // Editable form state
   const [status, setStatus] = useState('');
+  const [assignee, setAssignee] = useState('');
+  const [outcome, setOutcome] = useState('');
+  const [admins, setAdmins] = useState<AdminOption[]>([]);
   const [followUpAt, setFollowUpAt] = useState<string>('');
 
   // Save state
@@ -129,7 +134,11 @@ export default function LeadDetailDrawer({
 
     setLead(data);
     setStatus(data.status);
+    setAssignee(data.assigned_admin_id ?? '');
+    setOutcome(data.outcome ?? '');
     setFollowUpAt(toDateInputValue(data.follow_up_at));
+    const options = await fetchAdminOptions(session.access_token);
+    setAdmins(options.data ?? []);
     setLoading(false);
   }, [leadId]);
 
@@ -195,7 +204,7 @@ export default function LeadDetailDrawer({
 
   const hasChanges = (): boolean => {
     if (!lead) return false;
-    if (status !== lead.status) return true;
+    if (status !== lead.status || assignee !== (lead.assigned_admin_id ?? '') || outcome !== (lead.outcome ?? '')) return true;
     if (toDateInputValue(followUpAt || null) !== toDateInputValue(lead.follow_up_at)) return true;
     return false;
   };
@@ -216,6 +225,8 @@ export default function LeadDetailDrawer({
     const body: UpdateLeadBody = { id: lead.id };
 
     if (status !== lead.status) body.status = status;
+    if (assignee !== (lead.assigned_admin_id ?? '')) body.assigned_admin_id = assignee || null;
+    if (outcome !== (lead.outcome ?? '')) body.outcome = outcome || null;
 
     const currentDateVal = toDateInputValue(lead.follow_up_at);
     const newDateVal = followUpAt ? followUpAt : '';
@@ -233,10 +244,13 @@ export default function LeadDetailDrawer({
 
     setLead(data);
     setStatus(data.status);
+    setAssignee(data.assigned_admin_id ?? '');
+    setOutcome(data.outcome ?? '');
     setFollowUpAt(toDateInputValue(data.follow_up_at));
     setSaving(false);
     setSavedFlash(true);
     setTimeout(() => setSavedFlash(false), 2000);
+    window.dispatchEvent(new Event('pod-record-updated'));
     onLeadUpdated(data);
   };
 
@@ -267,6 +281,7 @@ export default function LeadDetailDrawer({
     setLead(data);
     setSaving(false);
     setShowArchiveConfirm(false);
+    window.dispatchEvent(new Event('pod-record-updated'));
     onLeadArchived(data);
   };
 
@@ -296,6 +311,7 @@ export default function LeadDetailDrawer({
 
     setLead(data);
     setSaving(false);
+    window.dispatchEvent(new Event('pod-record-updated'));
     onLeadRestored(data);
   };
 
@@ -425,6 +441,8 @@ export default function LeadDetailDrawer({
                 </section>
               )}
 
+              <HandoffPanel leadId={lead.id} />
+              <InquiryPipeline lead={lead} />
               {/* CRM Management Section */}
               <section className={`admin-detail-section admin-drawer-crm-enter${statusMenuOpen ? ' admin-detail-section-status-open' : ''}`} style={{ animationDelay: '320ms' }}>
                 <h3 className="admin-detail-section-title">CRM Management</h3>
@@ -475,6 +493,8 @@ export default function LeadDetailDrawer({
                 </div>
               </section>
 
+              <section className="pod-panel"><label>Assigned to<select value={assignee} onChange={e => setAssignee(e.target.value)} disabled={saving}><option value="">Unassigned</option>{admins.map(admin => <option key={admin.id} value={admin.id}>{admin.display_name}</option>)}</select></label>
+              <label>Collector outcome<select value={outcome} onChange={e => setOutcome(e.target.value)} disabled={saving}><option value="">No outcome yet</option>{['Artwork Sale','Commission Secured','Not Ready','No Response','Not a Fit','Other'].map(value => <option key={value}>{value}</option>)}</select></label><p>A completed artwork sale is counted when collector status is Won and outcome is Artwork Sale.</p></section>
               {/* Internal Notes Section */}
               <section className="admin-detail-section admin-drawer-section-enter" style={{ animationDelay: '380ms' }}>
                 <h3 className="admin-detail-section-title">Internal Notes</h3>

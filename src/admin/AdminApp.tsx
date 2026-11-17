@@ -1,3 +1,6 @@
+import DeviceSettings from './DeviceSettings';
+import BusinessSettings from './BusinessSettings';
+import ArtworkPage from './ArtworkPage';
 import { useState, useEffect, useCallback } from 'react';
 import {
   BrowserRouter,
@@ -12,7 +15,7 @@ import AdminShell from './AdminShell';
 import LeadsPage from './LeadsPage';
 import DashboardHome from './DashboardHome';
 import LeadDetailDrawer from './LeadDetailDrawer';
-import { getStoredSession, clearSession, fetchAdminProfile } from './auth';
+import { getStoredSession, clearSession, fetchAdminProfile, refreshSession } from './auth';
 import type { AdminProfile } from './auth';
 
 export default function AdminApp() {
@@ -23,13 +26,18 @@ export default function AdminApp() {
   const location = useLocation();
 
   const verifySession = useCallback(async () => {
-    const session = getStoredSession();
+    let session = getStoredSession();
     if (!session) {
       setProfile(null);
       setLoading(false);
       return false;
     }
 
+    if (session.expires_at * 1000 < Date.now() + 30000) {
+      const refreshed = await refreshSession(session.refresh_token);
+      if (!refreshed.session) { clearSession(); setProfile(null); setLoading(false); return false; }
+      session = refreshed.session;
+    }
     const { profile: adminProfile, error, status } = await fetchAdminProfile(
       session.access_token
     );
@@ -53,7 +61,11 @@ export default function AdminApp() {
   }, []);
 
   useEffect(() => {
-    verifySession();
+    void verifySession();
+    const refresh = () => { void verifySession(); };
+    const interval = setInterval(refresh, 60000);
+    window.addEventListener('focus', refresh);
+    return () => { clearInterval(interval); window.removeEventListener('focus', refresh); };
   }, [verifySession]);
 
   const handleLoginSuccess = (newProfile: AdminProfile) => {
@@ -94,14 +106,14 @@ export default function AdminApp() {
     return (
       <Routes>
         <Route path="login" element={<AdminLogin onSuccess={handleLoginSuccess} skipEntrance={true} />} />
-        <Route path="*" element={<Navigate to="login" replace state={{ from: location.pathname }} />} />
+        <Route path="*" element={<Navigate to="login" replace state={{ from: location.pathname + location.search }} />} />
       </Routes>
     );
   }
 
   return (
     <Routes>
-      <Route path="login" element={<Navigate to="/" replace />} />
+      <Route path="login" element={<Navigate to={safeReturnPath(location.state)} replace />} />
       <Route
         element={
           <AdminShell profile={profile} onLogout={handleLogout}>
@@ -132,6 +144,9 @@ export default function AdminApp() {
           }
         />
         <Route path="leads" element={<LeadsPage />} />
+        <Route path="settings" element={<DeviceSettings profile={profile} />} />
+        <Route path="business" element={profile.role === 'owner' ? <BusinessSettings /> : <Navigate to="/" replace />} />
+        <Route path="artwork" element={<ArtworkPage profile={profile} />} />
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
@@ -144,4 +159,9 @@ export function AdminRouter() {
       <AdminApp />
     </BrowserRouter>
   );
+}
+
+function safeReturnPath(state: unknown): string {
+  const from = (state as {from?: unknown} | null)?.from;
+  return typeof from === 'string' && from.startsWith('/') && !from.startsWith('//') && !from.startsWith('/login') ? from : '/';
 }

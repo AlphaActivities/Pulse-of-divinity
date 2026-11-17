@@ -1,6 +1,8 @@
+import AttentionCenter from './AttentionCenter';
+import SignatureEntrance from './SignatureEntrance';
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { LogOut, LayoutDashboard, Users } from 'lucide-react';
+import { LogOut, LayoutDashboard, Users, Image, Settings } from 'lucide-react';
 import { logout, getStoredSession, clearSession } from './auth';
 import type { AdminProfile } from './auth';
 
@@ -12,6 +14,8 @@ interface Props {
 
 const NAV_ITEMS = [
   { key: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, path: '/' },
+  { key: 'settings', label: 'My Settings', icon: Settings, path: '/settings' },
+  { key: 'artwork', label: 'Artwork', icon: Image, path: '/artwork' },
   { key: 'leads', label: 'Leads', icon: Users, path: '/leads' },
 ] as const;
 
@@ -25,7 +29,7 @@ export default function AdminShell({ profile, onLogout, children }: Props) {
       ? 'dashboard'
       : location.pathname.startsWith('/leads') || location.pathname.startsWith('/admin/leads')
         ? 'leads'
-        : 'dashboard';
+        : location.pathname.includes('artwork') ? 'artwork' : 'dashboard';
 
   const handleLogout = async () => {
     setLoggingOut(true);
@@ -55,6 +59,7 @@ export default function AdminShell({ profile, onLogout, children }: Props) {
 
   return (
     <div className="admin-shell">
+      <SignatureEntrance name={profile.display_name} />
       <header className="admin-header">
         <div className="admin-header-left">
           <div className="admin-brand">
@@ -62,13 +67,13 @@ export default function AdminShell({ profile, onLogout, children }: Props) {
               src="/images/admin-logo-mark.webp"
               alt=""
               aria-hidden="true"
-              className="admin-brand-logo"
+              className="admin-brand-logo" data-pod-brand-target
               width="24"
               height="24"
             />
             <span className="admin-brand-name">Pulse of Divinity</span>
             <span className="admin-brand-separator">—</span>
-            <span className="admin-brand-section">Admin</span>
+            <span className="admin-brand-section">Collector Studio</span>
           </div>
           <nav className="admin-nav" aria-label="Admin navigation">
             {NAV_ITEMS.map((item) => {
@@ -77,6 +82,7 @@ export default function AdminShell({ profile, onLogout, children }: Props) {
               return (
                 <button
                   key={item.key}
+                  aria-label={item.label}
                   className={`admin-nav-item ${isActive ? 'active' : ''}`}
                   onClick={() => navigate(item.path)}
                   aria-current={isActive ? 'page' : undefined}
@@ -89,6 +95,8 @@ export default function AdminShell({ profile, onLogout, children }: Props) {
           </nav>
         </div>
         <div className="admin-header-right">
+          <AttentionCenter />
+          {profile.role === 'owner' && <button onClick={() => navigate('/business')}>Admin</button>}
           <div className="admin-user-info">
             <span className="admin-user-label">Signed in as</span>
             <span className="admin-user-name">{profile.display_name}</span>

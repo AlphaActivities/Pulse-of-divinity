@@ -198,6 +198,9 @@ export interface LeadNote {
 }
 
 export interface DashboardSummary {
+  pending_quotes?: number;
+  confirmed_metrics?: {artwork_inquiries:number;commission_inquiries:number;accepted_commissions:number;completed_sales:number};
+  upcoming?: {id:string;name:string;follow_up_at:string;inquiry_type:string}[];
   summary: {
     new: number;
     active: number;

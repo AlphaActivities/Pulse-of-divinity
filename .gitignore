@@ -21,3 +21,9 @@ dist-ssr
 *.sln
 *.sw?
 .env
+
+# Local verification artifacts and reconciliation exports
+/test-results/
+/playwright-report/
+/supabase/.temp/
+/supabase/.branches/

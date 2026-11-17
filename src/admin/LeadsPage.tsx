@@ -1,3 +1,4 @@
+import { useSearchParams } from 'react-router-dom';
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Search, ChevronLeft, ChevronRight, AlertCircle, RotateCw } from 'lucide-react';
@@ -25,7 +26,7 @@ const PRIMARY_FILTERS: { key: PresetKey; label: string }[] = [
 
 function formatDate(dateStr: string | null): string {
   if (!dateStr) return '—';
-  const d = new Date(dateStr);
+  const d = new Date(dateStr.length === 10 ? dateStr + 'T12:00:00' : dateStr);
   return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 }
 
@@ -33,7 +34,7 @@ function isOverdue(followUpAt: string | null, archived: boolean): boolean {
   if (!followUpAt || archived) return false;
   const today = new Date();
   today.setHours(0, 0, 0, 0);
-  const followUp = new Date(followUpAt);
+  const followUp = new Date(followUpAt + 'T12:00:00');
   followUp.setHours(0, 0, 0, 0);
   return followUp < today;
 }
@@ -96,6 +97,8 @@ function searchForFilter(filter: NormalizedFilter): string {
 }
 
 export default function LeadsPage() {
+  const [routeParams] = useSearchParams();
+  useEffect(() => { const id = routeParams.get('lead'); if (id && /^[0-9a-f-]{36}$/i.test(id)) setSelectedLeadId(id); }, [routeParams]);
   const location = useLocation();
   const navigate = useNavigate();
   const [leads, setLeads] = useState<LeadListItem[]>([]);

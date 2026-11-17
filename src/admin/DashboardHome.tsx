@@ -75,7 +75,7 @@ function formatDisabledReason(reason: string): string {
 
 function formatDate(dateStr: string | null): string {
   if (!dateStr) return '—';
-  const d = new Date(dateStr);
+  const d = new Date(dateStr.length === 10 ? dateStr + 'T12:00:00' : dateStr);
   return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 }
 
@@ -115,7 +115,10 @@ export default function DashboardHome({ profile, onLeadClick, justLoggedIn, onRe
   }, []);
 
   useEffect(() => {
-    loadDashboard();
+    void loadDashboard();
+    const refresh = () => {void loadDashboard();};
+    window.addEventListener('pod-record-updated', refresh);
+    return () => window.removeEventListener('pod-record-updated', refresh);
   }, [loadDashboard]);
 
   useEffect(() => {
@@ -144,8 +147,8 @@ export default function DashboardHome({ profile, onLeadClick, justLoggedIn, onRe
   }, []);
 
   useEffect(() => {
-    loadStripeStatus();
-  }, [loadStripeStatus]);
+    if (profile.role === 'owner') loadStripeStatus();
+  }, [loadStripeStatus, profile.role]);
 
   useEffect(() => {
     const param = searchParams.get('stripe_onboarding');
@@ -341,7 +344,13 @@ export default function DashboardHome({ profile, onLeadClick, justLoggedIn, onRe
         )}
       </section>
 
-      {/* Stripe Commerce Setup */}
+      <section className="pod-panel"><h2>Collector &amp; Commission Pipeline</h2>
+        <p>Pending quotes: {data.pending_quotes ?? 'Unverified'}</p>
+        {data.confirmed_metrics && <p>Confirmed artwork inquiries: {data.confirmed_metrics.artwork_inquiries} · Commission inquiries: {data.confirmed_metrics.commission_inquiries} · Accepted commissions: {data.confirmed_metrics.accepted_commissions} · Completed sales: {data.confirmed_metrics.completed_sales}</p>}
+        <h3>Upcoming Follow-ups</h3>{data.upcoming?.length ? data.upcoming.map(item => <button key={item.id} onClick={() => onLeadClick(item.id)}>{item.name} · {item.follow_up_at} · {INQUIRY_LABELS[item.inquiry_type]}</button>) : <p>No verified upcoming follow-ups.</p>}
+      </section>
+      {/* Existing commerce controls remain owner-only and separately scoped. */}
+      {profile.role === 'owner' && <>
       <section className="admin-dashboard-section admin-stripe-section admin-entrance-section" style={{ animationDelay: '760ms' }}>
         <div className="admin-dashboard-section-header">
           <h2 className="admin-dashboard-section-title">Stripe Commerce Setup</h2>
@@ -479,6 +488,7 @@ export default function DashboardHome({ profile, onLeadClick, justLoggedIn, onRe
           </>
         ) : null}
       </section>
+      </>}
     </div>
   );
 }
