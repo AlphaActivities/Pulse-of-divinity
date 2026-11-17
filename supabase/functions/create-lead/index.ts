@@ -120,71 +120,20 @@ Deno.serve(async (req: Request) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
     );
 
-    // Idempotency: check if a lead with this submission_id already exists
-    const { data: existing } = await supabase
-      .from("leads")
-      .select("id")
-      .eq("submission_id", p.submissionId)
-      .maybeSingle();
-
-    if (existing) {
-      return new Response(JSON.stringify({ success: true, id: existing.id, duplicate: true }), {
-        status: 200,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    const { data: inserted, error } = await supabase
-      .from("leads")
-      .insert({
-        submission_id: p.submissionId,
-        name: p.name,
-        email: p.email,
-        phone: p.phone || null,
-        contact_method: p.contactMethod,
-        inquiry_type: p.inquiryType,
-        interest: p.interest,
-        artwork_id: p.artworkId || null,
-        artwork_title: p.artworkTitle || null,
-        artwork_collection: p.artworkCollection || null,
-        artwork_price_display: p.artworkPrice || null,
-        artwork_price_numeric: p.artworkPriceNumeric,
-        message: p.message,
-        status: "NEW",
-        archived: false,
-      })
-      .select("id")
-      .single();
-
+    const { data, error } = await supabase.rpc("pod_create_inquiry", { p_payload: p });
     if (error) {
-      // If it's a unique constraint violation, the lead already exists (race condition)
-      if (error.code === "23505") {
-        const { data: raceExisting } = await supabase
-          .from("leads")
-          .select("id")
-          .eq("submission_id", p.submissionId)
-          .maybeSingle();
-        return new Response(JSON.stringify({ success: true, id: raceExisting?.id, duplicate: true }), {
-          status: 200,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
-      console.error("Insert error:", error.message);
-      return new Response(JSON.stringify({ error: "Failed to create lead" }), {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      const status = error.code === "P0003" ? 429 : error.code === "23505" ? 409 : error.code === "P0001" ? 400 : 500;
+      return new Response(JSON.stringify({ error: status === 500 ? "Unable to save inquiry" : "Please check your inquiry or retry later" }), {
+        status, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
-
-    return new Response(JSON.stringify({ success: true, id: inserted.id, duplicate: false }), {
-      status: 201,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    if (!data?.id || data.success !== true) throw new Error("Missing committed inquiry ID");
+    return new Response(JSON.stringify(data), {
+      status: data.duplicate ? 200 : 201, headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
-  } catch (err) {
-    console.error("Unexpected error:", err);
-    return new Response(JSON.stringify({ error: "Internal server error" }), {
-      status: 500,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
+  } catch {
+    return new Response(JSON.stringify({ error: "Unable to save inquiry" }), {
+      status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }
 });

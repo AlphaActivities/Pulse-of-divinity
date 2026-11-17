@@ -76,7 +76,7 @@ function StepCard({ step, index, parentVisible }: { step: typeof process[0]; ind
   );
 }
 
-export default function Commissions() {
+export default function Commissions({ onInquire }: { onInquire: () => void }) {
   const { ref: titleRef, visible: titleVisible } = useReveal();
   const { ref: stepsRef, visible: stepsVisible } = useReveal();
 
@@ -200,7 +200,7 @@ export default function Commissions() {
             </blockquote>
             <button
               className="luxury-btn-primary"
-              onClick={() => scrollToSection('#contact')}
+              onClick={() => { onInquire(); scrollToSection('#contact'); }}
             >
               Begin a Commission Conversation
             </button>

@@ -1,3 +1,4 @@
+import { submitInquiry } from '../utils/submitInquiry';
 import { useState, useRef, useEffect } from 'react';
 import { Mail, Phone, Instagram, Facebook, Send, ChevronDown } from 'lucide-react';
 import { useReveal } from '../hooks/useReveal';
@@ -75,6 +76,9 @@ export default function Contact({ pendingInquiryArtworkId, onInquiryConsumed }: 
   const [form, setForm] = useState({ name:'', email:'', phone:'', interest:'', contactMethod:'', message:'' });
   const [submitted, setSubmitted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const submitting = useRef(false);
+  const requestKey = useRef<string | null>(null);
+  const [submitError, setSubmitError] = useState<string | null>(null);
   const [errors, setErrors] = useState<Partial<Record<FormField, string>>>({});
   const [focused,   setFocused]   = useState<FormField | null>(null);
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -88,7 +92,7 @@ export default function Contact({ pendingInquiryArtworkId, onInquiryConsumed }: 
 
   useEffect(() => {
     if (!pendingInquiryArtworkId) return;
-    const option = pieceOptions.find((o) => o.artworkId === pendingInquiryArtworkId);
+    const option = pieceOptions.find((o) => o.artworkId === pendingInquiryArtworkId || o.value === pendingInquiryArtworkId);
     if (option) {
       handleInterestSelectRef.current(option.value);
     }
@@ -208,9 +212,9 @@ export default function Contact({ pendingInquiryArtworkId, onInquiryConsumed }: 
     return errs;
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (isSubmitting) return;
+    if (submitting.current) return;
     const validationErrors = validate();
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors);
@@ -224,90 +228,42 @@ export default function Contact({ pendingInquiryArtworkId, onInquiryConsumed }: 
       : selected?.value === 'commission'
         ? 'commission'
         : 'general';
-    const submissionId = (crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(36).slice(2)}`);
-    const body = new URLSearchParams({
-      'form-name': 'contact',
-      'bot-field': '',
-      submissionId,
-      name: form.name,
-      email: form.email,
-      phone: form.phone,
-      interest: form.interest,
-      inquiryType,
-      artworkId: selected?.artworkId ?? '',
-      artworkTitle: selected?.artworkId ? (selected.label ?? '') : '',
-      artworkCollection: selected?.artworkId ? (selected.collection ?? '') : '',
-      artworkPrice: selected?.artworkId ? (selected.price ?? '') : '',
-      artworkPriceNumeric: selected?.artworkId ? String(selected.priceNumeric ?? '') : '',
-      contactMethod: form.contactMethod,
-      message: form.message,
-    });
-    fetch('/', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: body.toString(),
-    })
-      .then((res) => {
-        if (res.ok) {
-          const contactMethod = form.contactMethod as 'email' | 'call' | 'text' | undefined;
-          trackContactFormSubmit({
-            inquiry_type: inquiryType,
-            contact_method: contactMethod || undefined,
-            form_progress: formProgress,
-          });
-          if (selected?.artworkId) {
-            const artworkId: string = selected.artworkId;
-            trackArtworkInquirySubmit({
-              inquiry_type: 'available_work',
-              artwork_id: artworkId,
-              artwork_title: selected.label,
-              artwork_collection: selected.collection ?? '',
-              artwork_status: selected.statusCode ?? '',
-              artwork_price_numeric: selected.priceNumeric ?? null,
-              contact_method: contactMethod || undefined,
-            });
-          } else if (selected?.value === 'commission') {
-            trackCommissionInquirySubmit({ contact_method: contactMethod || undefined });
-          }
-          setSubmitted(true);
-
-          const crmPayload = {
-            submissionId,
-            name: form.name,
-            email: form.email,
-            phone: form.phone,
-            contactMethod: form.contactMethod,
-            inquiryType,
-            interest: form.interest,
-            artworkId: selected?.artworkId ?? '',
-            artworkTitle: selected?.artworkId ? (selected.label ?? '') : '',
-            artworkCollection: selected?.artworkId ? (selected.collection ?? '') : '',
-            artworkPrice: selected?.artworkId ? (selected.price ?? '') : '',
-            artworkPriceNumeric: selected?.artworkId ? String(selected.priceNumeric ?? '') : '',
-            message: form.message,
-          };
-          fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/create-lead`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
-            },
-            body: JSON.stringify(crmPayload),
-          }).catch((crmErr) => {
-            console.error('CRM persistence error:', crmErr);
-          });
-        } else {
-          trackContactFormError({ error_type: 'netlify_submission_failed', status_code: res.status });
-          console.error('Netlify form submission failed:', res.status);
-        }
-      })
-      .catch((err) => {
-        trackContactFormError({ error_type: 'network_error' });
-        console.error('Netlify form submission error:', err);
-      })
-      .finally(() => {
-        setIsSubmitting(false);
+    // Keep one request key across network failures and double taps. A new key is
+    // created only after a confirmed save, when the visitor starts another inquiry.
+    submitting.current = true;
+    setSubmitError(null);
+    requestKey.current ??= crypto.randomUUID();
+    try {
+      await submitInquiry({
+        submissionId: requestKey.current,
+        name: form.name, email: form.email, phone: form.phone,
+        interest: form.interest, inquiryType, contactMethod: form.contactMethod,
+        artworkId: selected?.artworkId ?? '',
+        artworkTitle: selected?.artworkId ? selected.label : '',
+        artworkCollection: selected?.collection ?? '',
+        artworkPrice: selected?.price ?? '',
+        artworkPriceNumeric: selected?.priceNumeric ?? null,
+        message: form.message,
       });
+      const contactMethod = form.contactMethod as 'email' | 'call' | 'text';
+      trackContactFormSubmit({ inquiry_type: inquiryType, contact_method: contactMethod, form_progress: formProgress });
+      if (selected?.artworkId) {
+        trackArtworkInquirySubmit({ inquiry_type: 'available_work', artwork_id: selected.artworkId,
+          artwork_title: selected.label, artwork_collection: selected.collection ?? '',
+          artwork_status: selected.statusCode ?? '', artwork_price_numeric: selected.priceNumeric ?? null,
+          contact_method: contactMethod });
+      } else if (inquiryType === 'commission') {
+        trackCommissionInquirySubmit({ contact_method: contactMethod });
+      }
+      setSubmitted(true);
+      requestKey.current = null;
+    } catch {
+      setSubmitError('Your inquiry has not been confirmed. Your details are still here. Please retry, or contact Darcy directly.');
+      trackContactFormError({ error_type: 'inquiry_save_failed' });
+    } finally {
+      submitting.current = false;
+      setIsSubmitting(false);
+    }
   };
 
   /* Shared input style with focus indicator */
@@ -548,6 +504,8 @@ export default function Contact({ pendingInquiryArtworkId, onInquiryConsumed }: 
                 </p>
               </div>
             ) : (
+              <>
+              {submitError && <p role="alert" style={{ color: '#9b3333' }}>{submitError}</p>}
               <form
                 name="contact"
                 method="POST"
@@ -824,6 +782,7 @@ export default function Contact({ pendingInquiryArtworkId, onInquiryConsumed }: 
                   Your information is held in confidence and never shared with third parties.
                 </p>
               </form>
+              </>
             )}
           </div>
         </div>

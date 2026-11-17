@@ -180,7 +180,7 @@ export default function App() {
         }} />
         <About />
         <WorksAlreadyCherished />
-        <Commissions />
+        <Commissions onInquire={() => setPendingInquiryArtworkId('commission')} />
         <Contact pendingInquiryArtworkId={pendingInquiryArtworkId} onInquiryConsumed={() => setPendingInquiryArtworkId(null)} />
       </main>
       <Footer />
