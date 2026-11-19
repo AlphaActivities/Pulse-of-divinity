@@ -516,6 +516,7 @@ export default function Contact({ pendingInquiryArtworkId, onInquiryConsumed }: 
                 noValidate
                 style={{ display:'flex', flexDirection:'column', gap:'clamp(1.5rem,3vw,2rem)' }}
               >
+                <fieldset disabled={isSubmitting} style={{display:'contents'}}>
                 <input type="hidden" name="form-name" value="contact" />
                 <p className="hidden">
                   <label>Don't fill this out if you're human: <input name="bot-field" /></label>
@@ -783,6 +784,7 @@ export default function Contact({ pendingInquiryArtworkId, onInquiryConsumed }: 
                 <p style={{ textAlign:'center', fontFamily:'Jost,sans-serif', fontWeight:300, fontSize:'10px', letterSpacing:'0.08em', color:'#6b5143' }}>
                   Your information is held in confidence and never shared with third parties.
                 </p>
+                </fieldset>
               </form>
               </>
             )}

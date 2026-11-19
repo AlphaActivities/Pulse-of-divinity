@@ -18,7 +18,7 @@ async function mock(page:Page,role='client'){
  const path=new URL(route.request().url()).pathname;let response:unknown=[];
  if(path.endsWith('pod_attention'))response={count:1,items:[{id:leadId,kind:'lead',name:'Local Collector',follow_up_at:null}]};
  if(path.endsWith('artwork_inventory'))response=[{artwork_id:'for-sale-cosmic-energy',inventory_status:state,updated_at:now}];
- if(path.endsWith('pod_set_availability')){state=route.request().postDataJSON().p_status;response={};}
+ if(path.endsWith('pod_set_availability')){state=route.request().postDataJSON().p_status;response={artwork_id:'for-sale-cosmic-energy',inventory_status:state,updated_at:now};}
  if(path.endsWith('commissions'))response=[{lead_id:leadId,brief:lead.message,quote_cents:null,approval:'pending',deposit_status:'not_applicable',delivery_date:null,stage:'brief'}];
  if(path.endsWith('pod_update_commission'))response={lead_id:leadId,...route.request().postDataJSON().p_changes};
  await route.fulfill({json:response});

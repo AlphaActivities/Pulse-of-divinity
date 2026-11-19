@@ -4,6 +4,7 @@ export async function database<T>(path: string, body?: unknown): Promise<T> {
   if (!session) throw new Error('Please sign in again.');
   const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/rest/v1/${path}`, {
     method: body === undefined ? 'GET' : 'POST',
+    cache: 'no-store',
     headers: { apikey: import.meta.env.VITE_SUPABASE_ANON_KEY, Authorization: `Bearer ${session.access_token}`, 'Content-Type': 'application/json', Prefer: 'return=representation,resolution=merge-duplicates' },
     ...(body === undefined ? {} : { body: JSON.stringify(body) }), signal: AbortSignal.timeout(12000),
   });

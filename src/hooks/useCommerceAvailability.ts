@@ -1,118 +1,77 @@
-import { useEffect, useState } from 'react';
-import { availableWorks } from '../data/artworks';
+import { useSyncExternalStore } from 'react';
+import { parsePublicAvailability, type PublicAvailability } from '../data/availability';
 
-const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string;
-const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY as string;
-const COMMERCE_TIMEOUT_MS = 10000;
-
-export type CommerceStatus = 'available' | 'reserved' | 'sold' | 'unavailable';
-
-export interface CommerceAvailability {
-  artwork_id: string;
-  price_cents: number;
-  currency: string;
-  status: CommerceStatus;
-}
-
-export type CommerceAvailabilityMap = Record<string, CommerceAvailability>;
-
-export interface UseCommerceAvailabilityResult {
+export type CommerceAvailabilityMap = Record<string, PublicAvailability>;
+interface AvailabilityState {
   availability: CommerceAvailabilityMap | null;
   loading: boolean;
   error: string | null;
 }
-
-function isValidRecord(value: unknown): value is CommerceAvailability {
-  if (typeof value !== 'object' || value === null) return false;
-  const r = value as Record<string, unknown>;
-  return (
-    typeof r.artwork_id === 'string' &&
-    typeof r.price_cents === 'number' &&
-    typeof r.currency === 'string' &&
-    (['available','reserved','sold','unavailable'].includes(r.status as string))
-  );
+const initialState: AvailabilityState = { availability: null, loading: true, error: null };
+const revisionKey = 'pod-artwork-availability-revision';
+let state = initialState;
+let generation = 0;
+let controller: AbortController | null = null;
+const listeners = new Set<() => void>();
+const getSnapshot = () => state;
+function update(next: AvailabilityState) {
+  state = next;
+  for (const listener of listeners) listener();
 }
-
-function buildMap(records: unknown[]): CommerceAvailabilityMap {
-  const map: CommerceAvailabilityMap = {};
-  for (const record of records) {
-    if (isValidRecord(record)) {
-      map[record.artwork_id] = {
-        artwork_id: record.artwork_id,
-        price_cents: record.price_cents,
-        currency: record.currency,
-        status: record.status,
-      };
-    }
-  }
-  return map;
-}
-
-function checkPriceDrift(map: CommerceAvailabilityMap): void {
-  if (!import.meta.env.DEV) return;
-  for (const artwork of availableWorks) {
-    const commerce = map[artwork.id];
-    if (!commerce || artwork.priceNumeric === null) continue;
-    const displayCents = artwork.priceNumeric * 100;
-    if (displayCents !== commerce.price_cents) {
-      console.warn(
-        `[Commerce] Price drift for "${artwork.id}": artworks.ts = ${displayCents} cents, API = ${commerce.price_cents} cents`,
-      );
-    }
+async function refresh() {
+  const current = ++generation;
+  controller?.abort();
+  const requestController = new AbortController();
+  controller = requestController;
+  // A previous verified read is not a confirmation of the current state.
+  update(initialState);
+  try {
+    const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/get-commerce-availability`, {
+      cache: 'no-store',
+      headers: { apikey: import.meta.env.VITE_SUPABASE_ANON_KEY,
+        Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}` },
+      signal: AbortSignal.any([requestController.signal, AbortSignal.timeout(10000)]),
+    });
+    if (!response.ok) throw new Error('Availability read failed');
+    const availability = parsePublicAvailability(await response.json());
+    if (current === generation) update({ availability, loading: false, error: null });
+  } catch {
+    if (current === generation) update({ availability: null, loading: false, error: 'unavailable' });
   }
 }
+const onRefresh = () => { void refresh(); };
+const onVisible = () => { if (document.visibilityState === 'visible') onRefresh(); };
+const onStorage = (event: StorageEvent) => { if (event.key === revisionKey) onRefresh(); };
+function subscribe(listener: () => void) {
+  listeners.add(listener);
+  if (listeners.size === 1) {
+    window.addEventListener('focus', onRefresh);
+    window.addEventListener('pod-availability-updated', onRefresh);
+    window.addEventListener('storage', onStorage);
+    document.addEventListener('visibilitychange', onVisible);
+    onRefresh();
+  }
+  return () => {
+    listeners.delete(listener);
+    if (listeners.size === 0) {
+      window.removeEventListener('focus', onRefresh);
+      window.removeEventListener('pod-availability-updated', onRefresh);
+      window.removeEventListener('storage', onStorage);
+      document.removeEventListener('visibilitychange', onVisible);
+      ++generation;
+      controller?.abort();
+      state = initialState;
+    }
+  };
+}
 
-export function useCommerceAvailability(): UseCommerceAvailabilityResult {
-  const [availability, setAvailability] = useState<CommerceAvailabilityMap | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+// Re-read the server after a confirmed or ambiguous write response.
+// The storage event invalidates other tabs; no public state is written locally.
+export function invalidateAvailability() {
+  window.dispatchEvent(new Event('pod-availability-updated'));
+  try { localStorage.setItem(revisionKey, crypto.randomUUID()); } catch { /* Focus refresh remains available. */ }
+}
 
-  useEffect(() => {
-    const controller = new AbortController();
-
-
-    let generation = 0;
-    const load = () => {
-      const current = ++generation;
-      setAvailability(null);
-      setLoading(true);
-      setError(null);
-    fetch(`${SUPABASE_URL}/functions/v1/get-commerce-availability`, {
-      method: 'GET',
-      headers: {
-        Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
-      },
-      signal: AbortSignal.any([controller.signal, AbortSignal.timeout(COMMERCE_TIMEOUT_MS)]),
-    })
-      .then(async (res) => {
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const json: unknown = await res.json();
-        if (!Array.isArray(json)) throw new Error('Response is not an array');
-        if (current !== generation || controller.signal.aborted) return;
-        const map = buildMap(json);
-        setAvailability(map);
-        setLoading(false);
-        checkPriceDrift(map);
-      })
-      .catch((err: unknown) => {
-        if (current !== generation || controller.signal.aborted) return;
-        if (import.meta.env.DEV) {
-          console.warn('[Commerce] Availability fetch failed:', err instanceof Error ? err.message : err);
-        }
-        setError('unavailable');
-        setAvailability(null);
-        setLoading(false);
-      })
-;
-    };
-    load();
-    window.addEventListener('focus', load);
-
-    return () => {
-      window.removeEventListener('focus', load);
-      controller.abort();
-    };
-  }, []);
-
-  return { availability, loading, error };
+export function useCommerceAvailability(): AvailabilityState {
+  return useSyncExternalStore(subscribe, getSnapshot, () => initialState);
 }

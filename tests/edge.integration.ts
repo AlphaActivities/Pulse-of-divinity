@@ -50,7 +50,7 @@ Deno.test('catalog HTTP: exact public states and no private inventory fields',as
  try{
   for(const state of ['available','reserved','sold']){
    mock('staff','pulse-of-divinity',200,[{artwork_id:'for-sale-cosmic-energy',price_cents:320000,currency:'usd',purchasable:false,inventory_status:state,reservation_token:'must-never-be-published'}]);
-   const response=await catalog(new Request('http://local.test/get-commerce-availability'));const body=await response.json();assert(response.status===200&&body[0].status===state,'Actual inventory state');assert(!JSON.stringify(body).includes('must-never'),'Private field excluded');
+   const response=await catalog(new Request('http://local.test/get-commerce-availability'));const body=await response.json();assert(response.status===200&&body[0].status===state,'Actual inventory state');assert(response.headers.get('Cache-Control')==='no-store','Fresh availability response');assert(!JSON.stringify(body).includes('must-never'),'Private field excluded');
   }
  }finally{globalThis.fetch=originalFetch;}
 });
