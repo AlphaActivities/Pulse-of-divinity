@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { AlertCircle, RotateCw, Clock, Calendar, Trophy, Users, Sparkles, CreditCard, ExternalLink, CheckCircle2, XCircle } from 'lucide-react';
 import { getStoredSession } from './auth';
@@ -10,6 +10,7 @@ import { statusClass, statusLabel, METRIC_COLORS } from './statusConfig';
 
 interface Props {
   profile: AdminProfile;
+  summaryRevision?: number;
   onLeadClick: (leadId: string) => void;
   justLoggedIn?: boolean;
   onRevealed?: () => void;
@@ -79,7 +80,7 @@ function formatDate(dateStr: string | null): string {
   return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 }
 
-export default function DashboardHome({ profile, onLeadClick, justLoggedIn, onRevealed }: Props) {
+export default function DashboardHome({ profile, summaryRevision = 0, onLeadClick, justLoggedIn, onRevealed }: Props) {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const [data, setData] = useState<DashboardSummary | null>(null);
@@ -92,7 +93,9 @@ export default function DashboardHome({ profile, onLeadClick, justLoggedIn, onRe
   const [onboardingError, setOnboardingError] = useState<string | null>(null);
   const [onboardingBanner, setOnboardingBanner] = useState<string | null>(null);
 
+  const dashboardRequest = useRef(0);
   const loadDashboard = useCallback(async () => {
+    const request = ++dashboardRequest.current;
     setLoading(true);
     setError(null);
     const session = getStoredSession();
@@ -102,6 +105,7 @@ export default function DashboardHome({ profile, onLeadClick, justLoggedIn, onRe
       return;
     }
     const { data: summary, error: fetchError, status } = await fetchDashboardSummary(session.access_token);
+    if (request !== dashboardRequest.current) return;
     if (fetchError || !summary) {
       if (status === 401 || status === 403) {
         setError('Access denied. Please log in again.');
@@ -115,11 +119,10 @@ export default function DashboardHome({ profile, onLeadClick, justLoggedIn, onRe
   }, []);
 
   useEffect(() => {
+    const requests = dashboardRequest;
     void loadDashboard();
-    const refresh = () => {void loadDashboard();};
-    window.addEventListener('pod-record-updated', refresh);
-    return () => window.removeEventListener('pod-record-updated', refresh);
-  }, [loadDashboard]);
+    return () => { ++requests.current; };
+  }, [loadDashboard, summaryRevision]);
 
   useEffect(() => {
     if (justLoggedIn && onRevealed) {

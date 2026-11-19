@@ -23,6 +23,7 @@ export default function AdminApp() {
   const [loading, setLoading] = useState(true);
   const [justLoggedIn, setJustLoggedIn] = useState(false);
   const [dashboardLeadId, setDashboardLeadId] = useState<string | null>(null);
+  const [summaryRevision, setSummaryRevision] = useState(0);
   const location = useLocation();
 
   const verifySession = useCallback(async () => {
@@ -127,6 +128,7 @@ export default function AdminApp() {
             <>
               <DashboardHome
                 profile={profile}
+                summaryRevision={summaryRevision}
                 onLeadClick={(id) => setDashboardLeadId(id)}
                 justLoggedIn={justLoggedIn}
                 onRevealed={handleDashboardRevealed}
@@ -135,9 +137,9 @@ export default function AdminApp() {
                 <LeadDetailDrawer
                   leadId={dashboardLeadId}
                   onClose={() => setDashboardLeadId(null)}
-                  onLeadUpdated={() => {}}
-                  onLeadArchived={() => setDashboardLeadId(null)}
-                  onLeadRestored={() => {}}
+                  onLeadUpdated={() => setSummaryRevision(revision => revision + 1)}
+                  onLeadArchived={() => { setSummaryRevision(revision => revision + 1); setDashboardLeadId(null); }}
+                  onLeadRestored={() => setSummaryRevision(revision => revision + 1)}
                 />
               )}
             </>
