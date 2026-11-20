@@ -209,13 +209,12 @@ export async function fetchAdminProfile(
 }
 
 export function persistSession(session: AdminSession): void {
-  localStorage.setItem(TOKEN_KEY, JSON.stringify(session));
-  sessionStorage.removeItem(TOKEN_KEY);
+  sessionStorage.setItem(TOKEN_KEY, JSON.stringify(session));
   localStorage.removeItem(TOKEN_KEY);
 }
 
 export function getStoredSession(): AdminSession | null {
-  const raw = localStorage.getItem(TOKEN_KEY) ?? sessionStorage.getItem(TOKEN_KEY);
+  const raw = sessionStorage.getItem(TOKEN_KEY) ?? localStorage.getItem(TOKEN_KEY);
   if (!raw) return null;
   try {
     const session = JSON.parse(raw) as AdminSession;
