@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useCallback } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { loginWithPassword, requestPasswordReset, clearSession } from './auth';
 import type { AdminProfile } from './auth';
@@ -11,9 +11,6 @@ interface Props {
 const SUCCESS_TRANSITION_DURATION = 1100;
 const PROFILE_TIMEOUT_MS = 12000;
 
-const AUTOFILL_POLL_INTERVAL_MS = 100;
-const AUTOFILL_POLL_DURATION_MS = 15000;
-
 export default function AdminLogin({ onSuccess }: Props) {
   const navigate = useNavigate();
   const emailRef = useRef<HTMLInputElement>(null);
@@ -21,13 +18,6 @@ export default function AdminLogin({ onSuccess }: Props) {
   const formRef = useRef<HTMLFormElement>(null);
   const successTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const mountedRef = useRef(true);
-
-  const autoLoginAttemptedRef = useRef(false);
-  const manualEntryRef = useRef(false);
-  const loadingRef = useRef(false);
-  const resetModeRef = useRef(false);
-  const autofillIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const autofillTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -38,129 +28,13 @@ export default function AdminLogin({ onSuccess }: Props) {
   const [authTransitioning, setAuthTransitioning] = useState(false);
 
   useEffect(() => {
-    loadingRef.current = loading;
-  }, [loading]);
-
-  useEffect(() => {
-    resetModeRef.current = resetMode;
-  }, [resetMode]);
-
-  // ── Autofill watcher ──────────────────────────────────────────
-
-  const stopAutofillWatcher = useCallback(() => {
-    if (autofillIntervalRef.current) {
-      clearInterval(autofillIntervalRef.current);
-      autofillIntervalRef.current = null;
-    }
-    if (autofillTimeoutRef.current) {
-      clearTimeout(autofillTimeoutRef.current);
-      autofillTimeoutRef.current = null;
-    }
-  }, []);
-
-  // ── Unified autofill check ────────────────────────────────────
-
-  const maybeAutoLogin = useCallback(() => {
-    if (!mountedRef.current) return;
-    if (loadingRef.current) return;
-    if (autoLoginAttemptedRef.current) return;
-    if (manualEntryRef.current) return;
-    if (resetModeRef.current) return;
-
-    const emailValue = emailRef.current?.value.trim() ?? '';
-    const passwordValue = passwordRef.current?.value ?? '';
-    if (!emailValue || !passwordValue) return;
-
-    setEmail(emailValue);
-    setPassword(passwordValue);
-
-    stopAutofillWatcher();
-
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        if (!mountedRef.current) return;
-        if (loadingRef.current) return;
-        if (autoLoginAttemptedRef.current) return;
-        autoLoginAttemptedRef.current = true;
-        formRef.current?.requestSubmit();
-      });
-    });
-  }, [stopAutofillWatcher]);
-
-  const startAutofillWatcher = useCallback(() => {
-    if (!mountedRef.current) return;
-    if (manualEntryRef.current || autoLoginAttemptedRef.current) return;
-    stopAutofillWatcher();
-    autofillIntervalRef.current = setInterval(() => {
-      maybeAutoLogin();
-    }, AUTOFILL_POLL_INTERVAL_MS);
-    autofillTimeoutRef.current = setTimeout(() => {
-      stopAutofillWatcher();
-    }, AUTOFILL_POLL_DURATION_MS);
-  }, [stopAutofillWatcher, maybeAutoLogin]);
-
-  // ── Window event handlers ────────────────────────────────────
-
-  const handleWindowFocus = useCallback(() => {
-    if (manualEntryRef.current || autoLoginAttemptedRef.current) return;
-    startAutofillWatcher();
-  }, [startAutofillWatcher]);
-
-  const handleVisibilityChange = useCallback(() => {
-    if (document.hidden) return;
-    if (manualEntryRef.current || autoLoginAttemptedRef.current) return;
-    startAutofillWatcher();
-  }, [startAutofillWatcher]);
-
-  const handlePageshow = useCallback(() => {
-    if (manualEntryRef.current || autoLoginAttemptedRef.current) return;
-    startAutofillWatcher();
-  }, [startAutofillWatcher]);
-
-  // ── Mount: start watcher + window listeners ───────────────────
-
-  useEffect(() => {
     mountedRef.current = true;
     emailRef.current?.focus();
-
-    const explicitLogout = sessionStorage.getItem('pod_admin_explicit_logout');
-    if (explicitLogout === '1') {
-      sessionStorage.removeItem('pod_admin_explicit_logout');
-      autoLoginAttemptedRef.current = true;
-    } else {
-      startAutofillWatcher();
-    }
-
-    window.addEventListener('focus', handleWindowFocus);
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-    window.addEventListener('pageshow', handlePageshow);
-
     return () => {
       mountedRef.current = false;
-      if (successTimerRef.current) {
-        clearTimeout(successTimerRef.current);
-        successTimerRef.current = null;
-      }
-      stopAutofillWatcher();
-      window.removeEventListener('focus', handleWindowFocus);
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-      window.removeEventListener('pageshow', handlePageshow);
+      if (successTimerRef.current) clearTimeout(successTimerRef.current);
     };
-  }, [startAutofillWatcher, handleWindowFocus, handleVisibilityChange, handlePageshow, stopAutofillWatcher]);
-
-  // ── Manual entry detection ────────────────────────────────────
-
-  const handleManualPaste = () => {
-    manualEntryRef.current = true;
-    stopAutofillWatcher();
-  };
-
-  const handleInputFocus = () => {
-    if (manualEntryRef.current || autoLoginAttemptedRef.current || loadingRef.current) return;
-    startAutofillWatcher();
-  };
-
-  // ── Existing login handler (unchanged) ────────────────────────
+  }, []);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -329,27 +203,6 @@ export default function AdminLogin({ onSuccess }: Props) {
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                onInput={(e) => {
-                  if (manualEntryRef.current) return;
-                  const inputType = (e.nativeEvent as InputEvent).inputType ?? '';
-                  if (
-                    inputType === 'insertText' ||
-                    inputType === 'deleteContentBackward' ||
-                    inputType === 'deleteContentForward' ||
-                    inputType === 'insertFromPaste'
-                  ) {
-                    manualEntryRef.current = true;
-                    stopAutofillWatcher();
-                    return;
-                  }
-                  maybeAutoLogin();
-                  if (!autoLoginAttemptedRef.current) startAutofillWatcher();
-                }}
-                onFocus={handleInputFocus}
-                onPaste={handleManualPaste}
-                onAnimationStart={(e) => {
-                  if (e.animationName === 'adminAutofillDetect') startAutofillWatcher();
-                }}
                 required
                 autoComplete="username"
                 className="admin-field-input"
@@ -368,27 +221,6 @@ export default function AdminLogin({ onSuccess }: Props) {
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                onInput={(e) => {
-                  if (manualEntryRef.current) return;
-                  const inputType = (e.nativeEvent as InputEvent).inputType ?? '';
-                  if (
-                    inputType === 'insertText' ||
-                    inputType === 'deleteContentBackward' ||
-                    inputType === 'deleteContentForward' ||
-                    inputType === 'insertFromPaste'
-                  ) {
-                    manualEntryRef.current = true;
-                    stopAutofillWatcher();
-                    return;
-                  }
-                  maybeAutoLogin();
-                  if (!autoLoginAttemptedRef.current) startAutofillWatcher();
-                }}
-                onFocus={handleInputFocus}
-                onPaste={handleManualPaste}
-                onAnimationStart={(e) => {
-                  if (e.animationName === 'adminAutofillDetect') startAutofillWatcher();
-                }}
                 required
                 autoComplete="current-password"
                 className="admin-field-input"

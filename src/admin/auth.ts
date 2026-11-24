@@ -103,7 +103,7 @@ async function refreshSessionRequest(
     const data = await res.json();
 
     if (!res.ok) {
-      return { session: null, error: 'Session expired' };
+      return { session: null, error: [400,401,403].includes(res.status) ? 'Session expired' : 'Connection unavailable' };
     }
 
     const session: AdminSession = {
@@ -114,20 +114,29 @@ async function refreshSessionRequest(
       email: data.user.email,
     };
 
+    if (getStoredSession()?.refresh_token !== refreshToken) return { session: null, error: 'Session changed' };
     persistSession(session);
     return { session, error: null };
   } catch {
-    return { session: null, error: 'Session expired' };
+    return { session: null, error: 'Connection unavailable' };
   }
 }
 
 let refreshInFlight: Promise<{session: AdminSession|null; error: string|null}> | null = null;
 export function refreshSession(refreshToken: string) {
-  refreshInFlight ??= refreshSessionRequest(refreshToken).finally(() => {refreshInFlight = null;});
+  refreshInFlight ??= (async () => {
+    const run = async () => {
+      const stored = getStoredSession();
+      if (stored?.refresh_token !== refreshToken) return {session: stored, error: stored ? null : 'Session changed'};
+      return refreshSessionRequest(refreshToken);
+    };
+    return navigator.locks ? navigator.locks.request(TOKEN_KEY, run) : run();
+  })().finally(() => {refreshInFlight = null;});
   return refreshInFlight;
 }
 
 export async function logout(token: string): Promise<void> {
+  clearSession();
   try {
     await fetchWithTimeout(
       `${SUPABASE_URL}/auth/v1/logout`,
@@ -140,7 +149,6 @@ export async function logout(token: string): Promise<void> {
   } catch {
     // Best-effort — clear local session regardless
   }
-  clearSession();
 }
 
 export async function requestPasswordReset(
@@ -209,15 +217,16 @@ export async function fetchAdminProfile(
 }
 
 export function persistSession(session: AdminSession): void {
-  sessionStorage.setItem(TOKEN_KEY, JSON.stringify(session));
-  localStorage.removeItem(TOKEN_KEY);
+  localStorage.setItem(TOKEN_KEY, JSON.stringify(session));
+  sessionStorage.removeItem(TOKEN_KEY);
 }
 
 export function getStoredSession(): AdminSession | null {
-  const raw = sessionStorage.getItem(TOKEN_KEY) ?? localStorage.getItem(TOKEN_KEY);
+  const raw = localStorage.getItem(TOKEN_KEY) ?? sessionStorage.getItem(TOKEN_KEY);
   if (!raw) return null;
   try {
     const session = JSON.parse(raw) as AdminSession;
+    if (sessionStorage.getItem(TOKEN_KEY)) persistSession(session);
     return session;
   } catch {
     clearSession();

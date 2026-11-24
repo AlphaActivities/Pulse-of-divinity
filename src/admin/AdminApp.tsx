@@ -26,7 +26,9 @@ export default function AdminApp() {
   const [summaryRevision, setSummaryRevision] = useState(0);
   const location = useLocation();
 
+  const [retry, setRetry] = useState(false);
   const verifySession = useCallback(async () => {
+    setRetry(false);
     let session = getStoredSession();
     if (!session) {
       setProfile(null);
@@ -36,13 +38,18 @@ export default function AdminApp() {
 
     if (session.expires_at * 1000 < Date.now() + 30000) {
       const refreshed = await refreshSession(session.refresh_token);
-      if (!refreshed.session) { clearSession(); setProfile(null); setLoading(false); return false; }
+      if (!refreshed.session) {
+        if (getStoredSession()?.refresh_token !== session.refresh_token) return false;
+        if (refreshed.error === 'Session expired') clearSession(); else setRetry(true);
+        setProfile(null); setLoading(false); return false;
+      }
       session = refreshed.session;
     }
     const { profile: adminProfile, error, status } = await fetchAdminProfile(
       session.access_token
     );
 
+    if (getStoredSession()?.access_token !== session.access_token) return false;
     if (status === 401 || status === 403) {
       clearSession();
       setProfile(null);
@@ -51,6 +58,7 @@ export default function AdminApp() {
     }
 
     if (error || !adminProfile) {
+      setRetry(true);
       setProfile(null);
       setLoading(false);
       return false;
@@ -65,8 +73,11 @@ export default function AdminApp() {
     void verifySession();
     const refresh = () => { void verifySession(); };
     const interval = setInterval(refresh, 60000);
+    const storage = (event: StorageEvent) => { if (!event.key || event.key === 'pod_admin_session') refresh(); };
+    window.addEventListener('storage', storage);
+    window.addEventListener('online', refresh);
     window.addEventListener('focus', refresh);
-    return () => { clearInterval(interval); window.removeEventListener('focus', refresh); };
+    return () => { window.removeEventListener('storage',storage); window.removeEventListener('online',refresh); clearInterval(interval); window.removeEventListener('focus', refresh); };
   }, [verifySession]);
 
   const handleLoginSuccess = (newProfile: AdminProfile) => {
@@ -82,6 +93,8 @@ export default function AdminApp() {
   const handleDashboardRevealed = () => {
     setJustLoggedIn(false);
   };
+
+  if (retry) return <main role="alert">Unable to verify your session. <button onClick={() => void verifySession()}>Retry connection</button></main>;
 
   if (loading) {
     return (
