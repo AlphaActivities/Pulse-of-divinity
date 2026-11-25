@@ -161,7 +161,8 @@ export default function StatusSelect({
         closeMenu();
       }
     };
-    const handleUserScroll = () => {
+    const handleUserScroll = (event: Event) => {
+      if (listRef.current?.contains(event.target as Node)) return;
       closeMenu();
     };
     document.addEventListener('mousedown', handleClickOutside);
