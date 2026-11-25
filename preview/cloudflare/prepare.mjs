@@ -43,9 +43,13 @@ const runtimePolish = `<script>
 (() => {
   const removeDiagnostics = () => {
     for (const node of document.querySelectorAll('body *')) {
-      if (node.children.length) continue;
       const text = node.textContent || '';
       if (!text.includes('Live data') || !text.includes('Launch info')) continue;
+      const childHasPanel = [...node.children].some((child) => {
+        const childText = child.textContent || '';
+        return childText.includes('Live data') && childText.includes('Launch info');
+      });
+      if (childHasPanel) continue;
       let target = node;
       for (let i = 0; i < 7 && target.parentElement; i++) {
         const parent = target.parentElement;
