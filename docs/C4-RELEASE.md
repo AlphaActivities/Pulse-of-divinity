@@ -1,5 +1,7 @@
 # C4 implementation and controlled release
 
+> Historical release record. The authoritative backend is `fxxrkwitncaraotvkyte`. The Bolt reference below documents the old setup and must not be used for a new build or rollback.
+
 Specification: the complete nine-page “C4 Darcy Pulse of Divinity Codex Blueprint” supplied November 17, 2026. Missy commit `232babd` was read as a reference only; its repository, database, and deployments were not changed. The Codex cloud environment configuration was not updated.
 
 ## Verified identities and baseline
