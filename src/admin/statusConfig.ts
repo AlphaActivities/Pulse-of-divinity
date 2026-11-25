@@ -15,6 +15,7 @@ export const STATUS_LABELS: Record<string, string> = {
   QUALIFIED: 'Qualified',
   WON: 'Won',
   CLOSED: 'Closed',
+  ARCHIVED: 'Archived',
 };
 
 export const STATUS_OPTIONS = [

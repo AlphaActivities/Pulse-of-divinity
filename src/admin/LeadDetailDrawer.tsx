@@ -451,9 +451,13 @@ export default function LeadDetailDrawer({
                   <label htmlFor="detail-status" className="admin-detail-label">Status</label>
                   <StatusSelect
                     id="detail-status"
-                    options={STATUS_SELECT_OPTIONS}
-                    value={status}
-                    onChange={setStatus}
+                    options={lead.archived ? [{ value: 'ARCHIVED', label: 'Archived' }, { value: 'RESTORE', label: 'Restore' }] : [...STATUS_SELECT_OPTIONS, { value: 'ARCHIVED', label: 'Archive' }]}
+                    value={lead.archived ? 'ARCHIVED' : status}
+                    onChange={(value) => {
+                      if (value === 'ARCHIVED') { if (!lead.archived) setShowArchiveConfirm(true); }
+                      else if (value === 'RESTORE') { void handleRestore(); }
+                      else setStatus(value);
+                    }}
                     disabled={saving}
                     ariaLabel="Lead status"
                     className="admin-detail-select-wrapper"

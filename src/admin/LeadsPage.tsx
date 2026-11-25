@@ -365,8 +365,8 @@ export default function LeadsPage() {
                         </span>
                       </td>
                       <td>
-                        <span className={`admin-status-badge ${statusClass(lead.status)}`}>
-                          {statusLabel(lead.status)}
+                        <span className={`admin-status-badge ${statusClass(lead.archived ? 'ARCHIVED' : lead.status)}`}>
+                          {statusLabel(lead.archived ? 'ARCHIVED' : lead.status)}
                         </span>
                       </td>
                       <td>
@@ -398,8 +398,8 @@ export default function LeadsPage() {
                 >
                   <div className="admin-lead-card-top">
                     <span className="admin-lead-card-name">{lead.name}</span>
-                    <span className={`admin-status-badge ${statusClass(lead.status)}`}>
-                      {statusLabel(lead.status)}
+                    <span className={`admin-status-badge ${statusClass(lead.archived ? 'ARCHIVED' : lead.status)}`}>
+                      {statusLabel(lead.archived ? 'ARCHIVED' : lead.status)}
                     </span>
                   </div>
                   <div className="admin-lead-card-row">
