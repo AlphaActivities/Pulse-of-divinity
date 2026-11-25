@@ -74,6 +74,16 @@ for (const [before, after, count] of leadChanges) {
 }
 writeFileSync(stripeBundle, updatedLeadBundle);
 
+ // Hide only the redundant standalone Archive action beside Save Changes.
+ const standaloneArchiveScript = `<script>(()=>{const apply=()=>{for(const button of document.querySelectorAll('button')){if(button.textContent.trim().toLowerCase()!=='archive')continue;const parent=button.parentElement;if(!parent)continue;const siblings=[...parent.querySelectorAll('button')];if(!siblings.some(b=>b.textContent.trim().toLowerCase()==='save changes'))continue;button.hidden=true;button.style.setProperty('display','none','important');}};const start=()=>{apply();new MutationObserver(apply).observe(document.body,{childList:true,subtree:true,characterData:true});};if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});else start();})();</script>`;
+ for(const path of ['admin/index.html','admin/login/index.html','admin/leads/index.html']){
+   const file='baseline/dist/'+path;
+   const source=readFileSync(file,'utf8');
+   if(!source.includes('</body>'))throw Error('Missing body close in '+path);
+   writeFileSync(file,source.replace('</body>',standaloneArchiveScript+'</body>'));
+ }
+
+
 const crmStyles = 'baseline/dist/assets/main-BpLK6BeW.css';
 const styles = readFileSync(crmStyles, 'utf8');
 const clippedMenu = 'overflow:hidden;transform-origin:top center;isolation:isolate';
