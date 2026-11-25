@@ -1,4 +1,4 @@
-import {readFileSync,mkdirSync,writeFileSync} from 'node:fs';
+import {readFileSync,mkdirSync,writeFileSync,rmSync} from 'node:fs';
 import {createHash} from 'node:crypto';
 import {execFileSync} from 'node:child_process';
 if(createHash('sha256').update(readFileSync('baseline.tar.gz')).digest('hex') !== 'b245e761e83c7198492aa2e546ad2cc55e3ed79f06602c5b932a843246b3c6d9') throw Error('Baseline checksum mismatch');
@@ -36,73 +36,61 @@ const stripeSetup = 'v?i.jsxs(i.Fragment,{children:[!v.configured&&i.jsx("p",{cl
 writeFileSync(stripeBundle, stripeSource.replace(stripeGrid, stripeSetup));
 
 
-// Remove the temporary staging diagnostics panel from the private CRM documents,
-// and keep the lead status menu fully visible on small screens.
-const adminDocuments = ['admin/index.html', 'admin/login/index.html', 'admin/leads/index.html'];
-const runtimePolish = `<script>
-(() => {
-  const removeDiagnostics = () => {
-    for (const node of document.querySelectorAll('body *')) {
-      const text = node.textContent || '';
-      if (!text.includes('Live data') || !text.includes('Launch info')) continue;
-      const childHasPanel = [...node.children].some((child) => {
-        const childText = child.textContent || '';
-        return childText.includes('Live data') && childText.includes('Launch info');
-      });
-      if (childHasPanel) continue;
-      let target = node;
-      for (let i = 0; i < 7 && target.parentElement; i++) {
-        const parent = target.parentElement;
-        if (getComputedStyle(parent).position === 'fixed') { target = parent; break; }
-        target = parent;
-      }
-      target.remove();
-    }
-  };
-
-  const fitStatusMenu = () => {
-    const menu = document.querySelector('.admin-status-select-menu');
-    if (!menu) return;
-    const trigger = menu.parentElement?.querySelector('.admin-status-select-trigger');
-    if (!trigger) return;
-    const rect = trigger.getBoundingClientRect();
-    const menuHeight = menu.scrollHeight;
-    const margin = 12;
-    const roomBelow = window.innerHeight - rect.bottom - margin;
-    if (roomBelow < menuHeight && rect.top > menuHeight + margin) {
-      Object.assign(menu.style, {
-        position: 'fixed',
-        top: Math.max(margin, rect.top - Math.min(menuHeight, window.innerHeight - margin * 2) - 4) + 'px',
-        bottom: 'auto',
-        left: rect.left + 'px',
-        right: 'auto',
-        width: rect.width + 'px',
-        maxHeight: Math.max(120, Math.min(menuHeight, window.innerHeight - margin * 2)) + 'px',
-        overflowY: 'auto',
-        zIndex: '10000'
-      });
-    }
-  };
-
-  const observer = new MutationObserver(() => {
-    removeDiagnostics();
-    requestAnimationFrame(fitStatusMenu);
-  });
-  const start = () => {
-    removeDiagnostics();
-    observer.observe(document.body, { childList: true, subtree: true, characterData: true, attributes: true, attributeFilter: ['class'] });
-    window.addEventListener('resize', fitStatusMenu, { passive: true });
-  };
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start, { once: true });
-  else start();
-})();
-</script>`;
-
-for (const path of adminDocuments) {
+// Strip the launch diagnostics from the prebuilt pages before uploading assets.
+const launchScript = '<script src="/app/launch-check.js"></script>';
+const launchPanel = /<details id="launch-check"[^>]*>[\s\S]*?<\/details>/g;
+for (const path of paths.filter((path) => path.endsWith('.html'))) {
   const file = 'baseline/dist/' + path;
   const source = readFileSync(file, 'utf8');
-  if (!source.includes('</body>')) throw Error('Missing body close in ' + path);
-  if (!source.includes('removeDiagnostics')) {
-    writeFileSync(file, source.replace('</body>', runtimePolish + '</body>'));
+  if (source.split(launchScript).length !== 2 || [...source.matchAll(launchPanel)].length !== 1) {
+    throw Error('Unexpected launch diagnostics in ' + path);
+  }
+  writeFileSync(file, source.replace(launchScript, '').replace(launchPanel, ''));
+}
+rmSync('baseline/dist/app/launch-check.js');
+
+// Apply the staging lead-status behavior to the pinned v8 assets.
+const leadBundle = readFileSync(stripeBundle, 'utf8');
+const leadChanges = [
+  ['CLOSED:"Closed"}', 'CLOSED:"Closed",ARCHIVED:"Archived"}', 1],
+  [
+    'id:"detail-status",options:Ng,value:d,onChange:y',
+    'id:"detail-status",options:o.archived?[{value:"ARCHIVED",label:"Archived"},{value:"RESTORE",label:"Restore"}]:[...Ng,{value:"ARCHIVED",label:"Archived"}],value:o.archived?"ARCHIVED":d,onChange:(value)=>{if(value==="ARCHIVED"){if(!o.archived)z(!0)}else if(value==="RESTORE"){void gi()}else y(value)}',
+    1,
+  ],
+  ['Qa(w.status)}`,children:Yo(w.status)', 'Qa(w.archived?"ARCHIVED":w.status)}`,children:Yo(w.archived?"ARCHIVED":w.status)', 2],
+  [
+    'M=()=>{P()};return document.addEventListener("mousedown",A)',
+    'M=(event)=>{if(!g.current?.contains(event.target))P()};return document.addEventListener("mousedown",A)',
+    1,
+  ],
+];
+let updatedLeadBundle = leadBundle;
+for (const [before, after, count] of leadChanges) {
+  if (updatedLeadBundle.split(before).length !== count + 1) {
+    throw Error('Unexpected v8 lead status markup: ' + before);
+  }
+  updatedLeadBundle = updatedLeadBundle.replaceAll(before, after);
+}
+writeFileSync(stripeBundle, updatedLeadBundle);
+
+const crmStyles = 'baseline/dist/assets/main-BpLK6BeW.css';
+const styles = readFileSync(crmStyles, 'utf8');
+const clippedMenu = 'overflow:hidden;transform-origin:top center;isolation:isolate';
+if (styles.split(clippedMenu).length !== 2) throw Error('Unexpected v8 status menu styles');
+writeFileSync(crmStyles, styles.replace(clippedMenu, 'height:auto;max-height:none;overflow:visible;transform-origin:top center;isolation:isolate'));
+
+// Give the patched assets content-based URLs so installed dashboards refresh them.
+for (const asset of [stripeBundle, crmStyles]) {
+  const filename = asset.split('/').at(-1);
+  const digest = createHash('sha256').update(readFileSync(asset)).digest('hex').slice(0, 12);
+  const updatedFilename = filename.replace(/\.(js|css)$/, `-${digest}.$1`);
+  writeFileSync(asset.replace(filename, updatedFilename), readFileSync(asset));
+  rmSync(asset);
+  for (const path of paths.filter((path) => path.endsWith('.html'))) {
+    const file = 'baseline/dist/' + path;
+    const source = readFileSync(file, 'utf8');
+    if (!source.includes('/assets/' + filename)) throw Error('Missing asset reference in ' + path);
+    writeFileSync(file, source.replaceAll('/assets/' + filename, '/assets/' + updatedFilename));
   }
 }
