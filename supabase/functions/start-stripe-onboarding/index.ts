@@ -1,40 +1,15 @@
 import { createClient } from "npm:@supabase/supabase-js@2.45.0";
 import Stripe from "npm:stripe@17.7.0";
 
+const STAGING_ORIGIN = "https://divinity-crm-review.gta-alpha-activities.workers.dev";
+
 const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Origin": STAGING_ORIGIN,
+  "Cache-Control": "no-store",
+  "Vary": "Origin",
   "Access-Control-Allow-Methods": "POST, OPTIONS",
   "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Client-Info, Apikey",
 };
-
-const VALID_COUNTRIES = new Set(["US", "CA"]);
-const VALID_BUSINESS_TYPES = new Set(["individual", "company", "non_profit"]);
-const MAX_EMAIL_LENGTH = 500;
-
-interface OnboardingPayload {
-  email: string;
-  country: string;
-  business_type: string;
-}
-
-function validatePayload(data: Record<string, unknown>): { valid: boolean; error?: string; payload?: OnboardingPayload } {
-  const email = String(data.email ?? "").trim();
-  const country = String(data.country ?? "").trim().toUpperCase();
-  const business_type = String(data.business_type ?? "").trim();
-
-  if (!email) return { valid: false, error: "Missing email" };
-  if (email.length > MAX_EMAIL_LENGTH) return { valid: false, error: "Email too long" };
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  if (!emailRegex.test(email)) return { valid: false, error: "Invalid email format" };
-
-  if (!country) return { valid: false, error: "Missing country" };
-  if (!VALID_COUNTRIES.has(country)) return { valid: false, error: "Invalid country" };
-
-  if (!business_type) return { valid: false, error: "Missing business_type" };
-  if (!VALID_BUSINESS_TYPES.has(business_type)) return { valid: false, error: "Invalid business_type" };
-
-  return { valid: true, payload: { email, country, business_type } };
-}
 
 async function verifyAdmin(req: Request, supabase: ReturnType<typeof createClient>) {
   const authHeader = req.headers.get("Authorization");
@@ -59,7 +34,7 @@ async function verifyAdmin(req: Request, supabase: ReturnType<typeof createClien
     return { authorized: false, status: 403, error: "Access denied" };
   }
 
-  if (!admin.active) {
+  if (!admin.active || admin.role !== "owner") {
     return { authorized: false, status: 403, error: "Access denied" };
   }
 
@@ -67,6 +42,10 @@ async function verifyAdmin(req: Request, supabase: ReturnType<typeof createClien
 }
 
 Deno.serve(async (req: Request) => {
+  if (req.headers.get("Origin") !== STAGING_ORIGIN) {
+    return new Response(null, { status: 403, headers: { "Cache-Control": "no-store" } });
+  }
+
   if (req.method === "OPTIONS") {
     return new Response(null, { status: 200, headers: corsHeaders });
   }
@@ -79,15 +58,6 @@ Deno.serve(async (req: Request) => {
   }
 
   try {
-    const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
-    if (!stripeKey) {
-      console.error("STRIPE_SECRET_KEY not configured");
-      return new Response(JSON.stringify({ error: "Server configuration error" }), {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
     const supabase = createClient(
       Deno.env.get("SUPABASE_URL")!,
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
@@ -100,8 +70,6 @@ Deno.serve(async (req: Request) => {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
-
-    const body = await req.json().catch(() => ({}));
 
     // Read commerce_settings
     const { data: settings, error: settingsError } = await supabase
@@ -118,71 +86,44 @@ Deno.serve(async (req: Request) => {
       });
     }
 
+    const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
+    if (!stripeKey) {
+      console.error("STRIPE_SECRET_KEY not configured");
+      return new Response(JSON.stringify({ error: "Server configuration error" }), {
+        status: 500,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     const stripe = new Stripe(stripeKey, {
-      apiVersion: "2025-08-27.basil",
       maxNetworkRetries: 2,
     });
 
-    let connectedAccountId = settings.stripe_connected_account_id;
-
-    // Create connected account only if one does not already exist
-    if (!connectedAccountId) {
-      const result = validatePayload(body);
-      if (!result.valid) {
-        return new Response(JSON.stringify({ error: result.error }), {
-          status: 400,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
-
-      const { email, country, business_type } = result.payload!;
-      const account = await stripe.accounts.create({
-        country,
-        email,
-        business_type: business_type as "individual" | "company" | "non_profit",
-        controller: {
-          losses: { payments: "stripe" },
-          fees: { payer: "account" },
-          requirement_collection: "stripe",
-          stripe_dashboard: { type: "full" },
-        },
-        capabilities: {
-          card_payments: { requested: true },
-          transfers: { requested: true },
-        },
+    const connectedAccountId = settings.stripe_connected_account_id;
+    if (!/^acct_[A-Za-z0-9]+$/.test(connectedAccountId ?? "")) {
+      return new Response(JSON.stringify({ error: "An existing Stripe account must be associated first." }), {
+        status: 409,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
-
-      connectedAccountId = account.id;
-
-      // Persist the account ID immediately
-      const { error: updateError } = await supabase
-        .from("commerce_settings")
-        .update({ stripe_connected_account_id: connectedAccountId })
-        .eq("id", 1);
-
-      if (updateError) {
-        console.error("Failed to persist connected account ID:", updateError.message);
-        return new Response(JSON.stringify({ error: "Server configuration error" }), {
-          status: 500,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
     }
+
+    // Check that this platform credential can access the existing account.
+    await stripe.accounts.retrieve(connectedAccountId);
 
     // Create a fresh Account Link for onboarding
     const accountLink = await stripe.accountLinks.create({
-      account: connectedAccountId!,
+      account: connectedAccountId,
       type: "account_onboarding",
-      return_url: "https://pulseofdivinity.com/admin?stripe_onboarding=complete",
-      refresh_url: "https://pulseofdivinity.com/admin?stripe_onboarding=refresh",
+      return_url: STAGING_ORIGIN + "/admin/?stripe_onboarding=complete",
+      refresh_url: STAGING_ORIGIN + "/admin/?stripe_onboarding=refresh",
     });
 
     return new Response(JSON.stringify({ url: accountLink.url }), {
       status: 200,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
-  } catch (err) {
-    console.error("start-stripe-onboarding error:", err);
+  } catch {
+    console.error("start-stripe-onboarding failed");
     return new Response(JSON.stringify({ error: "Internal server error" }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },

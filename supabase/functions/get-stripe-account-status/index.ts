@@ -1,8 +1,12 @@
 import { createClient } from "npm:@supabase/supabase-js@2.45.0";
 import Stripe from "npm:stripe@17.7.0";
 
+const STAGING_ORIGIN = "https://divinity-crm-review.gta-alpha-activities.workers.dev";
+
 const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Origin": STAGING_ORIGIN,
+  "Cache-Control": "no-store",
+  "Vary": "Origin",
   "Access-Control-Allow-Methods": "GET, OPTIONS",
   "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Client-Info, Apikey",
 };
@@ -30,7 +34,7 @@ async function verifyAdmin(req: Request, supabase: ReturnType<typeof createClien
     return { authorized: false, status: 403, error: "Access denied" };
   }
 
-  if (!admin.active) {
+  if (!admin.active || admin.role !== "owner") {
     return { authorized: false, status: 403, error: "Access denied" };
   }
 
@@ -38,6 +42,10 @@ async function verifyAdmin(req: Request, supabase: ReturnType<typeof createClien
 }
 
 Deno.serve(async (req: Request) => {
+  if (req.headers.get("Origin") !== STAGING_ORIGIN) {
+    return new Response(null, { status: 403, headers: { "Cache-Control": "no-store" } });
+  }
+
   if (req.method === "OPTIONS") {
     return new Response(null, { status: 200, headers: corsHeaders });
   }
@@ -50,15 +58,6 @@ Deno.serve(async (req: Request) => {
   }
 
   try {
-    const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
-    if (!stripeKey) {
-      console.error("STRIPE_SECRET_KEY not configured");
-      return new Response(JSON.stringify({ error: "Server configuration error" }), {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
     const supabase = createClient(
       Deno.env.get("SUPABASE_URL")!,
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
@@ -113,8 +112,23 @@ Deno.serve(async (req: Request) => {
       );
     }
 
+    if (!/^acct_[A-Za-z0-9]+$/.test(connectedAccountId)) {
+      return new Response(JSON.stringify({ error: "Server configuration error" }), {
+        status: 500,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
+    if (!stripeKey) {
+      console.error("STRIPE_SECRET_KEY not configured");
+      return new Response(JSON.stringify({ error: "Server configuration error" }), {
+        status: 500,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     const stripe = new Stripe(stripeKey, {
-      apiVersion: "2025-08-27.basil",
       maxNetworkRetries: 2,
     });
 
@@ -160,8 +174,8 @@ Deno.serve(async (req: Request) => {
       }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } },
     );
-  } catch (err) {
-    console.error("get-stripe-account-status error:", err);
+  } catch {
+    console.error("get-stripe-account-status failed");
     return new Response(JSON.stringify({ error: "Internal server error" }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
