@@ -25,3 +25,12 @@ for (const path of ['admin/index.html', 'admin/login/index.html', 'admin/leads/i
   }
   writeFileSync(file, source.replace(viewport, '').replace(statusBar, statusBar.replace('black-translucent', 'black')));
 }
+
+// The verified v8 CRM already renders live Stripe statuses for owners.
+// Explain the unlinked state without offering account creation.
+const stripeBundle = 'baseline/dist/assets/main-4UoMFP3-.js';
+const stripeSource = readFileSync(stripeBundle, 'utf8');
+const stripeGrid = 'v?i.jsxs(i.Fragment,{children:[i.jsxs("div",{className:"admin-stripe-status-grid"';
+if (stripeSource.split(stripeGrid).length !== 2) throw Error('Unexpected Stripe status markup');
+const stripeSetup = 'v?i.jsxs(i.Fragment,{children:[!v.configured&&i.jsx("p",{className:"admin-stripe-banner",children:"Stripe is not linked. Ask the CRM owner to associate the existing Stripe account, then refresh Stripe status."}),i.jsxs("div",{className:"admin-stripe-status-grid"';
+writeFileSync(stripeBundle, stripeSource.replace(stripeGrid, stripeSetup));
