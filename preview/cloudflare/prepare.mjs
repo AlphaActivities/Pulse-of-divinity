@@ -74,6 +74,16 @@ for (const [before, after, count] of leadChanges) {
 }
 writeFileSync(stripeBundle, updatedLeadBundle);
 
+ // Ensure status labels and dots share an opaque, readable foreground.
+ const statusContrastScript = `<script>(()=>{const colors={archived:'#C4BCCB',restore:'#E5C36A'};const apply=()=>{const trigger=document.getElementById('detail-status');if(!trigger)return;const scope=trigger.parentElement;if(!scope)return;for(const el of [trigger,...scope.querySelectorAll('button,[role="option"]')]){const label=el.textContent.trim().toLowerCase();const color=colors[label];if(!color)continue;el.style.setProperty('color',color,'important');el.style.setProperty('opacity','1','important');for(const child of el.querySelectorAll('span,svg')){child.style.setProperty('color',color,'important');child.style.setProperty('opacity','1','important');if(child.tagName==='SPAN'&&!child.textContent.trim()&&getComputedStyle(child).backgroundColor!=='rgba(0, 0, 0, 0)')child.style.setProperty('background-color',color,'important');}}};const start=()=>{apply();new MutationObserver(apply).observe(document.body,{childList:true,subtree:true,characterData:true});};if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});else start();})();</script>`;
+ for(const path of ['admin/index.html','admin/login/index.html','admin/leads/index.html']){
+   const file='baseline/dist/'+path;
+   const source=readFileSync(file,'utf8');
+   if(!source.includes('</body>'))throw Error('Missing body close in '+path);
+   writeFileSync(file,source.replace('</body>',statusContrastScript+'</body>'));
+ }
+
+
  // Hide only the redundant standalone Archive action beside Save Changes.
  const standaloneArchiveScript = `<script>(()=>{const apply=()=>{for(const button of document.querySelectorAll('button')){if(button.textContent.trim().toLowerCase()!=='archive')continue;const parent=button.parentElement;if(!parent)continue;const siblings=[...parent.querySelectorAll('button')];if(!siblings.some(b=>b.textContent.trim().toLowerCase()==='save changes'))continue;button.hidden=true;button.style.setProperty('display','none','important');}};const start=()=>{apply();new MutationObserver(apply).observe(document.body,{childList:true,subtree:true,characterData:true});};if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});else start();})();</script>`;
  for(const path of ['admin/index.html','admin/login/index.html','admin/leads/index.html']){
