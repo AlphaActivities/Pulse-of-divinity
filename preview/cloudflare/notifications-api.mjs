@@ -23,9 +23,10 @@ export async function notifications(request, env, upstream=(...args)=>globalThis
       !request.headers.get('Content-Type')?.startsWith('application/json'))) return reply({error:'Request rejected'},403);
   const authorization = request.headers.get('Authorization');
   if (!authorization?.startsWith('Bearer ')) return reply({error:'Sign in again.'},401);
+  // Workers support manual redirect handling. A redirect response is rejected by each caller.
   const api = (resource, options={}) => upstream('https://'+project+'.supabase.co/'+resource, {
     ...options, headers:{Authorization:authorization, apikey:publicKey, ...options.headers},
-    redirect:'error', signal:AbortSignal.timeout(8000),
+    redirect:'manual', signal:AbortSignal.timeout(8000),
   });
   let stage = 'identity';
   try {
@@ -121,7 +122,7 @@ export async function notifications(request, env, upstream=(...args)=>globalThis
     const push=webpush.generateRequestDetails(subscription,JSON.stringify({kind:'test',id:crypto.randomUUID(),attention_count:count}),{
       TTL:60,vapidDetails:{...vapid,subject:origin},
     });
-    const accepted=await upstream(push.endpoint,{method:push.method,headers:push.headers,body:push.body,redirect:'error',signal:AbortSignal.timeout(8000)});
+    const accepted=await upstream(push.endpoint,{method:push.method,headers:push.headers,body:push.body,redirect:'manual',signal:AbortSignal.timeout(8000)});
     await accepted.body?.cancel();
     if (!accepted.ok) return reply({error:'Provider rejected the test. Refresh registration and try again.'},502);
     await prep('UPDATE devices SET tested=? WHERE id=? AND owner=? AND tested=?',new Date().toISOString(),body.id,profile.id,attempt).run();
@@ -134,12 +135,7 @@ export async function notifications(request, env, upstream=(...args)=>globalThis
       : /DNS|resolved|host/i.test(message) ? 'network DNS'
       : /network|fetch|connection/i.test(message) ? 'network transport'
       : error instanceof Error ? error.name : 'unknown';
-    const detail=stage==='identity' && error instanceof TypeError
-      ? message.replace(/https?:\/\/[^\s)]+/g,'[url]')
-        .replace(/Bearer\s+\S+/gi,'[credential]')
-        .replace(/[A-Za-z0-9_.=-]{24,}/g,'[redacted]')
-        .replace(/[\r\n].*/s,'').slice(0,120) : '';
-    console.error('Notification operation failed',stage,reason,detail);
+    console.error('Notification operation failed',stage,reason);
     return reply({error:'Notification service unavailable ('+stage+'). Try again.'},503);
   }
 }

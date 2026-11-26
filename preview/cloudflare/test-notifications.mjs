@@ -21,14 +21,16 @@ const alternate='10000000-0000-4000-8000-000000000002';
 let sends=0;
 const request=async (address,opts)=>{
   const url=new URL(address);
+  assert.equal(opts.redirect,'manual');
   const token=opts.headers.Authorization;
   const id=token==='Bearer fixture-client'?alternate:primary;
   if (url.hostname==='web.push.apple.com'){
-    assert.equal(opts.redirect,'error');assert.equal(opts.headers['Content-Encoding'],'aes128gcm');assert.ok(opts.body.byteLength>0);
+    assert.equal(opts.redirect,'manual');assert.equal(opts.headers['Content-Encoding'],'aes128gcm');assert.ok(opts.body.byteLength>0);
     sends++;return new Response(null,{status:201});
   }
   if (url.pathname.endsWith('/user') || url.pathname.endsWith('/get-me')) {
     if (token==='Bearer expired') return new Response(null,{status:401});
+    if (token==='Bearer redirected') return new Response(null,{status:302,headers:{Location:'https://untrusted.invalid/'}});
     if (token==='Bearer provider-down') return new Response(null,{status:503});
     return Response.json({id,role:id===primary?'owner':'client'});
   }
@@ -46,6 +48,7 @@ const subscription={endpoint:'https://web.push.apple.com/staging-fixture',keys:{
 assert.equal((await call('settings',undefined,'')).status,401);
 assert.equal((await call('settings',undefined,'expired')).status,401);
 assert.equal((await call('settings',undefined,'provider-down')).status,503);
+assert.equal((await call('settings',undefined,'redirected')).status,503);
 const nativeFetch=globalThis.fetch;
 try {
   globalThis.fetch=function(...args){
