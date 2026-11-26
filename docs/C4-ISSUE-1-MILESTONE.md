@@ -1,5 +1,7 @@
 # C4 issue #1 — inventory and inquiry milestone
 
+> Historical release record. The authoritative backend is `fxxrkwitncaraotvkyte`. The Bolt reference below documents the old setup and must not be used for a new build or rollback.
+
 Scope: `codex/c4-inventory-commissions` only. No main merge/push, production schema migration, customer-record transfer, secret update, Netlify deployment, backend switch, Bolt claim or checkout activation is authorized by this milestone. The earlier production-release runbook is historical preparation, not an instruction to execute during this task.
 
 ## Preservation and source reconciliation (November 19, 2026)
