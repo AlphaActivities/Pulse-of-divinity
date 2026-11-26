@@ -134,7 +134,12 @@ export async function notifications(request, env, upstream=(...args)=>globalThis
       : /DNS|resolved|host/i.test(message) ? 'network DNS'
       : /network|fetch|connection/i.test(message) ? 'network transport'
       : error instanceof Error ? error.name : 'unknown';
-    console.error('Notification operation failed',stage,reason);
+    const detail=stage==='identity' && error instanceof TypeError
+      ? message.replace(/https?:\/\/[^\s)]+/g,'[url]')
+        .replace(/Bearer\s+\S+/gi,'[credential]')
+        .replace(/[A-Za-z0-9_.=-]{24,}/g,'[redacted]')
+        .replace(/[\r\n].*/s,'').slice(0,120) : '';
+    console.error('Notification operation failed',stage,reason,detail);
     return reply({error:'Notification service unavailable ('+stage+'). Try again.'},503);
   }
 }
