@@ -16,7 +16,7 @@ function validated(value) {
   return {endpoint:url.href, keys:{p256dh:value.keys.p256dh, auth:value.keys.auth}};
 }
 
-export async function notifications(request, env, upstream=fetch) {
+export async function notifications(request, env, upstream=(...args)=>globalThis.fetch(...args)) {
   const url = new URL(request.url);
   if (url.origin !== origin) return reply({error:'Not found'},404);
   if (request.method !== 'GET' && (request.method !== 'POST' || request.headers.get('Origin') !== origin ||
@@ -30,9 +30,11 @@ export async function notifications(request, env, upstream=fetch) {
   try {
     const user = await api(app === 'darcy' ? 'functions/v1/get-me' : 'auth/v1/user');
     if (!user.ok) return reply({error:'CRM access required.'},user.status === 401 ? 401 : 403);
+    stage = 'identity response';
     const profile = await user.json();
     if (!uuid.test(profile.id)) return reply({error:'CRM access required.'},403);
     if (app === 'juan') {
+      stage = 'admin authorization';
       const admin = await api('rest/v1/admins?select=id&id=eq.'+profile.id);
       if (!admin.ok || !(await admin.json()).some(row => row.id === profile.id)) return reply({error:'CRM access required.'},403);
     }
