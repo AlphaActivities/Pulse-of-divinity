@@ -127,7 +127,14 @@ export async function notifications(request, env, upstream=(...args)=>globalThis
     await prep('UPDATE devices SET tested=? WHERE id=? AND owner=? AND tested=?',new Date().toISOString(),body.id,profile.id,attempt).run();
     return reply({accepted:true});
   } catch (error) {
-    console.error('Notification operation failed', stage, error instanceof Error ? error.name : 'UnknownError');
+    const message=error instanceof Error ? error.message : '';
+    const reason=/illegal invocation|receiver/i.test(message) ? 'fetch receiver'
+      : /timeout|aborted/i.test(message) ? 'network timeout'
+      : /redirect/i.test(message) ? 'unexpected redirect'
+      : /DNS|resolved|host/i.test(message) ? 'network DNS'
+      : /network|fetch|connection/i.test(message) ? 'network transport'
+      : error instanceof Error ? error.name : 'unknown';
+    console.error('Notification operation failed',stage,reason);
     return reply({error:'Notification service unavailable ('+stage+'). Try again.'},503);
   }
 }

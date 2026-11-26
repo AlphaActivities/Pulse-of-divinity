@@ -19,5 +19,13 @@
       "database_name": "divinity-crm-review-notifications",
       "database_id": "b9f8ae12-853e-427c-b8c8-01ec943f6fbb"
     }
-  ]
+  ],
+  "observability": {
+    "enabled": true,
+    "head_sampling_rate": 1,
+    "logs": {
+      "enabled": true,
+      "invocation_logs": false
+    }
+  }
 }
