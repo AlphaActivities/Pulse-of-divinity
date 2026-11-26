@@ -22,3 +22,9 @@ main > a { display:inline-flex; padding:.65rem 1rem; border:1px solid currentCol
 .pod-panel label { display:flex; align-items:center; gap:.75rem; padding:.85rem; border:1px solid rgba(180,180,210,.22); border-radius:.8rem; }
 .pod-panel input[type=checkbox] { width:1.2rem; height:1.2rem; flex-shrink:0; }
 .pod-panel article,.pod-panel [role=status] { border:1px solid rgba(180,180,210,.24); padding:1.15rem; }
+
+.notification-device-card { padding:clamp(1rem,4vw,1.5rem); margin:1.25rem 0; border:1px solid currentColor; border-radius:1rem; }
+.notification-device-card h2 { margin-top:0; }
+.notification-device-status { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,180px),1fr)); gap:.6rem; margin:1rem 0; }
+.notification-device-status > span { padding:.65rem; border:1px solid rgba(180,180,210,.25); border-radius:.65rem; }
+@media(width < 560px) { .notification-device-card button { width:100%; margin:.25rem 0; } }

@@ -143,9 +143,10 @@ writeFileSync('notification-project.mjs', [
 ].map(([k,v])=>'export const '+k+'='+JSON.stringify(v)+';').join('\n'));
 copyFileSync('notification-badge.js','baseline/dist/notification-badge.js');
 copyFileSync('notification-nav.css','baseline/dist/notification-nav.css');
+copyFileSync('mobile-nav.js','baseline/dist/mobile-nav.js');
 for (const path of ['admin/index.html','admin/login/index.html','admin/leads/index.html',settingsPage]) {
   const file='baseline/dist/'+path;
   const html=readFileSync(file,'utf8');
   writeFileSync(file,html.replace('</head>','<link rel="stylesheet" href="/notification-nav.css"></head>')
-    .replace('</body>','<script defer src="/notification-badge.js"></script></body>'));
+    .replace('</body>','<script defer src="/notification-badge.js"></script><script defer src="/mobile-nav.js"></script></body>'));
 }

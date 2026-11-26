@@ -12,11 +12,26 @@ export default function DeviceSettings({profile, transport, hasHandoffs=true}: {
   const label = /iPhone/i.test(navigator.userAgent) ? "iPhone" : /iPad/i.test(navigator.userAgent) ? "iPad" : /Android/i.test(navigator.userAgent) ? "Android device" : "Desktop browser";const [prefs,setPrefs]=useState<Preferences>({admin_id:profile.id,website_inquiries:true,chatbot_handoffs:true,follow_ups:true});
   const [publicKey,setPublicKey]=useState<string|null>(null);
   const [team,setTeam]=useState<{registered:number;confirmed:number}>();
+  const supported = window.isSecureContext && 'Notification' in window && 'serviceWorker' in navigator && 'PushManager' in window;
+  const [permission,setPermission]=useState<NotificationPermission|'unsupported'>(supported?Notification.permission:'unsupported');
+  const [deviceStatus,setDeviceStatus]=useState('Checking…');
+  const syncDevice=async()=>{
+    setPermission(supported?Notification.permission:'unsupported');
+    if(!supported || !transport){setDeviceStatus('Unavailable');return;}
+    setDeviceStatus('Checking…');
+    try {
+      const registration=await navigator.serviceWorker.getRegistration('/admin/');
+      const local=await registration?.pushManager.getSubscription();
+      if(!local){setDeviceStatus('Not registered');return;}
+      const result=await transport.change('current-device',{endpoint:local.endpoint}) as {registered:boolean};
+      setDeviceStatus(result.registered?'Registered':'Not registered');
+    } catch {setDeviceStatus('Unavailable');}
+  };
   const [ready,setReady]=useState(!transport);
   const refresh=async()=>{
     if(transport){
       const data=await transport.settings();
-      setDevices(data.devices);setPrefs({admin_id:profile.id,...data.preferences});setPublicKey(data.publicKey);setTeam(data.team);setReady(true);
+      setDevices(data.devices);setPrefs({admin_id:profile.id,...data.preferences});setPublicKey(data.publicKey);setTeam(data.team);setReady(true);await syncDevice();
       return;
     }
 const [d,p]=await Promise.all([database<Device[]>('push_devices?select=id,label,last_seen_at,receipt_confirmed_at'),database<Preferences[]>('notification_preferences?select=*')]);setDevices(d);if(p[0])setPrefs(p[0]);};
@@ -27,10 +42,12 @@ const [d,p]=await Promise.all([database<Device[]>('push_devices?select=id,label,
     const key=transport ? publicKey : import.meta.env.VITE_VAPID_PUBLIC_KEY as string|undefined;
     if(!key)throw new Error('Push enrollment is awaiting server configuration.');
     // Permission stays inside the original user gesture.
-    const permission=await Notification.requestPermission();
-    if(permission!=='granted')throw new Error('Notifications were not enabled. You can change permission in your browser or device settings.');
+    const allowed=Notification.permission==='granted'?'granted':await Notification.requestPermission();
+    setPermission(allowed);
+    if(allowed!=='granted')throw new Error('Notifications were not enabled. You can change permission in your browser or device settings.');
     const registration=await navigator.serviceWorker.ready;
-    const bytes=Uint8Array.from(atob(key.replace(/-/g,'+').replace(/_/g,'/')),c=>c.charCodeAt(0));
+    const raw=key.replace(/-/g,'+').replace(/_/g,'/');
+    const bytes=Uint8Array.from(atob(raw.padEnd(Math.ceil(raw.length/4)*4,'=')),c=>c.charCodeAt(0));
     let subscription = await registration.pushManager.getSubscription();
     const enrolledKey = subscription?.options.applicationServerKey;
     if (subscription && (!enrolledKey || new Uint8Array(enrolledKey).length !== bytes.length ||
@@ -64,8 +81,19 @@ const [d,p]=await Promise.all([database<Device[]>('push_devices?select=id,label,
   }
   return <section className="pod-panel"><h1>My Settings</h1><p>Install this dashboard from Safari on iPhone, or Chrome on Android and desktop. Notifications are optional and belong to each device and account.</p>
     
-    <button disabled={busy || !ready} onClick={()=>void action(enable)}>Enable Notifications</button><button disabled={busy} onClick={()=>void action(refresh)}>Refresh My Devices</button>
-    {message&&<p role="status">{message}</p>}
+    <section className="notification-device-card" aria-labelledby="notification-device-title">
+      <h2 id="notification-device-title">Device notifications</h2>
+      <p>On iPhone, open the CRM from its Home Screen icon to enable alerts.</p>
+      <div className="notification-device-status">
+        <span>Browser permission: <strong>{{granted:'Granted',denied:'Blocked',default:'Not requested',unsupported:'Unsupported'}[permission]}</strong></span>
+        <span>Current device: <strong>{deviceStatus}</strong></span>
+      </div>
+      <button disabled={busy || !ready || !supported || permission==='denied' || Boolean(transport && !publicKey)} onClick={()=>void action(enable)}>
+        {deviceStatus==='Registered'?'Refresh this device registration':'Enable Notifications'}
+      </button>
+      <button disabled={busy} onClick={()=>void action(refresh)}>Refresh My Devices</button>
+      {message&&<p role="status">{message}</p>}
+    </section>
     <h2>Notification Preferences</h2>{(['website_inquiries','chatbot_handoffs','follow_ups'] as const).filter(key=>hasHandoffs || key!=='chatbot_handoffs').map(key=><label key={key}><input type="checkbox" checked={prefs[key]} disabled={busy} onChange={e=>void action(()=>preference(key,e.target.checked))}/>{key.replace(/_/g,' ')}</label>)}
     <h2>My Devices</h2>{devices.length===0&&<p>No registered devices.</p>}{devices.map(device=><article className="pod-card" key={device.id}><h3>{device.label}</h3>{device.last_seen_at&&<p>Last registered: {new Date(device.last_seen_at).toLocaleString()}</p>}<p>{device.receipt_confirmed_at?'Receipt confirmed '+new Date(device.receipt_confirmed_at).toLocaleString():'Receipt not confirmed'}</p>
       <button disabled={busy} onClick={()=>void action(()=>sendTest(device.id))}>Send Test</button><button disabled={busy || Boolean(transport && !device.accepted)} onClick={()=>void action(()=>transport?transport.change('confirm',{id:device.id}):database('rpc/pod_confirm_receipt',{p_device_id:device.id}))}>I saw the alert on this device</button><button disabled={busy} onClick={()=>void action(()=>remove(device.id))}>Remove</button></article>)}

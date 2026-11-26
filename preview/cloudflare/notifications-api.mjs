@@ -94,6 +94,14 @@ export async function notifications(request, env, upstream=(...args)=>globalThis
       await prep('INSERT INTO preferences(owner,data) VALUES(?,?) ON CONFLICT(owner) DO UPDATE SET data=excluded.data',profile.id,JSON.stringify(prefs)).run();
       return reply({ok:true});
     }
+    if (path === 'current-device') {
+      let endpoint;
+      try {endpoint = new URL(body.endpoint);} catch {return reply({error:'Invalid device'},422);}
+      if (endpoint.protocol !== 'https:' || endpoint.username || endpoint.password || endpoint.port ||
+          endpoint.href.length > 4096 || !provider.test(endpoint.hostname)) return reply({error:'Invalid device'},422);
+      const match=await prep('SELECT id FROM devices WHERE endpoint=? AND owner=?',endpoint.href,profile.id).first();
+      return reply({registered:Boolean(match)});
+    }
     if (path === 'register') {
       let subscription;
       try {subscription=validated(body.subscription);} catch {return reply({error:'Invalid device subscription'},422);}

@@ -60,6 +60,9 @@ try {
 } finally {globalThis.fetch=nativeFetch;}
 assert.equal((await call('register',{label:'Fixture',subscription})).status,200);
 assert.equal((await call('register',{label:'Other',subscription},'fixture-client')).status,409);
+assert.deepEqual(await (await call('current-device',{endpoint:subscription.endpoint})).json(),{registered:true});
+assert.deepEqual(await (await call('current-device',{endpoint:subscription.endpoint},'fixture-client')).json(),{registered:false});
+assert.equal((await call('current-device',{endpoint:'http://127.0.0.1/'})).status,422);
 const settings=await (await call('settings')).json();
 assert.equal(settings.team.registered,1);assert.equal(settings.devices.length,1);
 const id=settings.devices[0].id;
@@ -69,6 +72,12 @@ assert.equal((await call('test',{id},'fixture-client')).status,429);
 assert.equal((await call('test',{id})).status,200);
 assert.equal((await call('test',{id})).status,429);
 assert.equal((await call('confirm',{id})).status,200);
+assert.equal((await call('register',{label:'Refreshed fixture',subscription})).status,200);
+const refreshed=await (await call('settings')).json();
+assert.equal(refreshed.devices.length,1);
+assert.equal(refreshed.devices[0].id,id);
+assert.ok(refreshed.devices[0].receipt_confirmed_at);
+
 const prefs={website_inquiries:false,follow_ups:true,chatbot_handoffs:true};
 assert.equal((await call('preferences',prefs)).status,200);
 assert.equal((await (await call('settings')).json()).preferences.website_inquiries,false);
