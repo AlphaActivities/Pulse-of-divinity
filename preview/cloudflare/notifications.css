@@ -8,3 +8,17 @@ input:not([type=checkbox]), button { padding: .65rem; border: 1px solid #ac8cbe;
 button { margin: .25rem .5rem .25rem 0; cursor: pointer; }
 button:disabled { opacity: .55; cursor: wait; }
 article, [role=status] { border-radius: .75rem; padding: .9rem; background: #241531; }
+
+/* Premium settings presentation, scoped to the staging settings document. */
+main { padding: clamp(1rem,5vw,2rem); }
+main > a { display:inline-flex; padding:.65rem 1rem; border:1px solid currentColor; border-radius:.75rem; text-decoration:none; }
+.pod-panel { display:flow-root; }
+.pod-panel h1 { font-size:2rem; letter-spacing:-.035em; margin:1.6rem 0 .7rem; }
+.pod-panel h2 { font-size:1.35rem; letter-spacing:-.02em; margin:1.8rem 0 .85rem; }
+.pod-panel p { line-height:1.55; }
+.pod-panel button { min-height:46px; padding:.8rem 1rem; border-radius:.85rem; font-weight:600; }
+.pod-panel > button:first-of-type { width:100%; margin:.5rem 0; }
+.pod-panel > button:nth-of-type(2) { width:100%; margin:.35rem 0; }
+.pod-panel label { display:flex; align-items:center; gap:.75rem; padding:.85rem; border:1px solid rgba(180,180,210,.22); border-radius:.8rem; }
+.pod-panel input[type=checkbox] { width:1.2rem; height:1.2rem; flex-shrink:0; }
+.pod-panel article,.pod-panel [role=status] { border:1px solid rgba(180,180,210,.24); padding:1.15rem; }
