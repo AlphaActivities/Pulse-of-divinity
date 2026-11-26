@@ -42,3 +42,6 @@ verify_jwt = false
 
 [functions.push-delivery]
 verify_jwt = true
+
+[functions.contact-email-delivery]
+verify_jwt = true

@@ -1,4 +1,4 @@
-import {readFileSync,mkdirSync,writeFileSync,rmSync} from 'node:fs';
+import {readFileSync,mkdirSync,writeFileSync,rmSync,copyFileSync,renameSync} from 'node:fs';
 import {createHash} from 'node:crypto';
 import {execFileSync} from 'node:child_process';
 if(createHash('sha256').update(readFileSync('baseline.tar.gz')).digest('hex') !== 'b245e761e83c7198492aa2e546ad2cc55e3ed79f06602c5b932a843246b3c6d9') throw Error('Baseline checksum mismatch');
@@ -72,6 +72,14 @@ for (const [before, after, count] of leadChanges) {
   }
   updatedLeadBundle = updatedLeadBundle.replaceAll(before, after);
 }
+const navLinks = 'children:hg.map(u=>';
+const navEnd = '},u.key)})})]}),i.jsxs("div",{className:"admin-header-right"';
+if (updatedLeadBundle.split(navLinks).length !== 2 || updatedLeadBundle.split(navEnd).length !== 2) {
+  throw Error('Unexpected V8 navigation');
+}
+updatedLeadBundle = updatedLeadBundle
+  .replace(navLinks, 'children:[...hg.map(u=>')
+  .replace(navEnd, '},u.key)}),i.jsx("a",{className:"admin-nav-item",href:"/admin/notifications/",children:"Notifications"},"notifications")]})]}),i.jsxs("div",{className:"admin-header-right"');
 writeFileSync(stripeBundle, updatedLeadBundle);
 
  // Ensure status labels and dots share an opaque, readable foreground.
@@ -113,4 +121,31 @@ for (const asset of [stripeBundle, crmStyles]) {
     if (!source.includes('/assets/' + filename)) throw Error('Missing asset reference in ' + path);
     writeFileSync(file, source.replaceAll('/assets/' + filename, '/assets/' + updatedFilename));
   }
+}
+
+// Bundle only notification settings; the reviewed V8 CRM remains the entry point.
+execFileSync('../../node_modules/.bin/vite', ['build', '--config', 'notifications.vite.mjs'], {stdio: 'inherit'});
+mkdirSync('baseline/dist/admin/notifications', {recursive: true});
+renameSync('baseline/dist/notifications.html', 'baseline/dist/admin/notifications/index.html');
+copyFileSync('../../public/pod-sw.js', 'baseline/dist/pod-sw.js');
+copyFileSync('../../public/app/offline.html', 'baseline/dist/app/offline.html');
+
+const supplied = updatedLeadBundle;
+const settingsPage = 'admin/notifications/index.html';
+
+const ref="fxxrkwitncaraotvkyte";
+const anon=[...supplied.matchAll(/eyJ[\w-]+\.eyJ[\w-]+\.[\w-]+/g)].map(x=>x[0]).find(key=>{
+  try {const claims=JSON.parse(Buffer.from(key.split('.')[1],'base64url').toString());return claims.ref===ref&&claims.role==='anon';} catch {return false;}
+});
+if (!anon) throw Error('Missing staging project anon key');
+writeFileSync('notification-project.mjs', [
+  ['project',ref],['publicKey',anon],['origin',"https://divinity-crm-review.gta-alpha-activities.workers.dev"],['app',"darcy"],['ownerId',null],
+].map(([k,v])=>'export const '+k+'='+JSON.stringify(v)+';').join('\n'));
+copyFileSync('notification-badge.js','baseline/dist/notification-badge.js');
+copyFileSync('notification-nav.css','baseline/dist/notification-nav.css');
+for (const path of ['admin/index.html','admin/login/index.html','admin/leads/index.html',settingsPage]) {
+  const file='baseline/dist/'+path;
+  const html=readFileSync(file,'utf8');
+  writeFileSync(file,html.replace('</head>','<link rel="stylesheet" href="/notification-nav.css"></head>')
+    .replace('</body>','<script defer src="/notification-badge.js"></script></body>'));
 }

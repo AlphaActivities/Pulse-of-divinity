@@ -1,3 +1,4 @@
+import {notifications} from './notifications-api.mjs';
 import {createRemoteJWKSet, jwtVerify} from 'jose';
 
 const issuer = 'https://red-brook-6c8d.cloudflareaccess.com';
@@ -19,6 +20,7 @@ async function authorized(request, env) {
 export default { async fetch(request, env) {
   if (!(await authorized(request, env))) return new Response('Access denied', {status: 403, headers: {'Cache-Control':'no-store'}});
   const url = new URL(request.url);
+  if (url.pathname.startsWith('/api/notifications/')) return notifications(request, env);
   if (url.pathname === '/') return Response.redirect(new URL('/admin/',url),302);
   return env.ASSETS.fetch(new Request(url,request));
 }};

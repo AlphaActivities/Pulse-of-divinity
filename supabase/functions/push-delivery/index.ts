@@ -1,6 +1,7 @@
 import { createClient } from 'npm:@supabase/supabase-js@2.45.0';
 import webpush from 'npm:web-push@3.6.7';
-const headers = {'Access-Control-Allow-Origin':'https://pulseofdivinity.com','Access-Control-Allow-Headers':'authorization,apikey,content-type','Content-Type':'application/json'};
+const stagingOrigin = 'https://divinity-crm-review.gta-alpha-activities.workers.dev';
+const productionOrigin = 'https://pulseofdivinity.com';
 async function validDispatch(supplied: string | null): Promise<boolean> {
   const expected=Deno.env.get('PUSH_DISPATCH_KEY');
   if(!supplied || !expected || expected.length<32)return false;
@@ -9,6 +10,17 @@ async function validDispatch(supplied: string | null): Promise<boolean> {
   let diff=0;for(let i=0;i<a.length;i++)diff|=a[i]^b[i];return diff===0;
 }
 Deno.serve(async req=>{
+  const origin = req.headers.get('Origin');
+  const allowed = origin === stagingOrigin ||
+    (origin === productionOrigin && Deno.env.get('PUSH_ALLOW_PRODUCTION_ORIGIN') === 'true');
+  const headers = {
+    'Content-Type': 'application/json',
+    'Access-Control-Allow-Headers': 'authorization,apikey,content-type',
+    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+    'Vary': 'Origin',
+    ...(allowed && origin ? {'Access-Control-Allow-Origin': origin} : {}),
+  };
+  if (origin && !allowed) return new Response('{}', {status: 403, headers});
   if(req.method==='OPTIONS')return new Response(null,{headers});
   if(req.method!=='POST')return new Response('{}',{status:405,headers});
   try {
@@ -22,16 +34,29 @@ Deno.serve(async req=>{
       const {data}=await db.from('admins').select('id,role,active,project_key').eq('auth_user_id',user.id).single();actor=data;
       if(!actor?.active||actor.project_key!=='pulse-of-divinity'||!['owner','client','staff'].includes(actor.role))return new Response('{}',{status:403,headers});
     }
-    const body=await req.json();
+    let body;
+    try { body = await req.json(); } catch { return new Response('{}', {status: 400, headers}); }
+    if (!body || typeof body !== 'object' || Array.isArray(body)) return new Response('{}', {status: 400, headers});
     const isTest=typeof body.device_id==='string';
     if((isTest&&!actor)||(!isTest&&!scheduled&&actor?.role!=='owner'))return new Response('{}',{status:403,headers});
+    const testDeviceIds = (Deno.env.get('PUSH_TEST_DEVICE_IDS') ?? '').split(',').map(id => id.trim());
+    const testOnly = Deno.env.get('PUSH_ENABLE_BULK') !== 'true';
+    const cutoff = Deno.env.get('PUSH_DELIVER_AFTER');
+    if (isTest && testOnly && !testDeviceIds.includes(body.device_id)) {
+      return new Response(JSON.stringify({error: 'This device is not authorized for staging tests.'}), {status: 403, headers});
+    }
+    if (!isTest && (testOnly || !cutoff || !Number.isFinite(Date.parse(cutoff)))) {
+      return new Response(JSON.stringify({error: 'Scheduled delivery is disabled.'}), {status: 503, headers});
+    }
     const publicKey=Deno.env.get('VAPID_PUBLIC_KEY'),privateKey=Deno.env.get('VAPID_PRIVATE_KEY'),subject=Deno.env.get('VAPID_SUBJECT');
     if(!publicKey||!privateKey||!subject)return new Response(JSON.stringify({error:'Notifications are not configured'}),{status:503,headers});
     webpush.setVapidDetails(subject,publicKey,privateKey);
-    const {data:devices,error:deviceError}=await (isTest?db.from('push_devices').select('*').eq('id',body.device_id).eq('admin_id',actor!.id):db.from('push_devices').select('*'));
+    const {data:devices,error:deviceError}=await (isTest?db.from('push_devices').select('*').eq('id',body.device_id).eq('admin_id',actor!.id):db.from('push_devices').select('*').not('receipt_confirmed_at','is',null));
     if(deviceError)throw deviceError;
-    const {error:queueError}=await db.rpc('pod_queue_followups');
-    if(queueError)throw queueError;
+    if (!isTest) {
+      const {error: queueError} = await db.rpc('pod_queue_followups_after', {p_cutoff: cutoff});
+      if (queueError) throw queueError;
+    }
     const {data:attentionCount,error:countError}=await db.rpc('pod_pending_count');
     if(countError)throw countError;
     let accepted=0,failed=0;
@@ -39,7 +64,7 @@ Deno.serve(async req=>{
       const url=new URL(device.endpoint);
       if(url.protocol!=='https:'||url.port||!(url.hostname==='fcm.googleapis.com'||url.hostname==='web.push.apple.com'||url.hostname.endsWith('.web.push.apple.com')||url.hostname==='updates.push.services.mozilla.com'||url.hostname.endsWith('.push.services.mozilla.com')))continue;
       const {data:preferences}=await db.from('notification_preferences').select('*').eq('admin_id',device.admin_id).maybeSingle();
-      const {data:events,error:eventError}=isTest?{data:[],error:null}:await db.rpc('pod_device_events',{p_device_id:device.id});
+      const {data:events,error:eventError}=isTest?{data:[],error:null}:await db.rpc('pod_device_events_after',{p_device_id:device.id,p_cutoff:cutoff});
       if(eventError)throw eventError;
       for(const event of isTest?[{id:'test',kind:'device_test',lead_id:null}]:(events??[])){
         if(!isTest&&preferences?.[event.kind]===false)continue;
@@ -58,7 +83,7 @@ Deno.serve(async req=>{
           if(error||!claimed)continue;
         }
         try{
-          await webpush.sendNotification({endpoint:device.endpoint,keys:{p256dh:device.p256dh,auth:device.auth}},JSON.stringify({kind:isTest?'device_test':event.kind,id:event.lead_id,attention_count:attentionCount,title:'Pulse of Divinity',body:isTest?'Device test. Confirm receipt in My Settings.':'A collector update needs your attention.'}),{TTL:300});
+          await webpush.sendNotification({endpoint:device.endpoint,keys:{p256dh:device.p256dh,auth:device.auth}},JSON.stringify({kind:isTest?'device_test':event.kind,id:event.lead_id,attention_count:attentionCount,event_id:isTest?null:event.id,title:'Pulse of Divinity',body:isTest?'Device test. Confirm receipt in My Settings.':'A collector update needs your attention.'}),{TTL:300,timeout:10000});
           accepted++;
           if(isTest)await db.from('push_devices').update({last_test_accepted_at:new Date().toISOString(),receipt_confirmed_at:null}).eq('id',device.id);
           if(!isTest)await db.from('push_deliveries').update({status:'accepted'}).eq('event_id',event.id).eq('device_id',device.id);

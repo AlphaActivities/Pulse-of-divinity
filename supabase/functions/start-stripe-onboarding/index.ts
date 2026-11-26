@@ -26,7 +26,7 @@ async function verifyAdmin(req: Request, supabase: ReturnType<typeof createClien
 
   const { data: admin, error: adminError } = await supabase
     .from("admins")
-    .select("id, auth_user_id, display_name, email, role, active")
+    .select("id, role, active, project_key")
     .eq("auth_user_id", userData.user.id)
     .single();
 
@@ -34,7 +34,10 @@ async function verifyAdmin(req: Request, supabase: ReturnType<typeof createClien
     return { authorized: false, status: 403, error: "Access denied" };
   }
 
-  if (!admin.active || admin.role !== "owner") {
+  const onboardingAdminId = Deno.env.get("STRIPE_ONBOARDING_ADMIN_ID");
+  const assignedClient = admin.role === "client" && admin.id === onboardingAdminId;
+  if (!admin.active || admin.project_key !== "pulse-of-divinity" ||
+      (admin.role !== "owner" && !assignedClient)) {
     return { authorized: false, status: 403, error: "Access denied" };
   }
 
@@ -86,6 +89,14 @@ Deno.serve(async (req: Request) => {
       });
     }
 
+    const connectedAccountId = settings.stripe_connected_account_id;
+    if (!/^acct_[A-Za-z0-9]+$/.test(connectedAccountId ?? "")) {
+      return new Response(JSON.stringify({ error: "An existing Stripe account must be associated first." }), {
+        status: 409,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
     if (!stripeKey) {
       console.error("STRIPE_SECRET_KEY not configured");
@@ -98,14 +109,6 @@ Deno.serve(async (req: Request) => {
     const stripe = new Stripe(stripeKey, {
       maxNetworkRetries: 2,
     });
-
-    const connectedAccountId = settings.stripe_connected_account_id;
-    if (!/^acct_[A-Za-z0-9]+$/.test(connectedAccountId ?? "")) {
-      return new Response(JSON.stringify({ error: "An existing Stripe account must be associated first." }), {
-        status: 409,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
 
     // Check that this platform credential can access the existing account.
     await stripe.accounts.retrieve(connectedAccountId);

@@ -3,10 +3,11 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "build": "node prepare.mjs"
+    "build": "npm ci --prefix ../.. --include=dev && node prepare.mjs"
   },
   "dependencies": {
     "jose": "6.2.18",
-    "wrangler": "4.168.0"
+    "wrangler": "4.168.0",
+    "web-push": "3.6.7"
   }
 }

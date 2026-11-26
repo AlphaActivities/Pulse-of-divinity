@@ -17,3 +17,14 @@ SELECT cron.schedule('pod-push-delivery','* * * * *', $schedule$
  );
 $schedule$);
 -- To disable: SELECT cron.unschedule('pod-push-delivery');
+
+-- Run this separately only after the contact email test reaches the intended inbox.
+-- The function defaults to disabled until its allowlist and cutoff are configured.
+-- SELECT cron.schedule('pod-contact-email-delivery','* * * * *', $schedule$
+--  SELECT net.http_post(
+--   url:='https://fxxrkwitncaraotvkyte.supabase.co/functions/v1/contact-email-delivery',
+--   headers:=jsonb_build_object('Content-Type','application/json','Authorization','Bearer '||(SELECT decrypted_secret FROM vault.decrypted_secrets WHERE name='pod_anon_key'),'x-pod-dispatch-key',(SELECT decrypted_secret FROM vault.decrypted_secrets WHERE name='pod_dispatch_key')),
+--   body:='{}'::jsonb
+--  );
+-- $schedule$);
+-- To disable: SELECT cron.unschedule('pod-contact-email-delivery');

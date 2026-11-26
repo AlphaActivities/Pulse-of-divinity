@@ -54,3 +54,28 @@ describe.sequential('intake and delivery hardening',()=>{
  it('prevents unprivileged direct access to internal intake, dispatch and private inventory fields',async()=>{await expect(asUser(staff,'SELECT pod_create_inquiry_record($1)',[payload('direct-local-request')])).rejects.toThrow();await expect(asUser(staff,'SELECT pod_queue_followups()')).rejects.toThrow();await expect(asUser(staff,'SELECT reservation_token FROM artwork_inventory')).rejects.toThrow();});
  it('claims each event/device once and requires a provider-accepted test before receipt',async()=>{const lead=await intake(payload('delivery-claim-request','delivery@example.test'));const device=(await asUser(staff,'SELECT id FROM push_devices')).rows[0] as {id:string};const event=(await db.query<{id:string}>('SELECT id FROM push_outbox WHERE lead_id=$1',[lead.id])).rows[0];const first=(await db.query<{result:boolean}>('SELECT pod_claim_delivery($1,$2) result',[event.id,device.id])).rows[0];expect(first.result).toBe(true);expect((await db.query<{result:boolean}>('SELECT pod_claim_delivery($1,$2) result',[event.id,device.id])).rows[0].result).toBe(false);await expect(asUser(staff,'SELECT pod_confirm_receipt($1)',[device.id])).rejects.toThrow(/test/);});
 });
+
+it('protects old submissions and unconfirmed devices when notifications are enabled', async () => {
+  const cutoff = new Date().toISOString();
+  const lead = await intake(payload('push-cutoff-new-request','push-cutoff@example.test'));
+  const device = (await asUser(staff, 'SELECT id FROM push_devices')).rows[0] as {id: string};
+  const args = [device.id, cutoff];
+  const eligible = () => db.query<{lead_id: string}>('SELECT lead_id FROM pod_device_events_after($1,$2)', args);
+  expect((await eligible()).rows).toEqual([]);
+  await db.query('UPDATE push_devices SET last_test_accepted_at=now() WHERE id=$1',[device.id]);
+  await asUser(staff,'SELECT pod_confirm_receipt($1)',[device.id]);
+  expect((await eligible()).rows).toEqual([{lead_id: lead.id}]);
+  await asUser(staff,'INSERT INTO notification_preferences(admin_id,website_inquiries) VALUES($1,false)', ['20000000-0000-4000-8000-000000000003']);
+  expect((await eligible()).rows).toEqual([]);
+  await expect(asUser(staff,'SELECT * FROM pod_device_events_after($1,$2)',args)).rejects.toThrow();
+});
+
+it('claims only new contact email for opted in admins on the explicit list', async () => {
+  const cutoff = new Date().toISOString();
+  await intake(payload('email-cutoff-new-request','email-cutoff@example.test','general'));
+  const args = [cutoff, ['staff@example.test','owner@example.test','other@example.test','email-cutoff@example.test']];
+  const claim = () => db.query<{email: string}>('SELECT email FROM pod_claim_contact_emails($1,$2)', args);
+  expect((await claim()).rows).toEqual([{email:'owner@example.test'}]);
+  expect((await claim()).rows).toEqual([]);
+  await expect(asUser(owner,'SELECT * FROM pod_claim_contact_emails($1,$2)',args)).rejects.toThrow();
+});

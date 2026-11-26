@@ -26,7 +26,7 @@ async function verifyAdmin(req: Request, supabase: ReturnType<typeof createClien
 
   const { data: admin, error: adminError } = await supabase
     .from("admins")
-    .select("id, auth_user_id, display_name, email, role, active")
+    .select("id, role, active, project_key")
     .eq("auth_user_id", userData.user.id)
     .single();
 
@@ -34,7 +34,10 @@ async function verifyAdmin(req: Request, supabase: ReturnType<typeof createClien
     return { authorized: false, status: 403, error: "Access denied" };
   }
 
-  if (!admin.active || admin.role !== "owner") {
+  const onboardingAdminId = Deno.env.get("STRIPE_ONBOARDING_ADMIN_ID");
+  const assignedClient = admin.role === "client" && admin.id === onboardingAdminId;
+  if (!admin.active || admin.project_key !== "pulse-of-divinity" ||
+      (admin.role !== "owner" && !assignedClient)) {
     return { authorized: false, status: 403, error: "Access denied" };
   }
 
