@@ -26,6 +26,7 @@ export async function notifications(request, env, upstream=fetch) {
   const api = (resource, options={}) => upstream('https://'+project+'.supabase.co/'+resource, {
     ...options, headers:{Authorization:authorization, apikey:publicKey, ...options.headers}, redirect:'error',
   });
+  let stage = 'identity';
   try {
     const user = await api(app === 'darcy' ? 'functions/v1/get-me' : 'auth/v1/user');
     if (!user.ok) return reply({error:'CRM access required.'},user.status === 401 ? 401 : 403);
@@ -36,9 +37,10 @@ export async function notifications(request, env, upstream=fetch) {
       if (!admin.ok || !(await admin.json()).some(row => row.id === profile.id)) return reply({error:'CRM access required.'},403);
     }
     const owner = app === 'darcy' ? profile.role === 'owner' : profile.id === ownerId;
+    stage = 'device database';
     const db = env.NOTIFICATIONS;
     const path = url.pathname.slice('/api/notifications/'.length);
-    const prep = (sql,...args) => db.prepare(sql).bind(...args);
+    const prep = (sql,...args) => args.length ? db.prepare(sql).bind(...args) : db.prepare(sql);
     async function attention() {
       if (app === 'darcy') {
         const res=await api('rest/v1/rpc/pod_attention',{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'});
@@ -110,7 +112,8 @@ export async function notifications(request, env, upstream=fetch) {
     if (!accepted.ok) return reply({error:'Provider rejected the test. Refresh registration and try again.'},502);
     await prep('UPDATE devices SET tested=? WHERE id=? AND owner=? AND tested=?',new Date().toISOString(),body.id,profile.id,attempt).run();
     return reply({accepted:true});
-  } catch {
-    return reply({error:'Notification service unavailable. Try again.'},503);
+  } catch (error) {
+    console.error('Notification operation failed', stage, error instanceof Error ? error.name : 'UnknownError');
+    return reply({error:'Notification service unavailable ('+stage+'). Try again.'},503);
   }
 }
