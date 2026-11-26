@@ -9,7 +9,7 @@ export interface NotificationTransport {
 }
 export default function DeviceSettings({profile, transport, hasHandoffs=true}: {profile:Pick<AdminProfile,'id'>;transport?:NotificationTransport;hasHandoffs?:boolean}) {
   const [devices,setDevices]=useState<Device[]>([]);const [message,setMessage]=useState('');const [busy,setBusy]=useState(false);
-  const [label,setLabel]=useState('My device');const [prefs,setPrefs]=useState<Preferences>({admin_id:profile.id,website_inquiries:true,chatbot_handoffs:true,follow_ups:true});
+  const label = /iPhone/i.test(navigator.userAgent) ? "iPhone" : /iPad/i.test(navigator.userAgent) ? "iPad" : /Android/i.test(navigator.userAgent) ? "Android device" : "Desktop browser";const [prefs,setPrefs]=useState<Preferences>({admin_id:profile.id,website_inquiries:true,chatbot_handoffs:true,follow_ups:true});
   const [publicKey,setPublicKey]=useState<string|null>(null);
   const [team,setTeam]=useState<{registered:number;confirmed:number}>();
   const [ready,setReady]=useState(!transport);
@@ -20,7 +20,7 @@ export default function DeviceSettings({profile, transport, hasHandoffs=true}: {
       return;
     }
 const [d,p]=await Promise.all([database<Device[]>('push_devices?select=id,label,last_seen_at,receipt_confirmed_at'),database<Preferences[]>('notification_preferences?select=*')]);setDevices(d);if(p[0])setPrefs(p[0]);};
-  useEffect(()=>{void refresh().catch(()=>setMessage('Device settings are unavailable. Please retry.'));},[]);
+  useEffect(()=>{void refresh().catch(e=>setMessage(e instanceof Error ? e.message : 'Device settings are unavailable. Please retry.'));},[]);
   async function action(fn:()=>Promise<unknown>){setBusy(true);setMessage('');try{await fn();await refresh();}catch(e){setMessage((e as Error).message);}finally{setBusy(false);}}
   async function enable(){
     if(!('serviceWorker' in navigator)||!('PushManager' in window)||!('Notification' in window))throw new Error('Notifications are not supported in this browser. On iPhone, install from Safari and open the Home Screen app.');
@@ -63,7 +63,7 @@ const [d,p]=await Promise.all([database<Device[]>('push_devices?select=id,label,
     const next={...prefs,[key]:value};if(transport)await transport.change('preferences',next);else await database('notification_preferences?on_conflict=admin_id',next);setPrefs(next);
   }
   return <section className="pod-panel"><h1>My Settings</h1><p>Install this dashboard from Safari on iPhone, or Chrome on Android and desktop. Notifications are optional and belong to each device and account.</p>
-    <label>Device name<input maxLength={80} value={label} onChange={e=>setLabel(e.target.value)}/></label>
+    
     <button disabled={busy || !ready} onClick={()=>void action(enable)}>Enable Notifications</button><button disabled={busy} onClick={()=>void action(refresh)}>Refresh My Devices</button>
     {message&&<p role="status">{message}</p>}
     <h2>Notification Preferences</h2>{(['website_inquiries','chatbot_handoffs','follow_ups'] as const).filter(key=>hasHandoffs || key!=='chatbot_handoffs').map(key=><label key={key}><input type="checkbox" checked={prefs[key]} disabled={busy} onChange={e=>void action(()=>preference(key,e.target.checked))}/>{key.replace(/_/g,' ')}</label>)}
