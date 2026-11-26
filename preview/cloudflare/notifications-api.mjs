@@ -24,19 +24,31 @@ export async function notifications(request, env, upstream=(...args)=>globalThis
   const authorization = request.headers.get('Authorization');
   if (!authorization?.startsWith('Bearer ')) return reply({error:'Sign in again.'},401);
   const api = (resource, options={}) => upstream('https://'+project+'.supabase.co/'+resource, {
-    ...options, headers:{Authorization:authorization, apikey:publicKey, ...options.headers}, redirect:'error',
+    ...options, headers:{Authorization:authorization, apikey:publicKey, ...options.headers},
+    redirect:'error', signal:AbortSignal.timeout(8000),
   });
   let stage = 'identity';
   try {
     const user = await api(app === 'darcy' ? 'functions/v1/get-me' : 'auth/v1/user');
-    if (!user.ok) return reply({error:'CRM access required.'},user.status === 401 ? 401 : 403);
+    if (user.status === 401 || user.status === 403) {
+      return reply({error:user.status === 401 ? 'CRM session expired. Open the dashboard and sign in again.' : 'CRM access required.'},user.status);
+    }
+    if (!user.ok) {
+      console.error('Notification identity upstream status', user.status);
+      return reply({error:'Cannot verify CRM identity right now. Try again.'},503);
+    }
     stage = 'identity response';
     const profile = await user.json();
     if (!uuid.test(profile.id)) return reply({error:'CRM access required.'},403);
     if (app === 'juan') {
       stage = 'admin authorization';
       const admin = await api('rest/v1/admins?select=id&id=eq.'+profile.id);
-      if (!admin.ok || !(await admin.json()).some(row => row.id === profile.id)) return reply({error:'CRM access required.'},403);
+      if (admin.status === 401 || admin.status === 403) return reply({error:'CRM access required.'},admin.status);
+      if (!admin.ok) {
+        console.error('Notification authorization upstream status', admin.status);
+        return reply({error:'Cannot verify CRM membership right now. Try again.'},503);
+      }
+      if (!(await admin.json()).some(row => row.id === profile.id)) return reply({error:'CRM access required.'},403);
     }
     const owner = app === 'darcy' ? profile.role === 'owner' : profile.id === ownerId;
     stage = 'device database';

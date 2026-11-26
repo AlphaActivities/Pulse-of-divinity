@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "build": "npm ci --prefix ../.. --include=dev && node prepare.mjs"
+    "build": "npm ci --prefix ../.. --include=dev && node prepare.mjs && node --disable-warning=ExperimentalWarning test-notifications.mjs"
   },
   "dependencies": {
     "jose": "6.2.18",
