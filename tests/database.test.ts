@@ -21,7 +21,7 @@ beforeAll(async()=>{
  for(const [user,email] of [[owner,'owner'],[client,'client'],[staff,'staff'],[wrong,'other']]){await db.query('INSERT INTO auth.users(id,email) VALUES($1,$2)',[user,email+'@example.test']);await db.query('UPDATE admins SET auth_user_id=$1 WHERE email=$2',[user,email+'@example.test']);}
 },60000);
 afterAll(async()=>{await db.close();});
-describe.sequential('real PostgreSQL migration and role integration',()=>{
+describe('real PostgreSQL migration and role integration',()=>{
  it('replays the complete history on a second fresh database',async()=>{const fresh=new PGlite();try{await migrate(fresh);expect((await fresh.query('SELECT * FROM artwork_inventory')).rows).toHaveLength(2);}finally{await fresh.close();}},60000);
  it('commits once, returns the same ID, and rejects mismatched retries',async()=>{const p=payload('request-key-stable-0001');const first=await intake(p);expect(first.id).toMatch(/^[a-f0-9-]{36}$/);expect((await intake(p)).id).toBe(first.id);expect((await intake(p)).duplicate).toBe(true);await expect(intake({...p,message:'changed'})).rejects.toThrow();});
  it('validates artwork identity and rate limits across fresh request keys',async()=>{await expect(intake({...payload('request-key-invalid-0001'),artworkId:'unapproved'})).rejects.toThrow();for(let i=0;i<5;i++)await intake(payload('rate-limit-request-'+i,'rate@example.test'));await expect(intake(payload('rate-limit-request-6','rate@example.test'))).rejects.toThrow(/wait/);});
@@ -45,7 +45,7 @@ describe.sequential('real PostgreSQL migration and role integration',()=>{
  });
 });
 
-describe.sequential('intake and delivery hardening',()=>{
+describe('intake and delivery hardening',()=>{
  it('rejects null required fields and missing phone for phone contact',async()=>{await expect(intake({submissionId:'missing-fields-request'})).rejects.toThrow(/Invalid/);await expect(intake({...payload('missing-phone-request'),contactMethod:'call'})).rejects.toThrow(/phone/);});
  it('commits a handoff and its single queue event together, then clears resolved attention',async()=>{const request={...payload('atomic-handoff-request','atomic@example.test','general'),handoff:true,_rateKey:'local-ip-atomic'};const lead=await intake(request);await intake(request);expect((await db.query('SELECT * FROM concierge_handoffs WHERE lead_id=$1',[lead.id])).rows).toHaveLength(1);expect((await db.query('SELECT * FROM push_outbox WHERE lead_id=$1',[lead.id])).rows).toHaveLength(1);
  const row=(await db.query<{id:string}>('SELECT id FROM concierge_handoffs WHERE lead_id=$1',[lead.id])).rows[0];await asUser(staff,'SELECT pod_handoff_action($1,$2,$3)',[row.id,'claim',null]);await asUser(staff,'SELECT pod_handoff_action($1,$2,$3)',[row.id,'completed','Help provided']);const result=await asUser(staff,'SELECT pod_attention() result');expect(((result.rows[0] as {result:{items:{id:string}[]}}).result.items).some(item=>item.id===lead.id)).toBe(false);
