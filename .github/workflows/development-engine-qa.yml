@@ -39,6 +39,19 @@ jobs:
           npm audit fix --package-lock-only --ignore-scripts --no-fund || true
           npm audit --json > "$QA_OUT/dependency-candidate-audit.json" || true
           cp package-lock.json "$QA_OUT/dependency-candidate-lock.json"
+      - name: Test dependency candidate in disposable checkout
+        run: |
+          set -euo pipefail
+          candidate="$RUNNER_TEMP/dependency-compatibility"
+          mkdir -p "$candidate"
+          git archive HEAD | tar -x -C "$candidate"
+          cp "$QA_OUT/dependency-candidate-lock.json" "$candidate/package-lock.json"
+          cd "$candidate"
+          npm ci --ignore-scripts --no-audit --no-fund
+          npm run typecheck
+          npm test
+          npm run build
+          printf '%s\n' '{"typecheck":"passed","unitTests":"passed","build":"passed","repositoryLockChanged":false}' > "$QA_OUT/dependency-compatibility.json"
       - name: Verify isolated Supabase authentication and persistence
         env:
           QA_EMAIL: ${{ secrets.QA_EMAIL }}
