@@ -31,6 +31,14 @@ jobs:
           echo "QA_PLAYWRIGHT=$RUNNER_TEMP/engine-tools/node_modules/playwright" >> "$GITHUB_ENV"
       - name: Build, validate, and test
         run: node scripts/development-engine-qa.mjs
+      - name: Evaluate compatible dependency repairs without deployment
+        run: |
+          mkdir -p "$RUNNER_TEMP/dependency-candidate"
+          cp package.json package-lock.json "$RUNNER_TEMP/dependency-candidate/"
+          cd "$RUNNER_TEMP/dependency-candidate"
+          npm audit fix --package-lock-only --ignore-scripts --no-fund || true
+          npm audit --json > "$QA_OUT/dependency-candidate-audit.json" || true
+          cp package-lock.json "$QA_OUT/dependency-candidate-lock.json"
       - name: Verify isolated Supabase authentication and persistence
         env:
           QA_EMAIL: ${{ secrets.QA_EMAIL }}
